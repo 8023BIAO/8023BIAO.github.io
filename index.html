@@ -1,15 +1,15 @@
 <!doctype html>
 <html lang="zh-CN">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>R1 Distill Qwen 7B Chat</title>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-  <style>
-  
-  :root {
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>R1 Distill Qwen 7B Chat</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<style>
+
+:root {
   --primary-color: #1976d2;
   --bg-color: #FFFFFF;
   --text-color: #333333;
@@ -385,60 +385,60 @@ input[type="range"]:hover {
   cursor: pointer;
 }
 
-    /* 原有样式保持不变，新增以下样式 */
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    #system-prompt {
-      width: 100%;
-      padding: 8px;
-      margin: 10px 0;
-      background: var(--input-bg-color);
-      color: var(--input-text-color);
-      border: 1px solid var(--primary-color);
-      border-radius: 4px;
-    }
-  </style>
- </head>
- <body>
-  <div id="chat-container"></div>
-  <div id="input-container">
-   <div class="input-wrapper"><button id="settings-btn">⚙️</button> <button id="theme-toggle-btn">☀️</button> <textarea id="message-input" placeholder="输入消息..." rows="1"></textarea> <button id="send-btn">🚀</button>
-   </div>
-  </div>
-  <div id="settings-modal" class="modal">
-   <div class="modal-content">
-    <h3>模型参数设置</h3>
-    <div class="param-item"><label>System Prompt:</label> <textarea id="system-prompt" rows="3"></textarea>
-    </div>
-    <div class="param-item"><label>max_tokens: <span id="max_tokens-value">512</span></label> <input type="range" id="max_tokens" min="1" max="8192" step="1" value="512">
-    </div>
-    <div class="param-item"><label>temperature: <span id="temperature-value">0.7</span></label> <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
-    </div>
-    <div class="param-item"><label>top_p: <span id="top_p-value">0.7</span></label> <input type="range" id="top_p" min="0.1" max="1" step="0.1" value="0.7">
-    </div>
-    <div class="param-item"><label>top_k: <span id="top_k-value">60</span></label> <input type="range" id="top_k" min="1" max="100" step="1" value="60">
-    </div>
-    <div class="param-item"><label>frequency_penalty: <span id="frequency_penalty-value">0.5</span></label> <input type="range" id="frequency_penalty" min="-2" max="2" step="0.1" value="0.5">
-    </div>
-    <div class="button-group"><button id="reset-defaults">默认</button> <button id="close-settings">关闭</button>
-    </div>
-   </div>
-  </div>
-  <script>
+/* 原有样式保持不变，新增以下样式 */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+#system-prompt {
+  width: 100%;
+  padding: 8px;
+  margin: 10px 0;
+  background: var(--input-bg-color);
+  color: var(--input-text-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+<div id="chat-container"></div>
+<div id="input-container">
+<div class="input-wrapper"><button id="settings-btn">⚙️</button> <button id="theme-toggle-btn">☀️</button> <textarea id="message-input" placeholder="输入消息..." rows="1"></textarea> <button id="send-btn">🚀</button>
+</div>
+</div>
+<div id="settings-modal" class="modal">
+<div class="modal-content">
+<h3>Model parameter settings</h3>
+<div class="param-item"><label>System Prompt:</label> <textarea id="system-prompt" rows="3"></textarea>
+</div>
+<div class="param-item"><label>max_tokens: <span id="max_tokens-value">512</span></label> <input type="range" id="max_tokens" min="1" max="8192" step="1" value="512">
+</div>
+<div class="param-item"><label>temperature: <span id="temperature-value">0.7</span></label> <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
+</div>
+<div class="param-item"><label>top_p: <span id="top_p-value">0.7</span></label> <input type="range" id="top_p" min="0.1" max="1" step="0.1" value="0.7">
+</div>
+<div class="param-item"><label>top_k: <span id="top_k-value">60</span></label> <input type="range" id="top_k" min="1" max="100" step="1" value="60">
+</div>
+<div class="param-item"><label>frequency_penalty: <span id="frequency_penalty-value">0.5</span></label> <input type="range" id="frequency_penalty" min="-2" max="2" step="0.1" value="0.5">
+</div>
+<div class="button-group"><button id="reset-defaults">default</button> <button id="close-settings">hide</button>
+</div>
+</div>
+</div>
+<script>
 const API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
 const MODEL = 'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B';
 
 // 初始化参数
 const DEFAULT_PARAMS = {
-    systemPrompt: '',
-    max_tokens: 512,
-    temperature: 0.7,
-    top_p: 0.7,
-    top_k: 60,
-    frequency_penalty: 0.5
+  systemPrompt: '',
+  max_tokens: 512,
+  temperature: 0.7,
+  top_p: 0.7,
+  top_k: 60,
+  frequency_penalty: 0.5
 };
 
 let modelParams = {...DEFAULT_PARAMS};
@@ -452,64 +452,64 @@ let isUserScrolling = false;
 
 // 从localStorage加载
 function loadParams() {
-    const savedParams = localStorage.getItem('modelParams');
-    const savedSystemPrompt = localStorage.getItem('systemPrompt');
+  const savedParams = localStorage.getItem('modelParams');
+  const savedSystemPrompt = localStorage.getItem('systemPrompt');
 
-    if (savedParams) {
-        modelParams = {...DEFAULT_PARAMS,...JSON.parse(savedParams)};
+  if (savedParams) {
+    modelParams = {...DEFAULT_PARAMS,...JSON.parse(savedParams)};
+  }
+
+  systemPrompt = savedSystemPrompt || '';
+  document.getElementById('system-prompt').value = systemPrompt;
+
+  // 更新UI
+  Object.keys(modelParams).forEach(key => {
+    const element = document.getElementById(key);
+    if (element) {
+      element.value = modelParams[key];
+      document.getElementById(`${key}-value`).textContent = modelParams[key];
     }
-
-    systemPrompt = savedSystemPrompt || '';
-    document.getElementById('system-prompt').value = systemPrompt;
-
-    // 更新UI
-    Object.keys(modelParams).forEach(key => {
-        const element = document.getElementById(key);
-        if (element) {
-            element.value = modelParams[key];
-            document.getElementById(`${key}-value`).textContent = modelParams[key];
-        }
-    });
+  });
 }
 
 // 保存参数
 function saveParams() {
-    localStorage.setItem('modelParams', JSON.stringify(modelParams));
-    localStorage.setItem('systemPrompt', systemPrompt);
+  localStorage.setItem('modelParams', JSON.stringify(modelParams));
+  localStorage.setItem('systemPrompt', systemPrompt);
 }
 
 // 恢复默认参数
 function resetToDefaults() {
-    modelParams = {...DEFAULT_PARAMS};
-    systemPrompt = '';
-    document.getElementById('system-prompt').value = '';
+  modelParams = {...DEFAULT_PARAMS};
+  systemPrompt = '';
+  document.getElementById('system-prompt').value = '';
 
-    Object.keys(DEFAULT_PARAMS).forEach(key => {
-        const element = document.getElementById(key);
-        if (element) {
-            element.value = DEFAULT_PARAMS[key];
-            document.getElementById(`${key}-value`).textContent = DEFAULT_PARAMS[key];
-        }
-    });
-    saveParams();
+  Object.keys(DEFAULT_PARAMS).forEach(key => {
+    const element = document.getElementById(key);
+    if (element) {
+      element.value = DEFAULT_PARAMS[key];
+      document.getElementById(`${key}-value`).textContent = DEFAULT_PARAMS[key];
+    }
+  });
+  saveParams();
 }
 
 // 事件绑定
 document.getElementById('reset-defaults').addEventListener('click', resetToDefaults);
 document.getElementById('system-prompt').addEventListener('input', (e) => {
-    systemPrompt = e.target.value;
-    saveParams();
+  systemPrompt = e.target.value;
+  saveParams();
 });
 
 // 绑定滑块事件
 document.querySelectorAll('input[type="range"]').forEach(input => {
-    input.addEventListener('input', (e) => {
-        const param = e.target.id;
-        const value = parseFloat(e.target.value);
-        modelParams[param] = value;
-        document.getElementById(`${param}-value`).textContent = value;
-        saveParams();
-    });
+  input.addEventListener('input', (e) => {
+    const param = e.target.id;
+    const value = parseFloat(e.target.value);
+    modelParams[param] = value;
+    document.getElementById(`${param}-value`).textContent = value;
+    saveParams();
+  });
 });
 
 // 显示/隐藏设置模态框
@@ -519,209 +519,209 @@ const closeSettings = document.getElementById('close-settings');
 settingsBtn.addEventListener('click', () => settingsModal.style.display = 'block');
 closeSettings.addEventListener('click', () => settingsModal.style.display = 'none');
 window.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-        settingsModal.style.display = 'none';
-    }
+  if (e.target === settingsModal) {
+    settingsModal.style.display = 'none';
+  }
 });
 
 // 初始化时加载参数
 loadParams();
 
 function appendMessage(content, isUser = false) {
-    const container = document.createElement('div');
-    container.className = `message-container ${isUser? 'user-message-container' : 'bot-message-container'}`;
+  const container = document.createElement('div');
+  container.className = `message-container ${isUser? 'user-message-container' : 'bot-message-container'}`;
 
-    const bubble = document.createElement('div');
-    bubble.className = `message-bubble ${isUser? 'user-message-bubble' : 'bot-message-bubble'}`;
-    if (isUser) {
-        // 用户消息使用 innerText
-        bubble.innerText = content;
+  const bubble = document.createElement('div');
+  bubble.className = `message-bubble ${isUser? 'user-message-bubble' : 'bot-message-bubble'}`;
+  if (isUser) {
+    // 用户消息使用 innerText
+    bubble.innerText = content;
     } else {
-        // AI 消息使用 marked 转换 Markdown
-        bubble.innerHTML = marked.parse(content);
-        // 代码高亮
-        bubble.querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightElement(block);
-        });
-    }
+    // AI 消息使用 marked 转换 Markdown
+    bubble.innerHTML = marked.parse(content);
+    // 代码高亮
+    bubble.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightElement(block);
+    });
+  }
 
-    container.appendChild(bubble);
-    chatContainer.appendChild(container);
-    if (!isUserScrolling) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-    return container;
+  container.appendChild(bubble);
+  chatContainer.appendChild(container);
+  if (!isUserScrolling) {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+  return container;
 }
 
 async function sendMessage() {
-    const message = messageInput.value.trim();
-    if (!message) {
-        return;
+  const message = messageInput.value.trim();
+  if (!message) {
+    return;
+  }
+
+  // 删除提示信息
+  const tipMessage = document.getElementById('tip-message');
+  if (tipMessage) {
+    tipMessage.remove();
+  }
+
+  const sendBtn = document.getElementById('send-btn');
+  sendBtn.classList.add('sending');
+
+  appendMessage(message, true);
+  // 将用户消息添加到对话历史中
+  conversationHistory.push({ role: 'user', content: message });
+  messageInput.value = '';
+
+  const botContainer = appendMessage('', false);
+  const botBubble = botContainer.querySelector('.message-bubble');
+  let finalAnswer = '';
+  let reasoningContent = '';
+
+  // 创建思考内容元素
+  const reasoningContentDiv = document.createElement('div');
+  reasoningContentDiv.className ='reasoning-content';
+
+  const answerText = document.createElement('div');
+
+  const reasoningToggle = document.createElement('div');
+  reasoningToggle.className = 'toggle-reasoning';
+
+  // 调整元素添加顺序
+  botBubble.appendChild(reasoningToggle);
+  botBubble.appendChild(reasoningContentDiv);
+  botBubble.appendChild(answerText);
+
+  // 添加闪烁动画
+  botBubble.classList.add('blinking');
+
+  // 构建消息历史
+  let messages = [];
+  if (systemPrompt) {
+    messages.push({ role:'system', content: systemPrompt });
+  }
+  messages = [...messages,...conversationHistory];
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh'
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: messages,
+        stream: true,
+        temperature: modelParams.temperature,
+        top_p: modelParams.top_p,
+        top_k: modelParams.top_k,
+        frequency_penalty: modelParams.frequency_penalty,
+        max_tokens: modelParams.max_tokens,
+        n: 1
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // 删除提示信息
-    const tipMessage = document.getElementById('tip-message');
-    if (tipMessage) {
-        tipMessage.remove();
-    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let hasReasoning = false; // 新增：跟踪是否有思考内容
+    let isAnswerStarted = false;
 
-    const sendBtn = document.getElementById('send-btn');
-    sendBtn.classList.add('sending');
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    appendMessage(message, true);
-    // 将用户消息添加到对话历史中
-    conversationHistory.push({ role: 'user', content: message });
-    messageInput.value = '';
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n').filter(line => line.trim());
 
-    const botContainer = appendMessage('', false);
-    const botBubble = botContainer.querySelector('.message-bubble');
-    let finalAnswer = '';
-    let reasoningContent = '';
+      for (const line of lines) {
+        try {
+          const data = JSON.parse(line.replace('data: ', ''));
+          const content = data.choices[0].delta.content || '';
+          const reasoning = data.choices[0].delta.reasoning_content || '';
 
-    // 创建思考内容元素
-    const reasoningContentDiv = document.createElement('div');
-    reasoningContentDiv.className ='reasoning-content';
+          if (reasoning || content) {
+            // 有内容时停止闪烁动画
+            botBubble.classList.remove('blinking');
+          }
 
-    const answerText = document.createElement('div');
+          if (reasoning) {
+            hasReasoning = true; // 标记存在思考内容
+            reasoningContent += reasoning;
+            reasoningContentDiv.innerHTML = marked.parse(reasoningContent);
+            // 代码高亮
+            reasoningContentDiv.querySelectorAll('pre code').forEach((block) => {
+              hljs.highlightElement(block);
+            });
+            reasoningContentDiv.classList.add('show');
+          }
 
-    const reasoningToggle = document.createElement('div');
-    reasoningToggle.className = 'toggle-reasoning';
-
-    // 调整元素添加顺序
-    botBubble.appendChild(reasoningToggle);
-    botBubble.appendChild(reasoningContentDiv);
-    botBubble.appendChild(answerText);
-
-    // 添加闪烁动画
-    botBubble.classList.add('blinking');
-
-    // 构建消息历史
-    let messages = [];
-    if (systemPrompt) {
-        messages.push({ role:'system', content: systemPrompt });
-    }
-    messages = [...messages,...conversationHistory];
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh'
-            },
-            body: JSON.stringify({
-                model: MODEL,
-                messages: messages,
-                stream: true,
-                temperature: modelParams.temperature,
-                top_p: modelParams.top_p,
-                top_k: modelParams.top_k,
-                frequency_penalty: modelParams.frequency_penalty,
-                max_tokens: modelParams.max_tokens,
-                n: 1
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let hasReasoning = false; // 新增：跟踪是否有思考内容
-        let isAnswerStarted = false;
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n').filter(line => line.trim());
-
-            for (const line of lines) {
-                try {
-                    const data = JSON.parse(line.replace('data: ', ''));
-                    const content = data.choices[0].delta.content || '';
-                    const reasoning = data.choices[0].delta.reasoning_content || '';
-
-                    if (reasoning || content) {
-                        // 有内容时停止闪烁动画
-                        botBubble.classList.remove('blinking');
-                    }
-
-                    if (reasoning) {
-                        hasReasoning = true; // 标记存在思考内容
-                        reasoningContent += reasoning;
-                        reasoningContentDiv.innerHTML = marked.parse(reasoningContent);
-                        // 代码高亮
-                        reasoningContentDiv.querySelectorAll('pre code').forEach((block) => {
-                            hljs.highlightElement(block);
-                        });
-                        reasoningContentDiv.classList.add('show');
-                    }
-
-                    if (content) {
-                        if (!isAnswerStarted && hasReasoning) {
-                            // 正式回答开始时隐藏思考内容
-                            reasoningContentDiv.classList.remove('show');
-                            reasoningToggle.textContent = '展开思考过程';
-                            isAnswerStarted = true;
-                        }
-                        finalAnswer += content;
-                        answerText.innerHTML = marked.parse(finalAnswer);
-                        // 代码高亮
-                        answerText.querySelectorAll('pre code').forEach((block) => {
-                            hljs.highlightElement(block);
-                        });
-                        if (!isUserScrolling) {
-                            chatContainer.scrollTop = chatContainer.scrollHeight;
-                        }
-                    }
-                } catch (e) {
-                    console.error('解析错误:', e);
-                }
+          if (content) {
+            if (!isAnswerStarted && hasReasoning) {
+              // 正式回答开始时隐藏思考内容
+              reasoningContentDiv.classList.remove('show');
+              reasoningToggle.textContent = '展开思考过程';
+              isAnswerStarted = true;
             }
+            finalAnswer += content;
+            answerText.innerHTML = marked.parse(finalAnswer);
+            // 代码高亮
+            answerText.querySelectorAll('pre code').forEach((block) => {
+              hljs.highlightElement(block);
+            });
+            if (!isUserScrolling) {
+              chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+          }
+          } catch (e) {
+          console.error('解析错误:', e);
         }
+      }
+    }
 
-        // 将 AI 回复添加到对话历史中
-        conversationHistory.push({ role: 'assistant', content: finalAnswer });
+    // 将 AI 回复添加到对话历史中
+    conversationHistory.push({ role: 'assistant', content: finalAnswer });
 
-        // 修改：仅在存在思考内容时显示切换按钮
-        if (hasReasoning) {
-            reasoningToggle.style.display = 'block';
-            reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
-        } else {
-            reasoningToggle.style.display = 'none';
-        }
+    // 修改：仅在存在思考内容时显示切换按钮
+    if (hasReasoning) {
+      reasoningToggle.style.display = 'block';
+      reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
+      } else {
+      reasoningToggle.style.display = 'none';
+    }
 
     } catch (error) {
-        // 停止闪烁动画
-        botBubble.classList.remove('blinking');
-        let errorMessage = '对话出错，请稍后再试';
-        if (error.message.includes('NetworkError')) {
-            errorMessage = '网络连接出现问题，请检查网络。';
-        } else if (error.message.includes('HTTP error')) {
-            errorMessage = `服务器错误: ${error.message.split(' ')[3]}`;
-        }
-        answerText.innerText = errorMessage;
-        botBubble.classList.add('error-message');
-
-        console.error('请求错误:', error);
-    } finally {
-        sendBtn.classList.remove('sending');
+    // 停止闪烁动画
+    botBubble.classList.remove('blinking');
+    let errorMessage = '对话出错，请稍后再试';
+    if (error.message.includes('NetworkError')) {
+      errorMessage = '网络连接出现问题，请检查网络。';
+      } else if (error.message.includes('HTTP error')) {
+      errorMessage = `服务器错误: ${error.message.split(' ')[3]}`;
     }
+    answerText.innerText = errorMessage;
+    botBubble.classList.add('error-message');
+
+    console.error('请求错误:', error);
+    } finally {
+    sendBtn.classList.remove('sending');
+  }
 }
 
 function toggleReasoning(element, reasoningContent) {
-    reasoningContent.classList.toggle('show');
-    element.textContent = reasoningContent.classList.contains('show')? '收起思考过程' : '展开思考过程';
+  reasoningContent.classList.toggle('show');
+  element.textContent = reasoningContent.classList.contains('show')? '收起思考过程' : '展开思考过程';
 }
 
 function toggleTheme() {
-    isDarkTheme =!isDarkTheme;
-    document.body.setAttribute('data-theme', isDarkTheme? 'dark' : 'light');
-    themeToggleBtn.textContent = isDarkTheme? '☀️' : '🌙';
-    localStorage.setItem('theme', isDarkTheme? 'dark' : 'light');
+  isDarkTheme =!isDarkTheme;
+  document.body.setAttribute('data-theme', isDarkTheme? 'dark' : 'light');
+  themeToggleBtn.textContent = isDarkTheme? '☀️' : '🌙';
+  localStorage.setItem('theme', isDarkTheme? 'dark' : 'light');
 }
 
 const sendBtn = document.getElementById('send-btn');
@@ -730,52 +730,52 @@ themeToggleBtn.addEventListener('click', toggleTheme);
 
 const messageInput = document.getElementById('message-input');
 messageInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-    }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+  }
 });
 
 messageInput.addEventListener('input', () => {
-    messageInput.style.height = 'auto';
-    messageInput.style.height = messageInput.scrollHeight + 'px';
+  messageInput.style.height = 'auto';
+  messageInput.style.height = messageInput.scrollHeight + 'px';
 });
 
 // 添加消息点击功能
 const chatContainer = document.getElementById('chat-container');
 chatContainer.addEventListener('click', (e) => {
-    if (e.target.closest('.message-bubble')) {
-        // 添加视觉反馈
-        e.target.closest('.message-bubble').style.transform ='scale(0.99)';
-        setTimeout(() => {
-            e.target.closest('.message-bubble').style.transform = '';
-        }, 200);
-    }
+  if (e.target.closest('.message-bubble')) {
+    // 添加视觉反馈
+    e.target.closest('.message-bubble').style.transform ='scale(0.99)';
+    setTimeout(() => {
+      e.target.closest('.message-bubble').style.transform = '';
+    }, 200);
+  }
 });
 
 window.onbeforeunload = function () {
-    if (conversationHistory.length > 0) {
-        return '是否刷新本页面？这将导致丢失本页面聊天记录';
-    }
+  if (conversationHistory.length > 0) {
+    return '是否刷新本页面？这将导致丢失本页面聊天记录';
+  }
 };
 
 chatContainer.addEventListener('scroll', function () {
-    const isAtBottom = chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight;
-    isUserScrolling =!isAtBottom;
+  const isAtBottom = chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight;
+  isUserScrolling =!isAtBottom;
 });
 
 // 页面加载时添加提示信息
 window.addEventListener('load', function () {
-    const tipMessage = document.createElement('div');
-    tipMessage.id = 'tip-message';
-    tipMessage.className = `message-container bot-message-container`;
+  const tipMessage = document.createElement('div');
+  tipMessage.id = 'tip-message';
+  tipMessage.className = `message-container bot-message-container`;
 
-    const bubble = document.createElement('div');
-    bubble.className = `message-bubble bot-message-bubble`;
-    bubble.innerText ='siliconflow free api \n DeepSeek R1 Distill Qwen 7b 32k';
-    tipMessage.appendChild(bubble);
-    chatContainer.appendChild(tipMessage);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+  const bubble = document.createElement('div');
+  bubble.className = `message-bubble bot-message-bubble`;
+  bubble.innerText ='siliconflow free api \n DeepSeek R1 Distill Qwen 7b 32k';
+  tipMessage.appendChild(bubble);
+  chatContainer.appendChild(tipMessage);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
 });
 </script>
- </body>
+</body>
 </html>
