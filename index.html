@@ -407,45 +407,45 @@ input[type="range"]:hover {
 <body>
 <div id="chat-container"></div>
 <div id="input-container">
-  <div class="input-wrapper">
-    <button id="settings-btn">⚙️</button>
-    <button id="theme-toggle-btn">☀️</button>
-    <textarea id="message-input" placeholder="Enter message..." rows="1"></textarea>
-    <button id="send-btn">🚀</button>
-  </div>
+<div class="input-wrapper">
+<button id="settings-btn">⚙️</button>
+<button id="theme-toggle-btn">☀️</button>
+<textarea id="message-input" placeholder="Enter message..." rows="1"></textarea>
+<button id="send-btn">🚀</button>
+</div>
 </div>
 <div id="settings-modal" class="modal">
-  <div class="modal-content">
-    <h3>Model parameter settings</h3>
-    <div class="param-item">
-      <label>System Prompt:</label>
-      <textarea id="system-prompt" rows="3"></textarea>
-    </div>
-    <div class="param-item">
-      <label>max_tokens: <span id="max_tokens-value">512</span></label>
-      <input type="range" id="max_tokens" min="1" max="8192" step="1" value="512">
-    </div>
-    <div class="param-item">
-      <label>temperature: <span id="temperature-value">0.7</span></label>
-      <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
-    </div>
-    <div class="param-item">
-      <label>top_p: <span id="top_p-value">0.7</span></label>
-      <input type="range" id="top_p" min="0.1" max="1" step="0.1" value="0.7">
-    </div>
-    <div class="param-item">
-      <label>top_k: <span id="top_k-value">60</span></label>
-      <input type="range" id="top_k" min="1" max="100" step="1" value="60">
-    </div>
-    <div class="param-item">
-      <label>frequency_penalty: <span id="frequency_penalty-value">0.5</span></label>
-      <input type="range" id="frequency_penalty" min="-2" max="2" step="0.1" value="0.5">
-    </div>
-    <div class="button-group">
-      <button id="reset-defaults">default</button>
-      <button id="close-settings">hide</button>
-    </div>
-  </div>
+<div class="modal-content">
+<h3>Model parameter settings</h3>
+<div class="param-item">
+<label>System Prompt:</label>
+<textarea id="system-prompt" rows="3"></textarea>
+</div>
+<div class="param-item">
+<label>max_tokens: <span id="max_tokens-value">512</span></label>
+<input type="range" id="max_tokens" min="1" max="8192" step="1" value="512">
+</div>
+<div class="param-item">
+<label>temperature: <span id="temperature-value">0.7</span></label>
+<input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
+</div>
+<div class="param-item">
+<label>top_p: <span id="top_p-value">0.7</span></label>
+<input type="range" id="top_p" min="0.1" max="1" step="0.1" value="0.7">
+</div>
+<div class="param-item">
+<label>top_k: <span id="top_k-value">60</span></label>
+<input type="range" id="top_k" min="1" max="100" step="1" value="60">
+</div>
+<div class="param-item">
+<label>frequency_penalty: <span id="frequency_penalty-value">0.5</span></label>
+<input type="range" id="frequency_penalty" min="-2" max="2" step="0.1" value="0.5">
+</div>
+<div class="button-group">
+<button id="reset-defaults">default</button>
+<button id="close-settings">hide</button>
+</div>
+</div>
 </div>
 <script>
 function debounce(func, wait) {
@@ -560,10 +560,10 @@ function appendMessage(content, isUser = false) {
 
   const bubble = document.createElement('div');
   bubble.className = `message-bubble ${isUser? 'user-message-bubble' : 'bot-message-bubble'}`;
-  
+
   if (isUser) {
     bubble.innerText = content;
-  } else {
+    } else {
     bubble.innerHTML = marked.parse(content);
     bubble.querySelectorAll('pre code').forEach((block) => {
       hljs.highlightElement(block);
@@ -674,7 +674,7 @@ async function sendMessage() {
           if (content) {
             if (!isAnswerStarted && hasReasoning) {
               reasoningContentDiv.classList.remove('show');
-              reasoningToggle.textContent = 'Expand the thought process';
+              reasoningToggle.textContent = 'ThinKing ▼';
               isAnswerStarted = true;
             }
             finalAnswer += content;
@@ -686,7 +686,7 @@ async function sendMessage() {
               chatContainer.scrollTop = chatContainer.scrollHeight;
             }
           }
-        } catch (e) {
+          } catch (e) {
           console.error('Parsing error:', e);
         }
       }
@@ -694,33 +694,37 @@ async function sendMessage() {
 
     conversationHistory.push({ role: 'assistant', content: finalAnswer });
 
-    if (hasReasoning) {
-      reasoningToggle.style.display = 'block';
-      reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
-    } else {
-      reasoningToggle.style.display = 'none';
-    }
+  if (hasReasoning) {
+    reasoningToggle.style.display = 'block';
+    reasoningToggle.innerHTML = 'ThinKing ▼'; 
+    reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
+  } else {
+    reasoningToggle.style.display = 'none';
+  }
 
-  } catch (error) {
+
+    } catch (error) {
     loadingSpinner.remove();
     let errorMessage = 'There was an error in the conversation, please try again later';
     if (error.message.includes('NetworkError')) {
       errorMessage = 'If there is a problem with the network connection, please check the network.';
-    } else if (error.message.includes('HTTP error')) {
+      } else if (error.message.includes('HTTP error')) {
       errorMessage = `Server error: ${error.message.split(' ')[3]}`;
     }
     answerText.innerText = errorMessage;
     botBubble.classList.add('error-message');
 
     console.error('The request is incorrect:', error);
-  } finally {
+    } finally {
     sendBtn.classList.remove('sending');
   }
 }
 
 function toggleReasoning(element, reasoningContent) {
   reasoningContent.classList.toggle('show');
-  element.textContent = reasoningContent.classList.contains('show')? 'Collapse the thought process' : 'Expand the thought process';
+  element.innerHTML = reasoningContent.classList.contains('show') 
+    ? 'ThinKing ▲' 
+    : 'ThinKing ▼'; 
 }
 
 function toggleTheme() {
