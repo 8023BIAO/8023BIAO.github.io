@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工业计算器</title>
+  <style>
+:root {
+  --primary-color: #1976d2;
+  --bg-color: #FFFFFF;
+  --text-color: #333333;
+  --input-bg-color: #F8F9FA;
+  --input-text-color: #333333;
+  --message-bg-color: #F8F9FA;
+  --message-text-color: #333333;
+}
+
+[data-theme="dark"] {
+  --primary-color: #5f98c7;
+  --bg-color: #1a1a1a;
+  --text-color: #f0f0f0;
+  --input-bg-color: #2d2d2d;
+  --input-text-color: #E0E0E0;
+  --message-bg-color: #2d2d2d;
+  --message-text-color: #E0E0E0;
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  background: var(--primary-color);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: white;
+  font-size: 18px;
+}
+
+.calculators {
+  max-width: 800px;
+  margin: 60px auto 0;
+}
+
+.calc-container {
+  background: var(--message-bg-color);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.calc-container h3 {
+  color: var(--primary-color);
+  margin-bottom: 16px;
+}
+
+.input-group {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+input {
+  padding: 12px;
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  background: var(--input-bg-color);
+  color: var(--input-text-color);
+  font-size: 16px;
+}
+
+.result-box {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--bg-color);
+  border-radius: 8px;
+  border: 2px solid var(--primary-color);
+  text-align: center;
+  font-weight: bold;
+}
+
+.result-value {
+  color: var(--primary-color);
+  font-size: 1.2em;
+  margin-left: 8px;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+  
+  .calculators {
+    margin-top: 40px;
+  }
+  
+  .input-group {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+ </head>
+ <body><button class="theme-toggle">☀️</button> <!-- 新增的米数计算器 -->
+  <div class="calc-container">
+   <h3>卷纸米数计算器</h3>
+   <div class="input-group"><input type="number" id="net-weight" placeholder="净重 (kg)" step="1"> <input type="number" id="grammage" placeholder="克重 (g/m²)" step="1"> <input type="number" id="width" placeholder="宽度 (m)" step="0.01">
+   </div>
+   <div class="result-box">
+    计算结果：<span class="result-value" id="length-result">0</span> 米
+   </div>
+  </div>
+  <div class="calculators"><!-- 调刀计算器 -->
+   <div class="calc-container">
+    <h3>调刀计算器 [(总长 - 规格)/2 + 边距]</h3>
+    <div class="input-group"><input type="number" id="total-length" placeholder="总长 (mm)" step="1"> <input type="number" id="spec" placeholder="规格 (mm)" step="1"> <input type="number" id="margin" placeholder="边距 (mm)" value="100" step="1">
+    </div>
+    <div class="result-box">
+     计算结果：<span class="result-value" id="knife-result">0</span> mm
+    </div>
+   </div>
+  </div>
+  <script>
+// 主题切换功能
+let isDarkTheme = localStorage.getItem('theme') === 'dark';
+const themeToggle = document.querySelector('.theme-toggle');
+
+function toggleTheme() {
+  isDarkTheme = !isDarkTheme;
+  document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
+  themeToggle.textContent = isDarkTheme ? '☀️' : '🌙';
+  localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+}
+
+// 初始化主题
+document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
+themeToggle.textContent = isDarkTheme ? '☀️' : '🌙';
+themeToggle.addEventListener('click', toggleTheme);
+
+// 新增米数计算逻辑
+function calculateLength() {
+  try {
+    const netWeight = parseFloat(document.getElementById('net-weight').value) || 0;
+    const grammage = parseFloat(document.getElementById('grammage').value) || 0;
+    const width = parseFloat(document.getElementById('width').value) || 0;
+    
+    const result = (netWeight * 1000) / (grammage * width);
+    document.getElementById('length-result').textContent = result.toFixed(2);
+  } catch (e) {
+    document.getElementById('length-result').textContent = "输入错误";
+  }
+}
+
+// 调刀计算逻辑
+function calculateKnife() {
+  try {
+    const total = parseFloat(document.getElementById('total-length').value) || 0;
+    const spec = parseFloat(document.getElementById('spec').value) || 0;
+    const margin = parseFloat(document.getElementById('margin').value) || 100;
+    
+    const result = (total - spec) / 2 + margin;
+    document.getElementById('knife-result').textContent = result.toFixed(1);
+  } catch (e) {
+    document.getElementById('knife-result').textContent = "输入错误";
+  }
+}
+
+// 绑定新输入事件
+['net-weight', 'grammage', 'width'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calculateLength);
+});
+
+['total-length', 'spec', 'margin'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calculateKnife);
+});
+
+// 初始计算
+calculateEnergy();
+calculateKnife();
+</script>
+ </body>
+</html>
