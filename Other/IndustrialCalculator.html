@@ -100,27 +100,27 @@ input {
   body {
     padding: 10px;
   }
-  
+
   .calculators {
     margin-top: 40px;
   }
-  
+
   .input-group {
     grid-template-columns: 1fr;
   }
 }
 </style>
  </head>
- <body><button class="theme-toggle">☀️</button> <!-- 新增的米数计算器 -->
+ <body><button class="theme-toggle">☀️</button> <!-- 卷纸米数计算器 -->
   <div class="calc-container">
    <h3>卷纸米数计算器</h3>
-   <div class="input-group"><input type="number" id="net-weight" placeholder="净重 (kg)" step="1"> <input type="number" id="grammage" placeholder="克重 (g/m²)" step="1"> <input type="number" id="width" placeholder="宽度 (m)" step="0.01">
+   <div class="input-group"><input type="number" id="net-weight" placeholder="净重 (kg)" step="1"> <input type="number" id="grammage" placeholder="克重 (g/m²)" step="1"> <input type="number" id="width" placeholder="宽度 (m)" step="0.01"> <input type="number" id="tube-diameter" placeholder="纸筒直径 (mm)" value="98" step="1">
    </div>
    <div class="result-box">
     计算结果：<span class="result-value" id="length-result">0</span> 米
    </div>
-  </div>
-  <div class="calculators"><!-- 调刀计算器 -->
+  </div><!-- 调刀计算器 -->
+  <div class="calculators">
    <div class="calc-container">
     <h3>调刀计算器 [(总长 - 规格)/2 + 边距]</h3>
     <div class="input-group"><input type="number" id="total-length" placeholder="总长 (mm)" step="1"> <input type="number" id="spec" placeholder="规格 (mm)" step="1"> <input type="number" id="margin" placeholder="边距 (mm)" value="100" step="1">
@@ -147,14 +147,28 @@ document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
 themeToggle.textContent = isDarkTheme ? '☀️' : '🌙';
 themeToggle.addEventListener('click', toggleTheme);
 
-// 新增米数计算逻辑
+// 卷纸米数计算逻辑（优化版）
 function calculateLength() {
   try {
     const netWeight = parseFloat(document.getElementById('net-weight').value) || 0;
     const grammage = parseFloat(document.getElementById('grammage').value) || 0;
     const width = parseFloat(document.getElementById('width').value) || 0;
-    
-    const result = (netWeight * 1000) / (grammage * width);
+    const tubeDiameter = (parseFloat(document.getElementById('tube-diameter').value) || 98) / 1000;
+
+    // 计算纸筒重量
+    const tubeCircumference = Math.PI * tubeDiameter;
+    const tubeArea = tubeCircumference * width;
+    const tubeWeightKg = (tubeArea * grammage) / 1000;
+
+    // 计算有效重量
+    const paperWeight = netWeight - tubeWeightKg;
+    if (paperWeight < 0) {
+      document.getElementById('length-result').textContent = "净重不足";
+      return;
+    }
+
+    // 计算最终米数
+    const result = (paperWeight * 1000) / (grammage * width);
     document.getElementById('length-result').textContent = result.toFixed(2);
   } catch (e) {
     document.getElementById('length-result').textContent = "输入错误";
@@ -167,7 +181,7 @@ function calculateKnife() {
     const total = parseFloat(document.getElementById('total-length').value) || 0;
     const spec = parseFloat(document.getElementById('spec').value) || 0;
     const margin = parseFloat(document.getElementById('margin').value) || 100;
-    
+
     const result = (total - spec) / 2 + margin;
     document.getElementById('knife-result').textContent = result.toFixed(1);
   } catch (e) {
@@ -175,8 +189,8 @@ function calculateKnife() {
   }
 }
 
-// 绑定新输入事件
-['net-weight', 'grammage', 'width'].forEach(id => {
+// 绑定输入事件
+['net-weight', 'grammage', 'width', 'tube-diameter'].forEach(id => {
   document.getElementById(id).addEventListener('input', calculateLength);
 });
 
@@ -184,8 +198,8 @@ function calculateKnife() {
   document.getElementById(id).addEventListener('input', calculateKnife);
 });
 
-// 初始计算
-calculateEnergy();
+// 初始化计算
+calculateLength();
 calculateKnife();
 </script>
  </body>
