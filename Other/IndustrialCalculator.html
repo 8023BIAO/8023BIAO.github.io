@@ -3,204 +3,251 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>工业计算器</title>
+  <title>卷纸参数计算</title>
   <style>
-:root {
-  --primary-color: #1976d2;
-  --bg-color: #FFFFFF;
-  --text-color: #333333;
-  --input-bg-color: #F8F9FA;
-  --input-text-color: #333333;
-  --message-bg-color: #F8F9FA;
-  --message-text-color: #333333;
-}
+    :root {
+      --primary-color: #1976d2;
+      --bg-color: #FFFFFF;
+      --text-color: #333333;
+      --input-bg-color: #F8F9FA;
+      --input-text-color: #333333;
+      --message-bg-color: #F8F9FA;
+      --message-text-color: #333333;
+      --transition-speed: 0.3s;
+    }
 
-[data-theme="dark"] {
-  --primary-color: #5f98c7;
-  --bg-color: #1a1a1a;
-  --text-color: #f0f0f0;
-  --input-bg-color: #2d2d2d;
-  --input-text-color: #E0E0E0;
-  --message-bg-color: #2d2d2d;
-  --message-text-color: #E0E0E0;
-}
+    [data-theme="dark"] {
+      --primary-color: #5f98c7;
+      --bg-color: #1a1a1a;
+      --text-color: #f0f0f0;
+      --input-bg-color: #2d2d2d;
+      --input-text-color: #E0E0E0;
+      --message-bg-color: #2d2d2d;
+      --message-text-color: #E0E0E0;
+    }
 
-body {
-  background: var(--bg-color);
-  color: var(--text-color);
-  min-height: 100vh;
-  padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      transition: background var(--transition-speed) ease;
+    }
 
-.theme-toggle {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  width: 40px;
-  height: 40px;
-  background: var(--primary-color);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  color: white;
-  font-size: 18px;
-}
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 40px;
+      height: 40px;
+      background: var(--primary-color);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      color: white;
+      font-size: 18px;
+      transition: transform 0.2s ease;
+    }
 
-.calculators {
-  max-width: 800px;
-  margin: 60px auto 0;
-}
+    .theme-toggle:hover {
+      transform: scale(1.1);
+    }
 
-.calc-container {
-  background: var(--message-bg-color);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
+    .calculators {
+      max-width: 800px;
+      margin: 60px auto 0;
+    }
 
-.calc-container h3 {
-  color: var(--primary-color);
-  margin-bottom: 16px;
-}
+    .calc-container {
+      background: var(--message-bg-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all var(--transition-speed) ease;
+    }
 
-.input-group {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
+    .calc-container h3 {
+      color: var(--primary-color);
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 8px;
+    }
 
-input {
-  padding: 12px;
-  border: 1px solid var(--primary-color);
-  border-radius: 8px;
-  background: var(--input-bg-color);
-  color: var(--input-text-color);
-  font-size: 16px;
-}
+    .input-group {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
 
-.result-box {
-  margin-top: 16px;
-  padding: 12px;
-  background: var(--bg-color);
-  border-radius: 8px;
-  border: 2px solid var(--primary-color);
-  text-align: center;
-  font-weight: bold;
-}
+    input {
+      padding: 12px;
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      background: var(--input-bg-color);
+      color: var(--input-text-color);
+      font-size: 16px;
+      transition: border-color var(--transition-speed) ease;
+    }
 
-.result-value {
-  color: var(--primary-color);
-  font-size: 1.2em;
-  margin-left: 8px;
-}
+    input:focus {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
 
-@media (max-width: 600px) {
-  body {
-    padding: 10px;
-  }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
 
-  .calculators {
-    margin-top: 40px;
-  }
+    .result-box {
+      padding: 16px;
+      background: var(--bg-color);
+      border-radius: 8px;
+      border: 2px solid var(--primary-color);
+      text-align: center;
+      font-weight: bold;
+      transition: transform 0.2s ease;
+    }
 
-  .input-group {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
+    .result-box:hover {
+      transform: translateY(-2px);
+    }
+
+    .result-value {
+      color: var(--primary-color);
+      font-size: 1.3em;
+      margin-left: 8px;
+      font-family: monospace;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      .calculators {
+        margin-top: 40px;
+      }
+      .input-group {
+        grid-template-columns: 1fr;
+      }
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
  </head>
- <body><button class="theme-toggle">☀️</button> <!-- 卷纸米数计算器 -->
+ <body>
+  <button class="theme-toggle">☀️</button> <!-- 卷纸计算模块 -->
   <div class="calc-container">
-   <h3>卷纸米数计算器</h3>
-   <div class="input-group"><input type="number" id="net-weight" placeholder="净重 (kg)" step="1"> <input type="number" id="grammage" placeholder="克重 (g/m²)" step="1"> <input type="number" id="width" placeholder="宽度 (m)" step="0.01"> <input type="number" id="tube-diameter" placeholder="纸筒直径 (mm)" value="98" step="1">
+   <h3>卷纸参数计算</h3>
+   <div class="input-group">
+    <input type="number" id="netWeight" placeholder="净重 (kg)" step="0.01" min="0"> <input type="number" id="grammage" placeholder="克重 (g/m²)" step="0.01" min="0"> <input type="number" id="width" placeholder="宽度 (cm)" step="0.01" min="0"> <input type="number" id="tubeDiameter" placeholder="空纸筒直径 (mm)" value="98" step="1" min="0"> <input type="number" id="cutCount" placeholder="分切卷数量" value="2" step="1" min="1">
    </div>
-   <div class="result-box">
-    计算结果：<span class="result-value" id="length-result">0</span> 米
-   </div>
-  </div><!-- 调刀计算器 -->
-  <div class="calculators">
-   <div class="calc-container">
-    <h3>调刀计算器 [(总长 - 规格)/2 + 边距]</h3>
-    <div class="input-group"><input type="number" id="total-length" placeholder="总长 (mm)" step="1"> <input type="number" id="spec" placeholder="规格 (mm)" step="1"> <input type="number" id="margin" placeholder="边距 (mm)" value="100" step="1">
+   <div class="result-grid">
+    <div class="result-box">
+     纸卷总长度约：<span class="result-value" id="lengthResult">0</span> m
     </div>
     <div class="result-box">
-     计算结果：<span class="result-value" id="knife-result">0</span> mm
+     分切后单卷长度约：<span class="result-value" id="lengthResultAfterCut">0</span> m
+    </div>
+    <div class="result-box">
+     推荐张力范围：<span class="result-value" id="tensionAdvice">0</span> kg
     </div>
    </div>
   </div>
   <script>
-// 主题切换功能
-let isDarkTheme = localStorage.getItem('theme') === 'dark';
-const themeToggle = document.querySelector('.theme-toggle');
+    // 常量配置
+    const TENSION_MIN_RATIO = 0.02; // 张力下限系数
+    const TENSION_MAX_RATIO = 0.045; // 张力上限系数
 
-function toggleTheme() {
-  isDarkTheme = !isDarkTheme;
-  document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
-  themeToggle.textContent = isDarkTheme ? '☀️' : '🌙';
-  localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
-}
+    // 主题管理模块
+    const themeToggle = document.querySelector('.theme-toggle');
+    let isDarkTheme = localStorage.getItem('theme') === 'dark';
 
-// 初始化主题
-document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
-themeToggle.textContent = isDarkTheme ? '☀️' : '🌙';
-themeToggle.addEventListener('click', toggleTheme);
-
-// 卷纸米数计算逻辑（优化版）
-function calculateLength() {
-  try {
-    const netWeight = parseFloat(document.getElementById('net-weight').value) || 0;
-    const grammage = parseFloat(document.getElementById('grammage').value) || 0;
-    const width = parseFloat(document.getElementById('width').value) || 0;
-    const tubeDiameter = (parseFloat(document.getElementById('tube-diameter').value) || 98) / 1000;
-
-    // 计算纸筒重量
-    const tubeCircumference = Math.PI * tubeDiameter;
-    const tubeArea = tubeCircumference * width;
-    const tubeWeightKg = (tubeArea * grammage) / 1000;
-
-    // 计算有效重量
-    const paperWeight = netWeight - tubeWeightKg;
-    if (paperWeight < 0) {
-      document.getElementById('length-result').textContent = "净重不足";
-      return;
+    function toggleTheme() {
+      isDarkTheme = !isDarkTheme;
+      document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
+      themeToggle.textContent = isDarkTheme ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
     }
 
-    // 计算最终米数
-    const result = (paperWeight * 1000) / (grammage * width);
-    document.getElementById('length-result').textContent = result.toFixed(2);
-  } catch (e) {
-    document.getElementById('length-result').textContent = "输入错误";
-  }
-}
+    // 输入验证模块
+    function validateInput(value, min=0) {
+      return Math.max(parseFloat(value) || min, min);
+    }
 
-// 调刀计算逻辑
-function calculateKnife() {
-  try {
-    const total = parseFloat(document.getElementById('total-length').value) || 0;
-    const spec = parseFloat(document.getElementById('spec').value) || 0;
-    const margin = parseFloat(document.getElementById('margin').value) || 100;
+    // 计算核心模块
+    function calculatePaperParams() {
+      try {
+        // 输入值标准化处理
+        const netWeight = validateInput(document.getElementById('netWeight').value);
+        const grammage = validateInput(document.getElementById('grammage').value);
+        const width = validateInput(document.getElementById('width').value) / 100; // cm转m
+        const tubeDiameter = validateInput(document.getElementById('tubeDiameter').value) / 1000; // mm转m
+        const cutCount = validateInput(document.getElementById('cutCount').value, 1);
 
-    const result = (total - spec) / 2 + margin;
-    document.getElementById('knife-result').textContent = result.toFixed(1);
-  } catch (e) {
-    document.getElementById('knife-result').textContent = "输入错误";
-  }
-}
+        // 纸筒参数计算
+        const tubeWeight = (Math.PI * tubeDiameter * width * grammage) / 1000;
+        const paperWeight = netWeight - tubeWeight;
 
-// 绑定输入事件
-['net-weight', 'grammage', 'width', 'tube-diameter'].forEach(id => {
-  document.getElementById(id).addEventListener('input', calculateLength);
-});
+        // 异常处理
+        if (paperWeight < 0) return showError("净重不足");
+        if (grammage === 0 || width === 0) return showError("无效参数");
 
-['total-length', 'spec', 'margin'].forEach(id => {
-  document.getElementById(id).addEventListener('input', calculateKnife);
-});
+        // 核心计算逻辑
+        const length = (paperWeight * 1000) / (grammage * width);
+        const lengthAfterCut = length / cutCount;
+        
+        // 几何参数计算
+        const paperThickness = (paperWeight / grammage) * 0.1; // mm
+        const totalRadius = (tubeDiameter/2 + paperThickness) * 1000;
+        const singleRadius = (tubeDiameter/2 + paperThickness/cutCount) * 1000;
 
-// 初始化计算
-calculateLength();
-calculateKnife();
-</script>
+        // 张力建议
+        const tensionMin = netWeight * TENSION_MIN_RATIO;
+        const tensionMax = netWeight * TENSION_MAX_RATIO;
+
+        // 更新显示
+        updateDisplay({
+          length: length.toFixed(2),
+          lengthAfterCut: lengthAfterCut.toFixed(2),
+          totalDiameter: (totalRadius * 2).toFixed(2),
+          singleDiameter: (singleRadius * 2).toFixed(2),
+          tension: `${tensionMin.toFixed(1)} - ${tensionMax.toFixed(1)}`,
+        });
+
+      } catch (e) {
+        showError("计算异常");
+      }
+    }
+
+    // 显示更新模块
+    function updateDisplay(data) {
+      document.getElementById('lengthResult').textContent = data.length;
+      document.getElementById('lengthResultAfterCut').textContent = data.lengthAfterCut;
+      document.getElementById('tensionAdvice').textContent = data.tension;
+    }
+
+    // 错误处理模块
+    function showError(message) {
+      const elements = document.querySelectorAll('.result-value');
+      elements.forEach(el => el.textContent = message);
+    }
+
+    // 事件监听器（使用事件委托）
+    document.querySelector('.calc-container').addEventListener('input', (e) => {
+      if (e.target.tagName === 'INPUT') calculatePaperParams();
+    });
+
+    // 初始化系统
+    document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
+    themeToggle.textContent = isDarkTheme ? '☀️' : '🌙';
+    themeToggle.addEventListener('click', toggleTheme);
+    calculatePaperParams();
+  </script>
  </body>
 </html>
