@@ -194,6 +194,7 @@
         <div class="input-group">
             <input type="text" id="formulaInput" placeholder="输入算式，如104*11 + 91">
             <input type="number" id="cutCount2" placeholder="分切卷数" value="2" min="1" step="1">
+            <input type="number" id="heightLimit" placeholder="限制高度(mm)" value="1600" min="0" step="1">
         </div>
         <div class="result-grid">
             <div class="result-box">
@@ -238,8 +239,8 @@
                 const paperWeight = netWeight - tubeWeight;
 
                 // 异常处理
-                if (paperWeight < 0) return showError("净重不足");
-                if (grammage === 0 || width === 0) return showError("无效参数");
+                if (paperWeight < 0) return showError("净重不足", ['lengthResult', 'lengthResultAfterCut', 'tensionAdvice']);
+                if (grammage === 0 || width === 0) return showError("无效参数", ['lengthResult', 'lengthResultAfterCut', 'tensionAdvice']);
 
                 // 核心计算逻辑
                 const length = (paperWeight * 1000) / (grammage * width);
@@ -264,14 +265,35 @@
                 });
 
             } catch (e) {
-                showError("计算异常");
+                showError("计算异常", ['lengthResult', 'lengthResultAfterCut', 'tensionAdvice']);
             }
         }
 
-        // 新增独立计算函数
+        // 新机起点距离
         function calculateMachineDistance() {
-            const inputValue = validateInput(document.getElementById('machineInput').value);
-            const result = (1800 - inputValue) / 2 + 100;
+            const inputElement = document.getElementById('machineInput');
+            const inputValue = inputElement.value;
+
+            // 首先检查输入是否为空
+            if (inputValue === '') {
+                return showError("无效参数", ['machineResult']);
+            }
+
+            // 尝试将输入转换为数字
+            const numValue = parseFloat(inputValue);
+
+            // 检查转换后的数字是否为有效数字
+            if (isNaN(numValue)) {
+                return showError("无效参数", ['machineResult']);
+            }
+
+            // 检查输入值是否在有效范围内
+            if (numValue < 0 || numValue > 1800) {
+                return showError("无效输入", ['machineResult']);
+            }
+
+            // 输入验证通过，进行计算
+            const result = (1800 - numValue) / 2 + 100;
             document.getElementById('machineResult').textContent = result.toFixed(0);
         }
 
@@ -290,6 +312,7 @@
         function calculateSplitAdvice() {
             const formula = document.getElementById('formulaInput').value.trim();
             const cutCount = parseInt(document.getElementById('cutCount2').value) || 1;
+            const heightLimit = validateInput(document.getElementById('heightLimit').value, 1);
 
             // 合并相同规格并计算总卷数
             const itemsMap = new Map();
@@ -307,10 +330,10 @@
 
             itemsMap.forEach((total, width) => {
                 totalRolls += total;
-                const maxPer = Math.floor(1600 / width); // 每栋最大容量
+                const maxPer = Math.floor(heightLimit / width); // 每栋最大容量
 
                 if (maxPer === 0) {
-                    advice.push(`<strong>${width}mm</strong> 宽度超过1.6米`);
+                    advice.push(`<strong>${width}mm</strong> 小于最低高度`);
                     return;
                 }
 
@@ -351,9 +374,13 @@
         }
 
         // 错误处理模块
-        function showError(message) {
-            const elements = document.querySelectorAll('.result-value');
-            elements.forEach(el => el.textContent = message);
+        function showError(message, elementIds) {
+            elementIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = message;
+                }
+            });
         }
 
         // 事件监听器（使用事件委托）
@@ -364,6 +391,7 @@
         // 事件监听
         document.getElementById('formulaInput').addEventListener('input', calculateSplitAdvice);
         document.getElementById('cutCount2').addEventListener('input', calculateSplitAdvice);
+        document.getElementById('heightLimit').addEventListener('input', calculateSplitAdvice);
 
         // 初始化系统
         document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
