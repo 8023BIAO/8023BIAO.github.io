@@ -461,7 +461,7 @@
 
                     // 可行性检查
                     if (lowerBlades < requiredForFlash) {
-                        messages.push(`❌ 刀片不足！需要${requiredForFlash}，当前${lowerBlades}`);
+                        messages.push(`\n❌ 刀片不足！需要${requiredForFlash}，当前${lowerBlades}`);
                         elements.result.innerHTML = messages.join('<br>');
                         return;
                     }
@@ -472,7 +472,7 @@
 
                     // 核心分配逻辑
                     if (remainingBlades < cuttingBlades) {
-                        messages.push(`❌ 切割刀片不足！缺${cuttingBlades - remainingBlades}片`);
+                        messages.push(`\n❌ 切割刀片不足！缺${cuttingBlades - remainingBlades}片`);
                     } else {
                         const surplus = remainingBlades - cuttingBlades;
                         const totalUsed = requiredForFlash + cuttingBlades;
@@ -509,4 +509,5 @@
 
     </script>
 </body>
+
 </html>
