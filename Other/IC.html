@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高速卷纸分切计算系统</title>
+    <title>卷纸分切计算</title>
     <style>
         /* ===== 基础变量定义 ===== */
         :root {
@@ -189,7 +189,7 @@
             <h3 class="module-title">分割后产品分栋计算</h3>
             <div class="input-group">
                 <input type="text" id="widthFormula" placeholder="输入算式(mm)，如104*11 + 91">
-                <input type="number" id="splitCount2" placeholder="分切卷数" value="2" min="1" step="1">
+                <input type="number" id="splitCount2" placeholder="分切刀数" value="2" min="1" step="1">
                 <input type="number" id="maxHeight" placeholder="限制高度(mm)" value="1600" min="0" step="1">
             </div>
             <div class="result-grid">
@@ -351,52 +351,75 @@
             };
 
             function calculateDistribution() {
-                try {
-                    const formula = elements.formula.value.trim();
-                    const splitCount = InputValidator.validate(elements.splitCount.value, 1);
-                    const maxHeight = InputValidator.validate(elements.maxHeight.value, 1);
+    try {
+        const formula = elements.formula.value.trim();
+        const splitCount = InputValidator.validate(elements.splitCount.value, 1);
+        const maxHeight = InputValidator.validate(elements.maxHeight.value, 1);
 
-                    // 解析公式
-                    const items = new Map();
-                    formula.split('+').forEach(segment => {
-                        const [sizePart, count = 1] = segment.replace(/\s/g, '').split('*');
-                        const size = InputValidator.validate(sizePart);
-                        if (size > 0) {
-                            const total = InputValidator.validate(count) * splitCount;
-                            items.set(size, (items.get(size) || 0) + total);
-                        }
-                    });
+        // 解析公式
+        const items = new Map();
+        formula.split('+').forEach(segment => {
+            const [sizePart, count = 1] = segment.replace(/\s/g, '').split('*');
+            const size = InputValidator.validate(sizePart);
+            if (size > 0) {
+                const total = InputValidator.validate(count) * splitCount;
+                items.set(size, (items.get(size) || 0) + total);
+            }
+        });
 
-                    // 生成建议
-                    let advice = [];
-                    let totalRolls = 0;
+        // 生成建议
+        let advice = [];
+        let totalRolls = 0;
 
-                    items.forEach((quantity, size) => {
-                        totalRolls += quantity;
-                        const maxPerStack = Math.floor(maxHeight / size);
+        items.forEach((quantity, size) => {
+            totalRolls += quantity;
+            const maxPerStack = Math.floor(maxHeight / size);
 
-                        if (maxPerStack === 0) {
-                            advice.push(`<strong>${size}mm</strong> 尺寸过大`);
-                            return;
-                        }
+            if (maxPerStack === 0) {
+                advice.push(`<strong>${size}mm</strong> 尺寸过大`);
+                return;
+            }
 
-                        const stacks = Math.ceil(quantity / maxPerStack);
-                        const remainder = quantity % maxPerStack;
+            // 核心优化逻辑：寻找最优分配方案
+            const minStacks = Math.ceil(quantity / maxPerStack);
+            let bestStacks = minStacks;
+            let bestPerStack = Math.floor(quantity / bestStacks);
+            let remainder = quantity % bestStacks;
 
-                        let stackInfo = `${stacks}栋 (每栋≤${maxPerStack})`;
-                        if (remainder > 0) stackInfo += `，末栋${remainder}卷`;
-
-                        advice.push(`<strong>${size}mm</strong>: ${stackInfo}，共${quantity}卷`);
-                    });
-
-                    elements.result.innerHTML = advice.join('<br>') +
-                        `<br>总计：${totalRolls}卷`;
-
-                } catch (error) {
-                    console.error('分栋计算错误:', error);
-                    elements.result.textContent = '输入格式错误';
+            // 尝试找到更优的均分方案
+            for (let stacks = minStacks; stacks <= minStacks + 2; stacks++) {
+                const perStack = Math.floor(quantity / stacks);
+                const currentRemainder = quantity % stacks;
+                
+                if (perStack <= maxPerStack && 
+                   (currentRemainder === 0 || (perStack + 1) <= maxPerStack)) {
+                    bestStacks = stacks;
+                    bestPerStack = perStack;
+                    remainder = currentRemainder;
+                    break;
                 }
             }
+
+            // 生成分栋描述
+            let stackInfo = `${bestStacks}栋`;
+            if (remainder === 0) {
+                stackInfo += ` (每栋${bestPerStack}卷)`;
+            } else {
+                stackInfo += ` (前${remainder}栋${bestPerStack + 1}卷，其余${bestPerStack}卷)`;
+            }
+
+            advice.push(`<strong>${size}mm</strong>: ${stackInfo}，共${quantity}卷`);
+        });
+
+        elements.result.innerHTML = advice.join('<br>') +
+            `<br>总计：${totalRolls}卷`;
+
+    } catch (error) {
+        console.error('分栋计算错误:', error);
+        elements.result.textContent = '输入格式错误';
+    }
+}
+
 
             // 事件监听
             [elements.formula, elements.splitCount, elements.maxHeight]
