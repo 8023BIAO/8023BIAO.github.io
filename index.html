@@ -1,789 +1,1033 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>R1 Distill Qwen 7B Chat</title>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-<style>
-:root {
-  --primary-color: #1976d2;
-  --bg-color: #FFFFFF;
-  --text-color: #333333;
-  --input-bg-color: #F8F9FA;
-  --input-text-color: #333333;
-  --message-bg-color: #F8F9FA;
-  --message-text-color: #333333;
-  --transition-duration: 0.3s;
-}
-
-[data-theme="dark"] {
-  --primary-color: #5f98c7;
-  --bg-color: #1a1a1a;
-  --text-color: #f0f0f0;
-  --input-bg-color: #2d2d2d;
-  --input-text-color: #E0E0E0;
-  --message-bg-color: #2d2d2d;
-  --message-text-color: #E0E0E0;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid var(--primary-color);
-  border-radius: 50%;
-  border-top-color: transparent;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  transition: color var(--transition-duration), background-color var(--transition-duration);
-}
-
-body {
-  background: var(--bg-color);
-  color: var(--text-color);
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-#chat-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  padding-bottom: 80px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.message-container {
-  width: 100%;
-  display: flex;
-  margin: 8px 0;
-}
-
-.user-message-container {
-  justify-content: flex-end;
-}
-
-.bot-message-container {
-  justify-content: flex-start;
-}
-
-.message-bubble {
-  max-width: 80%;
-  padding: 12px 16px;
-  border-radius: 18px;
-  position: relative;
-  background: var(--message-bg-color);
-  color: var(--message-text-color);
-  font-size: 16px;
-  word-break: break-word;
-  width: fit-content;
-  margin-bottom: 12px;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-
-.user-message-bubble {
-  background: var(--primary-color);
-  color: white;
-  border-radius: 18px 18px 4px 18px;
-  margin-right: 10px;
-}
-
-.bot-message-bubble {
-  background: var(--message-bg-color);
-  border-radius: 18px 18px 18px 4px;
-  margin-left: 10px;
-}
-
-.toggle-reasoning {
-  color: var(--primary-color);
-  cursor: pointer;
-  font-size: 14px;
-  margin-top: 8px;
-  display: inline-block;
-}
-
-.reasoning-content {
-  display: none;
-  margin-top: 8px;
-  padding: 8px;
-  background: var(--bg-color);
-  border-radius: 8px;
-  border: 1px solid var(--primary-color);
-}
-
-.reasoning-content.show {
-  display: block;
-}
-
-#input-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--input-bg-color);
-  padding: 10px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.input-wrapper {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  width: 100%;
-  max-width: 1200px;
-}
-
-#message-input {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 24px;
-  font-size: 16px;
-  min-height: 48px;
-  max-height: 120px;
-  overflow-y: auto;
-  background: var(--input-bg-color);
-  color: var(--input-text-color);
-}
-
-#send-btn {
-  width: 40px;
-  height: 40px;
-  background: var(--primary-color);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: white;
-  transition: background-color var(--transition-duration), transform 0.1s;
-}
-
-#send-btn:active {
-  background-color: #0056b3;
-  transform: scale(0.9);
-}
-
-#send-btn.sending {
-  pointer-events: none;
-  opacity: 0.7;
-}
-
-#settings-btn {
-  width: 40px;
-  height: 40px;
-  background: var(--primary-color);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 18px;
-  transition: background-color var(--transition-duration);
-}
-
-#settings-btn:active {
-  background-color: #0056b3;
-}
-
-#theme-toggle-btn {
-  width: 40px;
-  height: 40px;
-  background: var(--primary-color);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 18px;
-  transition: background-color var(--transition-duration);
-}
-
-#theme-toggle-btn:active {
-  background-color: #0056b3;
-}
-
-@media (min-width: 768px) {
-  .message-bubble {
-    max-width: 70%;
-  }
-}
-
-@media (min-width: 992px) {
-  .message-bubble {
-    max-width: 60%;
-  }
-}
-
-@keyframes blink {
-  0% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.5;
-  }
-}
-
-.blinking {
-  animation: blink 1s infinite;
-}
-
-.error-message {
-  color: #ff4d4f;
-  font-weight: bold;
-}
-
-.retry-btn {
-  background: var(--primary-color);
-  border: none;
-  border-radius: 4px;
-  color: white;
-  padding: 6px 12px;
-  margin-top: 8px;
-  cursor: pointer;
-}
-
-.retry-btn:active {
-  background-color: #0056b3;
-}
-
-pre code {
-  display: block;
-  border-radius: 8px;
-  overflow-x: auto;
-  background: var(--bg-color) !important;
-  padding: 12px;
-  border-radius: 8px;
-  margin: 8px 0;
-  max-width: 100%;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 12px 0;
-  display: block;
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-td,
-th {
-  padding: 8px;
-  border: 1px solid var(--primary-color);
-}
-
-#chat-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-#chat-container::-webkit-scrollbar-thumb {
-  background-color: var(--primary-color);
-  border-radius: 4px;
-}
-
-#chat-container::-webkit-scrollbar-track {
-  background-color: var(--bg-color);
-}
-
-@media (max-width: 576px) {
-  .message-bubble {
-    max-width: 90%;
-  }
-
-  #input-container {
-    padding: 5px;
-  }
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 1000;
-}
-
-.modal-content {
-  background: var(--bg-color);
-  margin: 15% auto;
-  padding: 20px;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 8px;
-}
-
-.param-item {
-  margin: 15px 0;
-}
-
-.param-item label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-input[type="range"] {
-  width: 100%;
-  height: 5px;
-  background: var(--input-bg-color);
-  outline: none;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-input[type="range"]:hover {
-  opacity: 1;
-}
-
-#close-settings {
-  margin-top: 20px;
-  padding: 8px 16px;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-#reset-defaults {
-  margin-top: 20px;
-  padding: 8px 16px;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-#system-prompt {
-  width: 100%;
-  padding: 8px;
-  margin: 10px 0;
-  background: var(--input-bg-color);
-  color: var(--input-text-color);
-  border: 1px solid var(--primary-color);
-  border-radius: 4px;
-}
-</style>
-</head>
-<body>
-<div id="chat-container"></div>
-<div id="input-container">
-<div class="input-wrapper">
-<button id="settings-btn">⚙️</button>
-<button id="theme-toggle-btn">☀️</button>
-<textarea id="message-input" placeholder="Enter message..." rows="1"></textarea>
-<button id="send-btn">🚀</button>
-</div>
-</div>
-<div id="settings-modal" class="modal">
-<div class="modal-content">
-<h3>Model parameter settings</h3>
-<div class="param-item">
-<label>System Prompt:</label>
-<textarea id="system-prompt" rows="3"></textarea>
-</div>
-<div class="param-item">
-<label>max_tokens: <span id="max_tokens-value">512</span></label>
-<input type="range" id="max_tokens" min="1" max="8192" step="1" value="512">
-</div>
-<div class="param-item">
-<label>temperature: <span id="temperature-value">0.7</span></label>
-<input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
-</div>
-<div class="param-item">
-<label>top_p: <span id="top_p-value">0.7</span></label>
-<input type="range" id="top_p" min="0.1" max="1" step="0.1" value="0.7">
-</div>
-<div class="param-item">
-<label>top_k: <span id="top_k-value">60</span></label>
-<input type="range" id="top_k" min="1" max="100" step="1" value="60">
-</div>
-<div class="param-item">
-<label>frequency_penalty: <span id="frequency_penalty-value">0.5</span></label>
-<input type="range" id="frequency_penalty" min="-2" max="2" step="0.1" value="0.5">
-</div>
-<div class="button-group">
-<button id="reset-defaults">default</button>
-<button id="close-settings">hide</button>
-</div>
-</div>
-</div>
-<script>
-function debounce(func, wait) {
-  let timeout;
-  return function(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
-
-const API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
-const MODEL = 'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B';
-
-const DEFAULT_PARAMS = {
-  systemPrompt: '',
-  max_tokens: 512,
-  temperature: 0.7,
-  top_p: 0.7,
-  top_k: 60,
-  frequency_penalty: 0.5
-};
-
-let modelParams = {...DEFAULT_PARAMS};
-let conversationHistory = [];
-let systemPrompt = '';
-let isDarkTheme = localStorage.getItem('theme') === 'dark';
-document.body.setAttribute('data-theme', isDarkTheme? 'dark' : 'light');
-const themeToggleBtn = document.getElementById('theme-toggle-btn');
-themeToggleBtn.textContent = isDarkTheme? '☀️' : '🌙';
-let isUserScrolling = false;
-
-const renderMarkdownPreview = debounce((text) => {
-  const preview = document.getElementById('markdown-preview');
-  if (preview) {
-    preview.innerHTML = marked.parse(text);
-    hljs.highlightAll();
-  }
-}, 300);
-
-function loadParams() {
-  const savedParams = localStorage.getItem('modelParams');
-  const savedSystemPrompt = localStorage.getItem('systemPrompt');
-
-  if (savedParams) {
-    modelParams = {...DEFAULT_PARAMS,...JSON.parse(savedParams)};
-  }
-
-  systemPrompt = savedSystemPrompt || '';
-  document.getElementById('system-prompt').value = systemPrompt;
-
-  Object.keys(modelParams).forEach(key => {
-    const element = document.getElementById(key);
-    if (element) {
-      element.value = modelParams[key];
-      document.getElementById(`${key}-value`).textContent = modelParams[key];
-    }
-  });
-}
-
-function saveParams() {
-  localStorage.setItem('modelParams', JSON.stringify(modelParams));
-  localStorage.setItem('systemPrompt', systemPrompt);
-}
-
-function resetToDefaults() {
-  modelParams = {...DEFAULT_PARAMS};
-  systemPrompt = '';
-  document.getElementById('system-prompt').value = '';
-
-  Object.keys(DEFAULT_PARAMS).forEach(key => {
-    const element = document.getElementById(key);
-    if (element) {
-      element.value = DEFAULT_PARAMS[key];
-      document.getElementById(`${key}-value`).textContent = DEFAULT_PARAMS[key];
-    }
-  });
-  saveParams();
-}
-
-document.getElementById('reset-defaults').addEventListener('click', resetToDefaults);
-document.getElementById('system-prompt').addEventListener('input', (e) => {
-  systemPrompt = e.target.value;
-  saveParams();
-});
-
-document.querySelectorAll('input[type="range"]').forEach(input => {
-  input.addEventListener('input', (e) => {
-    const param = e.target.id;
-    const value = parseFloat(e.target.value);
-    modelParams[param] = value;
-    document.getElementById(`${param}-value`).textContent = value;
-    saveParams();
-  });
-});
-
-const settingsBtn = document.getElementById('settings-btn');
-const settingsModal = document.getElementById('settings-modal');
-const closeSettings = document.getElementById('close-settings');
-settingsBtn.addEventListener('click', () => settingsModal.style.display = 'block');
-closeSettings.addEventListener('click', () => settingsModal.style.display = 'none');
-window.addEventListener('click', (e) => {
-  if (e.target === settingsModal) {
-    settingsModal.style.display = 'none';
-  }
-});
-
-loadParams();
-
-function appendMessage(content, isUser = false) {
-  const container = document.createElement('div');
-  container.className = `message-container ${isUser? 'user-message-container' : 'bot-message-container'}`;
-
-  const bubble = document.createElement('div');
-  bubble.className = `message-bubble ${isUser? 'user-message-bubble' : 'bot-message-bubble'}`;
-
-  if (isUser) {
-    bubble.innerText = content;
-    } else {
-    bubble.innerHTML = marked.parse(content);
-    bubble.querySelectorAll('pre code').forEach((block) => {
-      hljs.highlightElement(block);
-    });
-  }
-
-  container.appendChild(bubble);
-  chatContainer.appendChild(container);
-  if (!isUserScrolling) {
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-  return container;
-}
-
-async function sendMessage() {
-  const message = messageInput.value.trim();
-  if (!message) return;
-
-  const sendBtn = document.getElementById('send-btn');
-  sendBtn.classList.add('sending');
-
-  appendMessage(message, true);
-  conversationHistory.push({ role: 'user', content: message });
-  messageInput.value = '';
-
-  const botContainer = appendMessage('', false);
-  const botBubble = botContainer.querySelector('.message-bubble');
-  let finalAnswer = '';
-  let reasoningContent = '';
-
-  const loadingSpinner = document.createElement('div');
-  loadingSpinner.className = 'loading-spinner';
-  botBubble.appendChild(loadingSpinner);
-
-  const reasoningContentDiv = document.createElement('div');
-  reasoningContentDiv.className ='reasoning-content';
-
-  const answerText = document.createElement('div');
-  const reasoningToggle = document.createElement('div');
-  reasoningToggle.className = 'toggle-reasoning';
-
-  botBubble.appendChild(reasoningToggle);
-  botBubble.appendChild(reasoningContentDiv);
-  botBubble.appendChild(answerText);
-
-  let messages = [];
-  if (systemPrompt) {
-    messages.push({ role:'system', content: systemPrompt });
-  }
-  messages = [...messages,...conversationHistory];
-
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh'
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: messages,
-        stream: true,
-        temperature: modelParams.temperature,
-        top_p: modelParams.top_p,
-        top_k: modelParams.top_k,
-        frequency_penalty: modelParams.frequency_penalty,
-        max_tokens: modelParams.max_tokens,
-        n: 1
-      })
-    });
-
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let hasReasoning = false;
-    let isAnswerStarted = false;
-
-    loadingSpinner.remove();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim());
-
-      for (const line of lines) {
-        try {
-          const data = JSON.parse(line.replace('data: ', ''));
-          const content = data.choices[0].delta.content || '';
-          const reasoning = data.choices[0].delta.reasoning_content || '';
-
-          if (reasoning || content) {
-            botBubble.classList.remove('blinking');
-          }
-
-          if (reasoning) {
-            hasReasoning = true;
-            reasoningContent += reasoning;
-            reasoningContentDiv.innerHTML = marked.parse(reasoningContent);
-            reasoningContentDiv.querySelectorAll('pre code').forEach((block) => {
-              hljs.highlightElement(block);
-            });
-            reasoningContentDiv.classList.add('show');
-          }
-
-          if (content) {
-            if (!isAnswerStarted && hasReasoning) {
-              reasoningContentDiv.classList.remove('show');
-              reasoningToggle.textContent = 'ThinKing ▼';
-              isAnswerStarted = true;
-            }
-            finalAnswer += content;
-            answerText.innerHTML = marked.parse(finalAnswer);
-            answerText.querySelectorAll('pre code').forEach((block) => {
-              hljs.highlightElement(block);
-            });
-            if (!isUserScrolling) {
-              chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-          }
-          } catch (e) {
-          console.error('Parsing error:', e);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>R1 Distill Qwen 7B Chat</title>
+    <!-- Polyfill for older browsers -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,Array.prototype.includes"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <!-- 在head部分添加以下polyfill -->
+    <script src="https://cdn.jsdelivr.net/npm/text-encoding/lib/encoding.min.js"></script>
+    <script>
+        // IE10+ 的 Stream polyfill
+        if (!ReadableStream) {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/web-streams-polyfill/dist/ponyfill.min.js"><\/script>');
         }
-      }
-    }
+    </script>
+    <style>
+        /* 基础变量定义 */
+        :root {
+            --primary-color: #1976d2;
+            --bg-color: #FFFFFF;
+            --text-color: #333333;
+            --input-bg-color: #F8F9FA;
+            --input-text-color: #333333;
+            --message-bg-color: #F8F9FA;
+            --message-text-color: #333333;
+            --transition-duration: 0.3s;
+        }
 
-    conversationHistory.push({ role: 'assistant', content: finalAnswer });
+        /* 暗黑模式变量 */
+        [data-theme="dark"] {
+            --primary-color: #5f98c7;
+            --bg-color: #1a1a1a;
+            --text-color: #f0f0f0;
+            --input-bg-color: #2d2d2d;
+            --input-text-color: #E0E0E0;
+            --message-bg-color: #2d2d2d;
+            --message-text-color: #E0E0E0;
+        }
 
-  if (hasReasoning) {
-    reasoningToggle.style.display = 'block';
-    reasoningToggle.innerHTML = 'ThinKing ▼'; 
-    reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
-  } else {
-    reasoningToggle.style.display = 'none';
-  }
+        /* 加载动画 */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--primary-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        /* 基础样式重置 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: color var(--transition-duration), background-color var(--transition-duration);
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 聊天容器 */
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 80px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* 消息容器布局 */
+        .message-container {
+            width: 100%;
+            display: flex;
+            margin: 8px 0;
+        }
+
+        /* 用户消息右对齐 */
+        .user-message-container {
+            justify-content: flex-end;
+        }
+
+        /* 机器人消息左对齐 */
+        .bot-message-container {
+            justify-content: flex-start;
+        }
+
+        /* 消息气泡基础样式 */
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            background: var(--message-bg-color);
+            color: var(--message-text-color);
+            font-size: 16px;
+            word-break: break-word;
+            width: fit-content;
+            margin-bottom: 12px;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        /* 用户消息样式 */
+        .user-message-bubble {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+            margin-right: 10px;
+        }
+
+        /* 机器人消息样式 */
+        .bot-message-bubble {
+            background: var(--message-bg-color);
+            border-radius: 18px 18px 18px 4px;
+            margin-left: 10px;
+        }
+
+        /* 思考过程切换按钮 */
+        .toggle-reasoning {
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        /* 思考过程内容 */
+        .reasoning-content {
+            display: none;
+            margin-top: 8px;
+            padding: 8px;
+            background: var(--bg-color);
+            border-radius: 8px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .reasoning-content.show {
+            display: block;
+        }
+
+        /* 输入容器固定底部 */
+        #input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--input-bg-color);
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 输入框包裹 */
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* 消息输入框 */
+        #message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 16px;
+            min-height: 48px;
+            max-height: 120px;
+            overflow-y: auto;
+            background: var(--input-bg-color);
+            color: var(--input-text-color);
+        }
+
+        /* 发送按钮 */
+        #send-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            transition: background-color var(--transition-duration), transform 0.1s;
+        }
+
+        #send-btn:active {
+            background-color: #0056b3;
+            transform: scale(0.9);
+        }
+
+        #send-btn.sending {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* 设置按钮 */
+        #settings-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            transition: background-color var(--transition-duration);
+        }
+
+        #settings-btn:active {
+            background-color: #0056b3;
+        }
+
+        /* 主题切换按钮 */
+        #theme-toggle-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            transition: background-color var(--transition-duration);
+        }
+
+        #theme-toggle-btn:active {
+            background-color: #0056b3;
+        }
+
+        /* 响应式设计 */
+        @media (min-width: 768px) {
+            .message-bubble {
+                max-width: 70%;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .message-bubble {
+                max-width: 60%;
+            }
+        }
+
+        /* 闪烁动画 */
+        @keyframes blink {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        .blinking {
+            animation: blink 1s infinite;
+        }
+
+        /* 错误提示 */
+        .error-message {
+            color: #ff4d4f;
+            font-weight: bold;
+        }
+
+        .retry-btn {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            padding: 6px 12px;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        .retry-btn:active {
+            background-color: #0056b3;
+        }
+
+        /* 代码块样式 */
+        pre code {
+            display: block;
+            border-radius: 8px;
+            overflow-x: auto;
+            background: var(--bg-color) !important;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            max-width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            display: block;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        td,
+        th {
+            padding: 8px;
+            border: 1px solid var(--primary-color);
+        }
+
+        /* 滚动条样式 */
+        #chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #chat-container::-webkit-scrollbar-thumb {
+            background-color: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        #chat-container::-webkit-scrollbar-track {
+            background-color: var(--bg-color);
+        }
+
+        @media (max-width: 576px) {
+            .message-bubble {
+                max-width: 90%;
+            }
+
+            #input-container {
+                padding: 5px;
+            }
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg-color);
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* 参数设置项 */
+        .param-item {
+            margin: 15px 0;
+        }
+
+        .param-item label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            background: var(--input-bg-color);
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+
+        /* 按钮组 */
+        #close-settings {
+            margin-top: 20px;
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #reset-defaults {
+            margin-top: 20px;
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* 系统提示输入 */
+        #system-prompt {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            background: var(--input-bg-color);
+            color: var(--input-text-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+        }
+
+        @media (min-height: 800px) {
+            .modal-content {
+                max-height: 700px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+            }
+
+            .param-item {
+                margin: 10px 0;
+            }
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+            padding: 8px 0;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        #close-settings,
+        #reset-defaults {
+            width: 100%;
+        }
+
+        /* 添加旧浏览器前缀 */
+        .message-bubble {
+            -webkit-border-radius: 18px;
+            -moz-border-radius: 18px;
+            border-radius: 18px;
+        }
+
+        /* 移除flex回退方案 */
+        .message-container {
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+        }
+
+        /* 添加旧版动画语法 */
+        @-webkit-keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chat-container"></div>
+    <div id="input-container">
+        <div class="input-wrapper">
+            <button id="settings-btn">⚙️</button>
+            <button id="theme-toggle-btn">☀️</button>
+            <textarea id="message-input" placeholder="Enter message..." rows="1"></textarea>
+            <button id="send-btn">🚀</button>
+        </div>
+    </div>
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Model parameter settings</h3>
+            <div class="param-item">
+                <label>System Prompt:</label>
+                <textarea id="system-prompt" rows="3"></textarea>
+            </div>
+            <div class="param-item">
+                <label>max_tokens: <span id="max_tokens-value">512</span></label>
+                <input type="range" id="max_tokens" min="1" max="8192" step="1" value="512">
+            </div>
+            <div class="param-item">
+                <label>temperature: <span id="temperature-value">0.7</span></label>
+                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
+            </div>
+            <div class="param-item">
+                <label>top_p: <span id="top_p-value">0.7</span></label>
+                <input type="range" id="top_p" min="0.1" max="1" step="0.1" value="0.7">
+            </div>
+            <div class="param-item">
+                <label>top_k: <span id="top_k-value">60</span></label>
+                <input type="range" id="top_k" min="1" max="100" step="1" value="60">
+            </div>
+            <div class="param-item">
+                <label>frequency_penalty: <span id="frequency_penalty-value">0.5</span></label>
+                <input type="range" id="frequency_penalty" min="-2" max="2" step="0.1" value="0.5">
+            </div>
+            <div class="button-group">
+                <button id="reset-defaults">default</button>
+                <button id="close-settings">hide</button>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        // 兼容旧浏览器的工具函数
+        if (!Array.prototype.includes) {
+            Array.prototype.includes = function (searchElement) {
+                return this.indexOf(searchElement) !== -1;
+            };
+        }
+
+        // 防抖函数
+        function debounce(func, wait) {
+            var timeout;
+            return function () {
+                var context = this, args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(function () {
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
+
+        // 全局配置
+        const API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
+        const MODEL = 'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B';
+        const DEFAULT_PARAMS = {
+            systemPrompt: '',
+            max_tokens: 512,
+            temperature: 0.7,
+            top_p: 0.7,
+            top_k: 60,
+            frequency_penalty: 0.5
+        };
+
+        // 状态管理
+        var modelParams = { ...DEFAULT_PARAMS };
+        var conversationHistory = [];
+        var systemPrompt = '';
+        var isDarkTheme = false;
+        var isUserScrolling = false;
+
+        // 初始化主题
+        function initTheme() {
+            var theme = localStorage.getItem('theme');
+            isDarkTheme = theme === 'dark';
+            document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
+            document.getElementById('theme-toggle-btn').textContent = isDarkTheme ? '☀️' : '🌙';
+        }
+
+        // 初始化参数
+        function initParams() {
+            var savedParams = localStorage.getItem('modelParams');
+            var savedSystemPrompt = localStorage.getItem('systemPrompt');
+
+            if (savedParams) {
+                modelParams = { ...DEFAULT_PARAMS, ...JSON.parse(savedParams) };
+            }
+
+            systemPrompt = savedSystemPrompt || '';
+            document.getElementById('system-prompt').value = systemPrompt;
+
+            Object.keys(modelParams).forEach(function (key) {
+                var element = document.getElementById(key);
+                if (element) {
+                    element.value = modelParams[key];
+                    document.getElementById(key + '-value').textContent = modelParams[key];
+                }
+            });
+        }
+
+        // 加载参数
+        function loadParams() {
+            const savedParams = localStorage.getItem('modelParams');
+            const savedSystemPrompt = localStorage.getItem('systemPrompt');
+
+            if (savedParams) {
+                modelParams = { ...DEFAULT_PARAMS, ...JSON.parse(savedParams) };
+            }
+
+            systemPrompt = savedSystemPrompt || '';
+            document.getElementById('system-prompt').value = systemPrompt;
+
+            Object.keys(modelParams).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = modelParams[key];
+                    document.getElementById(`${key}-value`).textContent = modelParams[key];
+                }
+            });
+        }
+
+        // 保存参数
+        function saveParams() {
+            localStorage.setItem('modelParams', JSON.stringify(modelParams));
+            localStorage.setItem('systemPrompt', systemPrompt);
+        }
+
+        // 重置默认参数
+        function resetToDefaults() {
+            modelParams = { ...DEFAULT_PARAMS };
+            systemPrompt = '';
+            document.getElementById('system-prompt').value = '';
+
+            Object.keys(DEFAULT_PARAMS).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = DEFAULT_PARAMS[key];
+                    document.getElementById(`${key}-value`).textContent = DEFAULT_PARAMS[key];
+                }
+            });
+            saveParams();
+        }
+
+        document.getElementById('reset-defaults').addEventListener('click', resetToDefaults);
+        document.getElementById('system-prompt').addEventListener('input', (e) => {
+            systemPrompt = e.target.value;
+            saveParams();
+        });
+
+        // 设置按钮事件
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const param = e.target.id;
+                const value = parseFloat(e.target.value);
+                modelParams[param] = value;
+                document.getElementById(`${param}-value`).textContent = value;
+                saveParams();
+            });
+        });
+
+        // 消息渲染函数
+        function appendMessage(content, isUser) {
+            var container = document.createElement('div');
+            container.className = 'message-container ' + (isUser ? 'user-message-container' : 'bot-message-container');
+
+            var bubble = document.createElement('div');
+            bubble.className = 'message-bubble ' + (isUser ? 'user-message-bubble' : 'bot-message-bubble');
+
+            if (isUser) {
+                bubble.textContent = content;
+            } else {
+                bubble.innerHTML = marked.parse(content);
+                bubble.querySelectorAll('pre code').forEach(function (block) {
+                    hljs.highlightElement(block);
+                });
+            }
+
+            container.appendChild(bubble);
+            document.getElementById('chat-container').appendChild(container);
+            if (!isUserScrolling) {
+                document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+            }
+            return container;
+        }
+
+        // 检测 WebView 兼容性
+        function checkWebViewCompatibility() {
+            const isFetchSupported = typeof fetch === 'function';
+            const isReadableStreamSupported = typeof ReadableStream === 'function';
+            return isFetchSupported && isReadableStreamSupported;
+        }
+
+        // 修改后的发送消息处理
+        async function sendMessage() {
+            var message = document.getElementById('message-input').value.trim();
+            if (!message) return;
+
+            var sendBtn = document.getElementById('send-btn');
+            sendBtn.classList.add('sending');
+
+            appendMessage(message, true);
+            conversationHistory.push({ role: 'user', content: message });
+            document.getElementById('message-input').value = '';
+
+            var botContainer = appendMessage('', false);
+            var botBubble = botContainer.querySelector('.message-bubble');
+            var finalAnswer = '';
+            var reasoningContent = '';
+
+            const loadingSpinner = document.createElement('div');
+            loadingSpinner.className = 'loading-spinner';
+            botBubble.appendChild(loadingSpinner);
+
+            const reasoningContentDiv = document.createElement('div');
+            reasoningContentDiv.className = 'reasoning-content';
+
+            const answerText = document.createElement('div');
+            const reasoningToggle = document.createElement('div');
+            reasoningToggle.className = 'toggle-reasoning';
+
+            botBubble.appendChild(reasoningToggle);
+            botBubble.appendChild(reasoningContentDiv);
+            botBubble.appendChild(answerText);
+
+            let messages = [];
+            if (systemPrompt) {
+                messages.push({ role: 'system', content: systemPrompt });
+            }
+            messages = [...messages, ...conversationHistory];
+
+            const isCompatible = checkWebViewCompatibility();
+
+            try {
+                if (isCompatible) {
+                    // 新浏览器继续使用 fetch + stream 方案
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh'
+                        },
+                        body: JSON.stringify({
+                            model: MODEL,
+                            messages: messages,
+                            stream: true,
+                            temperature: modelParams.temperature,
+                            top_p: modelParams.top_p,
+                            top_k: modelParams.top_k,
+                            frequency_penalty: modelParams.frequency_penalty,
+                            max_tokens: modelParams.max_tokens,
+                            n: 1
+                        })
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let hasReasoning = false;
+                    let isAnswerStarted = false;
+
+                    loadingSpinner.remove();
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\n').filter(line => line.trim());
+
+                        for (const line of lines) {
+                            try {
+                                const data = JSON.parse(line.replace('data: ', ''));
+                                const content = data.choices[0].delta.content || '';
+                                const reasoning = data.choices[0].delta.reasoning_content || '';
+
+                                if (reasoning || content) {
+                                    botBubble.classList.remove('blinking');
+                                }
+
+                                if (reasoning) {
+                                    hasReasoning = true;
+                                    reasoningContent += reasoning;
+                                    reasoningContentDiv.innerHTML = marked.parse(reasoningContent);
+                                    reasoningContentDiv.querySelectorAll('pre code').forEach((block) => {
+                                        hljs.highlightElement(block);
+                                    });
+                                    reasoningContentDiv.classList.add('show');
+                                }
+
+                                if (content) {
+                                    if (!isAnswerStarted && hasReasoning) {
+                                        reasoningContentDiv.classList.remove('show');
+                                        reasoningToggle.textContent = 'ThinKing ▼';
+                                        isAnswerStarted = true;
+                                    }
+                                    finalAnswer += content;
+                                    answerText.innerHTML = marked.parse(finalAnswer);
+                                    answerText.querySelectorAll('pre code').forEach((block) => {
+                                        hljs.highlightElement(block);
+                                    });
+                                    if (!isUserScrolling) {
+                                        document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Parsing error:', e);
+                            }
+                        }
+                    }
+
+                    conversationHistory.push({ role: 'assistant', content: finalAnswer });
+
+                    if (hasReasoning) {
+                        reasoningToggle.style.display = 'block';
+                        reasoningToggle.innerHTML = 'ThinKing ▼';
+                        reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
+                    } else {
+                        reasoningToggle.style.display = 'none';
+                    }
+                } else {
+                    // 旧浏览器使用非流式方式，等待完整响应
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', API_URL);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.setRequestHeader('Authorization', 'Bearer sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh');
+
+                    xhr.onload = function () {
+                        if (xhr.status >= 400) {
+                            throw new Error(`HTTP error! status: ${xhr.status}`);
+                        }
+                        try {
+                            const fullResponse = xhr.responseText;
+                            const lines = fullResponse.split('\n').filter(line => line.trim());
+                            let hasReasoning = false;
+                            let isAnswerStarted = false;
+
+                            lines.forEach(line => {
+                                try {
+                                    const data = JSON.parse(line.replace('data: ', ''));
+                                    const content = data.choices[0].delta.content || '';
+                                    const reasoning = data.choices[0].delta.reasoning_content || '';
+
+                                    if (reasoning) {
+                                        hasReasoning = true;
+                                        reasoningContent += reasoning;
+                                        reasoningContentDiv.innerHTML = marked.parse(reasoningContent);
+                                        reasoningContentDiv.querySelectorAll('pre code').forEach((block) => {
+                                            hljs.highlightElement(block);
+                                        });
+                                        reasoningContentDiv.classList.add('show');
+                                    }
+
+                                    if (content) {
+                                        if (!isAnswerStarted && hasReasoning) {
+                                            reasoningContentDiv.classList.remove('show');
+                                            reasoningToggle.textContent = 'ThinKing ▼';
+                                            isAnswerStarted = true;
+                                        }
+                                        finalAnswer += content;
+                                        answerText.innerHTML = marked.parse(finalAnswer);
+                                        answerText.querySelectorAll('pre code').forEach((block) => {
+                                            hljs.highlightElement(block);
+                                        });
+                                        if (!isUserScrolling) {
+                                            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            });
+
+                            conversationHistory.push({ role: 'assistant', content: finalAnswer });
+
+                            if (hasReasoning) {
+                                reasoningToggle.style.display = 'block';
+                                reasoningToggle.innerHTML = 'ThinKing ▼';
+                                reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
+                            } else {
+                                reasoningToggle.style.display = 'none';
+                            }
+                        } catch (e) {
+                            console.error('Parsing full response error:', e);
+                        }
+                    };
+
+                    xhr.send(JSON.stringify({
+                        model: MODEL,
+                        messages: messages,
+                        stream: false, // 非流式请求
+                        temperature: modelParams.temperature,
+                        top_p: modelParams.top_p,
+                        top_k: modelParams.top_k,
+                        frequency_penalty: modelParams.frequency_penalty,
+                        max_tokens: modelParams.max_tokens,
+                        n: 1
+                    }));
+                }
+            } catch (error) {
+                loadingSpinner.remove();
+                let errorMessage = 'There was an error in the conversation, please try again later';
+                if (error.message.includes('NetworkError')) {
+                    errorMessage = 'If there is a problem with the network connection, please check the network.';
+                } else if (error.message.includes('HTTP error')) {
+                    errorMessage = `Server error: ${error.message.split(' ')[3]}`;
+                }
+                answerText.innerText = errorMessage;
+                botBubble.classList.add('error-message');
+
+                console.error('The request is incorrect:', error);
+            } finally {
+                sendBtn.classList.remove('sending');
+            }
+        }
+
+        // 初始化绑定事件
+        function initEvents() {
+            // 设置按钮
+            document.getElementById('settings-btn').addEventListener('click', function () {
+                document.getElementById('settings-modal').style.display = 'flex';
+                adjustModalPosition();
+            });
 
 
-    } catch (error) {
-    loadingSpinner.remove();
-    let errorMessage = 'There was an error in the conversation, please try again later';
-    if (error.message.includes('NetworkError')) {
-      errorMessage = 'If there is a problem with the network connection, please check the network.';
-      } else if (error.message.includes('HTTP error')) {
-      errorMessage = `Server error: ${error.message.split(' ')[3]}`;
-    }
-    answerText.innerText = errorMessage;
-    botBubble.classList.add('error-message');
+            // 窗口点击关闭模态框
+            window.addEventListener('click', (e) => {
+                if (e.target === document.getElementById('settings-modal')) {
+                    document.getElementById('settings-modal').style.display = 'none';
+                }
+            });
 
-    console.error('The request is incorrect:', error);
-    } finally {
-    sendBtn.classList.remove('sending');
-  }
-}
+            // 关闭模态框
+            document.getElementById('close-settings').addEventListener('click', function () {
+                document.getElementById('settings-modal').style.display = 'none';
+            });
 
-function toggleReasoning(element, reasoningContent) {
-  reasoningContent.classList.toggle('show');
-  element.innerHTML = reasoningContent.classList.contains('show') 
-    ? 'ThinKing ▲' 
-    : 'ThinKing ▼'; 
-}
+            // 主题切换
+            document.getElementById('theme-toggle-btn').addEventListener('click', function () {
+                isDarkTheme = !isDarkTheme;
+                document.body.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
+                this.textContent = isDarkTheme ? '☀️' : '🌙';
+                localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+            });
 
-function toggleTheme() {
-  isDarkTheme =!isDarkTheme;
-  document.body.setAttribute('data-theme', isDarkTheme? 'dark' : 'light');
-  themeToggleBtn.textContent = isDarkTheme? '☀️' : '🌙';
-  localStorage.setItem('theme', isDarkTheme? 'dark' : 'light');
-}
 
-const sendBtn = document.getElementById('send-btn');
-sendBtn.addEventListener('click', sendMessage);
-themeToggleBtn.addEventListener('click', toggleTheme);
+            // 发送按钮
+            document.getElementById('send-btn').addEventListener('click', sendMessage);
 
-const messageInput = document.getElementById('message-input');
-messageInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-  }
-});
+            // 输入框处理
+            var messageInput = document.getElementById('message-input');
+            messageInput.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+            messageInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
 
-messageInput.addEventListener('input', () => {
-  messageInput.style.height = 'auto';
-  messageInput.style.height = messageInput.scrollHeight + 'px';
-  renderMarkdownPreview(messageInput.value);
-});
+        // 切换推理内容显示
+        function toggleReasoning(element, reasoningContent) {
+            reasoningContent.classList.toggle('show');
+            element.innerHTML = reasoningContent.classList.contains('show')
+                ? 'ThinKing ▲'
+                : 'ThinKing ▼';
+        }
 
-const chatContainer = document.getElementById('chat-container');
-chatContainer.addEventListener('click', (e) => {
-  if (e.target.closest('.message-bubble')) {
-    e.target.closest('.message-bubble').style.transform ='scale(0.99)';
-    setTimeout(() => {
-      e.target.closest('.message-bubble').style.transform = '';
-    }, 200);
-  }
-});
+        // 初始化应用
+        function initApp() {
+            initTheme();
+            initParams();
+            initEvents();
+        }
 
-window.onbeforeunload = function () {
-  if (conversationHistory.length > 0) {
-    return 'Do you want to refresh this page? This will result in the loss of the chat history on this page';
-  }
-};
-
-chatContainer.addEventListener('scroll', function () {
-  const isAtBottom = chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight;
-  isUserScrolling =!isAtBottom;
-});
-
-window.addEventListener('load', function () {
-  const tipMessage = document.createElement('div');
-  tipMessage.id = 'tip-message';
-  tipMessage.className = `message-container bot-message-container`;
-
-  const bubble = document.createElement('div');
-  bubble.className = `message-bubble bot-message-bubble`;
-  bubble.innerText ='siliconflow free api \n DeepSeek R1 Distill Qwen 7b 32k';
-  tipMessage.appendChild(bubble);
-  chatContainer.appendChild(tipMessage);
-  chatContainer.scrollTop = chatContainer.scrollHeight;
-});
-</script>
+        // 窗口加载完成
+        window.addEventListener('load', function () {
+            initApp();
+            // 初始化提示消息
+            var tipMessage = document.createElement('div');
+            tipMessage.className = 'message-container bot-message-container';
+            tipMessage.innerHTML = '<div class="message-bubble bot-message-bubble">siliconflow free api<br>DeepSeek R1 Distill Qwen 7b 32k</div>';
+            document.getElementById('chat-container').appendChild(tipMessage);
+            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+        });
+    </script>
 </body>
+
 </html>
