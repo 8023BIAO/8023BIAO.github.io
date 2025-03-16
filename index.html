@@ -7,7 +7,8 @@
     <title>R1 Distill Qwen 7B Chat</title>
     <!-- Polyfill for older browsers -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,Array.prototype.includes"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 将原来的 marked 引用替换为最新版 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <!-- 在head部分添加以下polyfill -->
@@ -237,7 +238,28 @@
             transition: background-color var(--transition-duration);
         }
 
+        /* 设置按钮点击效果 */
         #settings-btn:active {
+            background-color: #0056b3;
+        }
+
+        /* 取消按钮 */
+        #cancel-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            transition: background-color var(--transition-duration);
+        }
+
+        #cancel-btn:active {
             background-color: #0056b3;
         }
 
@@ -524,6 +546,27 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* 旧浏览器回退样式 */
+        .message-bubble {
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            hyphens: auto;
+        }
+
+        /* 增强加载动画兼容性 */
+        @-webkit-keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        .loading-placeholder {
+            display: inline-block;
+            animation: blink 1.5s infinite;
+            opacity: 0.5;
+        }
     </style>
 </head>
 
@@ -535,6 +578,7 @@
             <button id="theme-toggle-btn">☀️</button>
             <textarea id="message-input" placeholder="Enter message..." rows="1"></textarea>
             <button id="send-btn">🚀</button>
+            <button id="cancel-btn">✖️</button>
         </div>
     </div>
     <div id="settings-modal" class="modal" style="display: none;">
@@ -596,11 +640,11 @@
         const MODEL = 'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B';
         const DEFAULT_PARAMS = {
             systemPrompt: '',
-            max_tokens: 512,
+            max_tokens: 8192,
             temperature: 0.7,
             top_p: 0.7,
             top_k: 60,
-            frequency_penalty: 0.5
+            frequency_penalty: 0
         };
 
         // 状态管理
@@ -731,229 +775,222 @@
             return isFetchSupported && isReadableStreamSupported;
         }
 
-        // 修改后的发送消息处理
+        // 发送消息
         async function sendMessage() {
-            var message = document.getElementById('message-input').value.trim();
+            const message = document.getElementById('message-input').value.trim();
             if (!message) return;
 
-            var sendBtn = document.getElementById('send-btn');
+            const sendBtn = document.getElementById('send-btn');
+            const originalBtnText = sendBtn.innerHTML;
             sendBtn.classList.add('sending');
+            sendBtn.innerHTML = '⏳';
 
-            appendMessage(message, true);
-            conversationHistory.push({ role: 'user', content: message });
-            document.getElementById('message-input').value = '';
-
-            var botContainer = appendMessage('', false);
-            var botBubble = botContainer.querySelector('.message-bubble');
-            var finalAnswer = '';
-            var reasoningContent = '';
-
-            const loadingSpinner = document.createElement('div');
-            loadingSpinner.className = 'loading-spinner';
-            botBubble.appendChild(loadingSpinner);
-
-            const reasoningContentDiv = document.createElement('div');
-            reasoningContentDiv.className = 'reasoning-content';
-
-            const answerText = document.createElement('div');
-            const reasoningToggle = document.createElement('div');
-            reasoningToggle.className = 'toggle-reasoning';
-
-            botBubble.appendChild(reasoningToggle);
-            botBubble.appendChild(reasoningContentDiv);
-            botBubble.appendChild(answerText);
-
-            let messages = [];
-            if (systemPrompt) {
-                messages.push({ role: 'system', content: systemPrompt });
-            }
-            messages = [...messages, ...conversationHistory];
-
-            const isCompatible = checkWebViewCompatibility();
+            // 创建中止控制器用于可能的请求中断
+            const abortController = new AbortController();
+            sendBtn.abortController = abortController; // 存储以供后续使用
 
             try {
-                if (isCompatible) {
-                    // 新浏览器继续使用 fetch + stream 方案
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh'
-                        },
-                        body: JSON.stringify({
-                            model: MODEL,
-                            messages: messages,
-                            stream: true,
-                            temperature: modelParams.temperature,
-                            top_p: modelParams.top_p,
-                            top_k: modelParams.top_k,
-                            frequency_penalty: modelParams.frequency_penalty,
-                            max_tokens: modelParams.max_tokens,
-                            n: 1
-                        })
-                    });
+                // 添加用户消息
+                appendMessage(message, true);
+                conversationHistory.push({ role: 'user', content: message });
+                document.getElementById('message-input').value = '';
 
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                // 准备机器人消息容器
+                const botContainer = appendMessage('', false);
+                const botBubble = botContainer.querySelector('.message-bubble');
+                let finalAnswer = '';
+                let reasoningContent = '';
 
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    let hasReasoning = false;
-                    let isAnswerStarted = false;
+                // 创建加载状态
+                const loadingSpinner = document.createElement('div');
+                loadingSpinner.className = 'loading-spinner';
+                botBubble.appendChild(loadingSpinner);
 
-                    loadingSpinner.remove();
+                // 准备消息结构
+                const answerText = document.createElement('div');
+                const reasoningToggle = document.createElement('div');
+                reasoningToggle.className = 'toggle-reasoning';
+                const reasoningContentDiv = document.createElement('div');
+                reasoningContentDiv.className = 'reasoning-content';
 
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
+                botBubble.appendChild(reasoningToggle);
+                botBubble.appendChild(reasoningContentDiv);
+                botBubble.appendChild(answerText);
 
-                        const chunk = decoder.decode(value);
-                        const lines = chunk.split('\n').filter(line => line.trim());
+                // 构建消息体
+                const messages = systemPrompt ?
+                    [{ role: 'system', content: systemPrompt }, ...conversationHistory] :
+                    [...conversationHistory];
 
-                        for (const line of lines) {
-                            try {
-                                const data = JSON.parse(line.replace('data: ', ''));
-                                const content = data.choices[0].delta.content || '';
-                                const reasoning = data.choices[0].delta.reasoning_content || '';
+                // 增强的浏览器兼容性检测
+                const isModernBrowser = (
+                    typeof fetch === 'function' &&
+                    typeof ReadableStream === 'function' &&
+                    typeof TextDecoder === 'function' &&
+                    typeof AbortController === 'function'
+                );
 
-                                if (reasoning || content) {
-                                    botBubble.classList.remove('blinking');
-                                }
+                if (isModernBrowser) {
+                    // 现代浏览器的流式处理
+                    try {
+                        const response = await fetch(API_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh'
+                            },
+                            body: JSON.stringify({
+                                model: MODEL,
+                                messages: messages,
+                                stream: true,
+                                temperature: modelParams.temperature,
+                                top_p: modelParams.top_p,
+                                top_k: modelParams.top_k,
+                                frequency_penalty: modelParams.frequency_penalty,
+                                max_tokens: modelParams.max_tokens
+                            }),
+                            signal: abortController.signal
+                        });
 
-                                if (reasoning) {
-                                    hasReasoning = true;
-                                    reasoningContent += reasoning;
-                                    reasoningContentDiv.innerHTML = marked.parse(reasoningContent);
-                                    reasoningContentDiv.querySelectorAll('pre code').forEach((block) => {
-                                        hljs.highlightElement(block);
-                                    });
-                                    reasoningContentDiv.classList.add('show');
-                                }
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-                                if (content) {
-                                    if (!isAnswerStarted && hasReasoning) {
-                                        reasoningContentDiv.classList.remove('show');
-                                        reasoningToggle.textContent = 'ThinKing ▼';
-                                        isAnswerStarted = true;
-                                    }
-                                    finalAnswer += content;
-                                    answerText.innerHTML = marked.parse(finalAnswer);
-                                    answerText.querySelectorAll('pre code').forEach((block) => {
-                                        hljs.highlightElement(block);
-                                    });
-                                    if (!isUserScrolling) {
-                                        document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
-                                    }
-                                }
-                            } catch (e) {
-                                console.error('Parsing error:', e);
-                            }
-                        }
-                    }
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        let buffer = '';
+                        let hasReasoning = false;
+                        let isAnswerStarted = false;
 
-                    conversationHistory.push({ role: 'assistant', content: finalAnswer });
+                        // 移除加载动画
+                        loadingSpinner.remove();
 
-                    if (hasReasoning) {
-                        reasoningToggle.style.display = 'block';
-                        reasoningToggle.innerHTML = 'ThinKing ▼';
-                        reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
-                    } else {
-                        reasoningToggle.style.display = 'none';
-                    }
-                } else {
-                    // 旧浏览器使用非流式方式，等待完整响应
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', API_URL);
-                    xhr.setRequestHeader('Content-Type', 'application/json');
-                    xhr.setRequestHeader('Authorization', 'Bearer sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh');
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
 
-                    xhr.onload = function () {
-                        if (xhr.status >= 400) {
-                            throw new Error(`HTTP error! status: ${xhr.status}`);
-                        }
-                        try {
-                            const fullResponse = xhr.responseText;
-                            const lines = fullResponse.split('\n').filter(line => line.trim());
-                            let hasReasoning = false;
-                            let isAnswerStarted = false;
+                            buffer += decoder.decode(value, { stream: true });
 
-                            lines.forEach(line => {
+                            // 增强的分块处理逻辑
+                            const chunks = buffer.split('\n');
+                            buffer = chunks.pop() || ''; // 保留未完成部分
+
+                            for (const chunk of chunks) {
+                                const trimmedChunk = chunk.replace('data: ', '').trim();
+                                if (!trimmedChunk) continue;
+
                                 try {
-                                    const data = JSON.parse(line.replace('data: ', ''));
-                                    const content = data.choices[0].delta.content || '';
-                                    const reasoning = data.choices[0].delta.reasoning_content || '';
+                                    const data = JSON.parse(trimmedChunk);
+                                    const content = data.choices[0]?.delta?.content || '';
+                                    const reasoning = data.choices[0]?.delta?.reasoning_content || '';
 
+                                    // 处理思考内容
                                     if (reasoning) {
                                         hasReasoning = true;
                                         reasoningContent += reasoning;
                                         reasoningContentDiv.innerHTML = marked.parse(reasoningContent);
-                                        reasoningContentDiv.querySelectorAll('pre code').forEach((block) => {
-                                            hljs.highlightElement(block);
-                                        });
+                                        reasoningContentDiv.querySelectorAll('pre code').forEach(hljs.highlightElement);
                                         reasoningContentDiv.classList.add('show');
                                     }
 
+                                    // 处理正式回答
                                     if (content) {
                                         if (!isAnswerStarted && hasReasoning) {
                                             reasoningContentDiv.classList.remove('show');
                                             reasoningToggle.textContent = 'ThinKing ▼';
                                             isAnswerStarted = true;
                                         }
+
                                         finalAnswer += content;
                                         answerText.innerHTML = marked.parse(finalAnswer);
-                                        answerText.querySelectorAll('pre code').forEach((block) => {
-                                            hljs.highlightElement(block);
-                                        });
-                                        if (!isUserScrolling) {
-                                            document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+                                        answerText.querySelectorAll('pre code').forEach(hljs.highlightElement);
+
+                                        // 智能滚动控制
+                                        const container = document.getElementById('chat-container');
+                                        const isNearBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 100;
+                                        if (isNearBottom) {
+                                            container.scrollTop = container.scrollHeight;
                                         }
                                     }
                                 } catch (e) {
-                                    console.error(e);
+                                    console.warn('解析 JSON 时出错:', e);
                                 }
-                            });
-
-                            conversationHistory.push({ role: 'assistant', content: finalAnswer });
-
-                            if (hasReasoning) {
-                                reasoningToggle.style.display = 'block';
-                                reasoningToggle.innerHTML = 'ThinKing ▼';
-                                reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
-                            } else {
-                                reasoningToggle.style.display = 'none';
                             }
-                        } catch (e) {
-                            console.error('Parsing full response error:', e);
                         }
-                    };
 
-                    xhr.send(JSON.stringify({
-                        model: MODEL,
-                        messages: messages,
-                        stream: false, // 非流式请求
-                        temperature: modelParams.temperature,
-                        top_p: modelParams.top_p,
-                        top_k: modelParams.top_k,
-                        frequency_penalty: modelParams.frequency_penalty,
-                        max_tokens: modelParams.max_tokens,
-                        n: 1
-                    }));
+                        conversationHistory.push({ role: 'assistant', content: finalAnswer });
+                    } catch (error) {
+                        if (error.name === 'AbortError') {
+                            answerText.innerHTML += '<div class="error-message">[已中止]</div>';
+                        } else {
+                            throw error;
+                        }
+                    }
+                } else {
+                    // 旧版浏览器的回退方案
+                    loadingSpinner.remove();
+                    answerText.innerHTML = '<div class="blinking">⏳loading...</div>';
+
+                    try {
+                        const response = await new Promise((resolve, reject) => {
+                            const xhr = new XMLHttpRequest();
+                            xhr.open('POST', API_URL);
+                            xhr.setRequestHeader('Content-Type', 'application/json');
+                            xhr.setRequestHeader('Authorization', 'Bearer sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh');
+
+                            xhr.onload = () => resolve(JSON.parse(xhr.responseText));
+                            xhr.onerror = reject;
+                            xhr.send(JSON.stringify({
+                                model: MODEL,
+                                messages: messages,
+                                stream: false,
+                                temperature: modelParams.temperature,
+                                top_p: modelParams.top_p,
+                                top_k: modelParams.top_k,
+                                frequency_penalty: modelParams.frequency_penalty,
+                                max_tokens: modelParams.max_tokens
+                            }));
+                        });
+
+                        const content = response.choices[0].message.content;
+                        finalAnswer = content;
+                        answerText.innerHTML = marked.parse(finalAnswer);
+                        answerText.querySelectorAll('pre code').forEach(hljs.highlightElement);
+                        conversationHistory.push({ role: 'assistant', content: finalAnswer });
+                    } catch (error) {
+                        answerText.innerHTML = `<div class="error-message">error: ${error.message}</div>`;
+                    }
                 }
+
+                // 最终处理思考内容显示
+                if (reasoningContent) {
+                    reasoningToggle.style.display = 'block';
+                    reasoningToggle.innerHTML = 'ThinKing ▼';
+                    reasoningToggle.onclick = () => toggleReasoning(reasoningToggle, reasoningContentDiv);
+                    reasoningContentDiv.innerHTML = marked.parse(reasoningContent);
+                    reasoningContentDiv.querySelectorAll('pre code').forEach(hljs.highlightElement);
+                } else {
+                    reasoningToggle.style.display = 'none';
+                }
+
             } catch (error) {
-                loadingSpinner.remove();
-                let errorMessage = 'There was an error in the conversation, please try again later';
-                if (error.message.includes('NetworkError')) {
-                    errorMessage = 'If there is a problem with the network connection, please check the network.';
-                } else if (error.message.includes('HTTP error')) {
-                    errorMessage = `Server error: ${error.message.split(' ')[3]}`;
-                }
-                answerText.innerText = errorMessage;
-                botBubble.classList.add('error-message');
+                console.error('get error:', error);
+                const errorMessage = error.message.includes('NetworkError') ?
+                    'network error' :
+                    `server error: ${error.message}`;
 
-                console.error('The request is incorrect:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.innerHTML = `
+            ${errorMessage}
+            <button class="retry-btn" onclick="sendMessage()">重试</button>
+        `;
+                botBubble.appendChild(errorDiv);
             } finally {
                 sendBtn.classList.remove('sending');
+                sendBtn.innerHTML = originalBtnText;
+                delete sendBtn.abortController;
             }
         }
+
 
         // 初始化绑定事件
         function initEvents() {
@@ -998,6 +1035,13 @@
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     sendMessage();
+                }
+            });
+
+            // 取消按钮
+            document.getElementById('cancel-btn').addEventListener('click', () => {
+                if (sendBtn.abortController) {
+                    sendBtn.abortController.abort();
                 }
             });
         }
