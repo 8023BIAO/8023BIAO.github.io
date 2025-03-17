@@ -159,41 +159,17 @@
             hyphens: auto;
         }
 
-        /* 用户气泡（带箭头） */
+        /* 用户气泡 */
         .user-message-bubble {
             background: var(--message-bg-color);
             /* color: #fff;*/
             border-radius: 18px 18px 4px 18px;
-
-            &::after {
-                content: '';
-                position: absolute;
-                top: 50%;
-                right: -12px;
-                transform: translateY(-50%);
-                width: 0;
-                height: 0;
-                border: 8px solid transparent;
-                border-left-color: var(--message-bg-color);
-            }
         }
 
-        /* 机器人气泡（带箭头） */
+        /* 机器人气泡 */
         .bot-message-bubble {
             background: var(--message-bg-color);
             border-radius: 18px 18px 18px 4px;
-
-            &::after {
-                content: '';
-                position: absolute;
-                top: 50%;
-                left: -12px;
-                transform: translateY(-50%);
-                width: 0;
-                height: 0;
-                border: 8px solid transparent;
-                border-right-color: var(--message-bg-color);
-            }
         }
 
         /* 思考过程切换按钮 */
@@ -269,7 +245,7 @@
         /* 按钮点击效果 */
         #send-btn:active,
         #settings-btn:active,
-        #cancel-btn:active,
+        /*#cancel-btn:active,*/
         #theme-toggle-btn:active {
             background-color: #0056b3;
             transform: scale(0.9);
@@ -278,7 +254,7 @@
         /* 按钮点击效果 */
         #send-btn.sending,
         #settings-btn.sending,
-        #cancel-btn.sending,
+        /* #cancel-btn.sending,*/
         #theme-toggle-btn.sending {
             pointer-events: none;
             opacity: 0.7;
@@ -286,7 +262,7 @@
 
         /* 设置按钮 */
         #settings-btn,
-        #cancel-btn,
+        /*#cancel-btn,*/
         #theme-toggle-btn,
         #send-btn {
             width: 40px;
@@ -644,6 +620,16 @@
         .message-container:empty {
             display: none;
         }
+
+        @media (max-width: 768px) {
+            #chat-container {
+                padding-bottom: 120px;
+            }
+
+            #input-container {
+                padding: 10px;
+            }
+        }
     </style>
 
 </head>
@@ -660,7 +646,7 @@
             <button id="theme-toggle-btn">☀️</button>
             <textarea id="message-input" placeholder="Enter message" rows="1"></textarea>
             <button id="send-btn">🚀</button>
-            <button id="cancel-btn">✖️</button>
+            <!--<button id="cancel-btn">✖️</button>-->
         </div>
     </div>
 
@@ -1084,6 +1070,7 @@
 
         // 初始化绑定事件
         function initEvents() {
+
             // 设置按钮
             document.getElementById('settings-btn').addEventListener('click', function () {
                 document.getElementById('settings-modal').style.display = 'flex';
@@ -1127,13 +1114,66 @@
                 }
             });
 
-            // 取消按钮
+            /* 取消按钮
             document.getElementById('cancel-btn').addEventListener('click', () => {
                 const sendBtn = document.getElementById('send-btn');
                 if (sendBtn.abortController) {
                     sendBtn.abortController.abort();
                 }
+            });*/
+            // 移动端键盘遮挡处理
+            const inputContainer = document.getElementById('input-container');
+            const chatContainer = document.getElementById('chat-container');
+
+            function adjustInputPosition() {
+                const inputHeight = inputContainer.offsetHeight;
+                const keyboardHeight = window.innerHeight - document.documentElement.clientHeight;
+
+                if (keyboardHeight > 0) {
+                    chatContainer.style.marginBottom = `${inputHeight + keyboardHeight}px`;
+                } else {
+                    chatContainer.style.marginBottom = `${inputHeight}px`;
+                }
+            }
+
+            // 监听输入框聚焦
+            messageInput.addEventListener('focus', () => {
+                adjustInputPosition();
+                window.addEventListener('resize', adjustInputPosition);
             });
+
+            // 监听输入框失焦
+            messageInput.addEventListener('blur', () => {
+                window.removeEventListener('resize', adjustInputPosition);
+                chatContainer.style.marginBottom = '';
+            });
+
+            // 防止刷新丢失聊天记录提示
+            let isPageReloading = false;
+
+            window.addEventListener('beforeunload', (e) => {
+                if (conversationHistory.length > 0 && !isPageReloading) {
+                    e.preventDefault();
+                    return e.returnValue = '刷新网页将丢失本次聊天记录';
+                }
+            });
+
+            // 处理实际刷新行为
+            document.getElementById('send-btn').addEventListener('click', () => {
+                isPageReloading = false;
+            });
+
+            // 检测移动端设备
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobile) {
+                // 添加移动端特殊处理
+                document.getElementById('message-input').addEventListener('focus', () => {
+                    setTimeout(() => {
+                        window.scrollTo(0, document.body.scrollHeight);
+                    }, 100);
+                });
+            }
         }
 
         // 切换推理内容显示
@@ -1164,8 +1204,8 @@
             var tipMessage = document.createElement('div');
             tipMessage.className = 'message-container bot-message-container';
             tipMessage.innerHTML = `<div class="message-bubble bot-message-bubble">
-<a href="https://www.siliconflow.com">siliconflow</a> free api <br> DeepSeek R1 Distill Qwen 7b 32k <br>
-Domain: <a href="https://www.biao.chat">biao.chat</a> <br>
+<a href="https://siliconflow.com">siliconflow</a> free api <br> DeepSeek R1 Distill Qwen 7b 32k <br>
+Domain: <a href="https://biao.chat">biao.chat</a> <br>
 github pages: <a href="https://github.com/8023BIAO/8023BIAO.github.io">8023BIAO.github.io</a>
 </div> 
                    `;
