@@ -5,42 +5,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>R1 Distill Qwen 7B Chat</title>
-    <!-- Polyfill for older browsers -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,fetch,Array.prototype.includes"></script>
-    <!-- 将原来的 marked 引用替换为最新版 -->
-    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <!-- 在head部分添加以下polyfill -->
-    <script src="https://cdn.jsdelivr.net/npm/text-encoding/lib/encoding.min.js"></script>
-    <script>
-        // IE10+ 的 Stream polyfill
-        if (!ReadableStream) {
-            document.write('<script src="https://cdn.jsdelivr.net/npm/web-streams-polyfill/dist/ponyfill.min.js"><\/script>');
-        }
+    <!-- 现代浏览器直接跳过 -->
+    <script type="module">window.__supportsModernES = true;</script>
+
+    <!-- 旧浏览器加载 polyfill -->
+    <script nomodule>
+        document.write(`
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,es2015,es2016,es2017,es2018,es2019,fetch,Array.prototype.includes,AbortController,TextDecoder,ReadableStream"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/web-streams-polyfill@4.0.0/dist/ponyfill.min.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/text-encoding-utf-8@2.0.0/lib/encoding.min.js"><\/script>
+`);
     </script>
+    <!-- 核心功能库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
         /* 基础变量定义 */
         :root {
-            --primary-color: #1976d2;
+            /* 主颜色 */
+            --primary-color: #e4e4e4;
+            /* 背景 主颜色 */
             --bg-color: #FFFFFF;
+            /* 文字颜色 */
             --text-color: #333333;
+            /* 输入框背景颜色 */
             --input-bg-color: #F8F9FA;
+            /* 输入框文字颜色 */
             --input-text-color: #333333;
+            /* 消息背景颜色 */
             --message-bg-color: #F8F9FA;
+            /* 消息文字颜色 */
             --message-text-color: #333333;
+            /* 动画过渡时间 */
             --transition-duration: 0.3s;
+
         }
 
         /* 暗黑模式变量 */
         [data-theme="dark"] {
-            --primary-color: #5f98c7;
+            /* 主颜色 */
+            --primary-color: #242424;
+            /* 背景 主颜色 */
             --bg-color: #1a1a1a;
+            /* 文字颜色 */
             --text-color: #f0f0f0;
+            /* 输入框背景颜色 */
             --input-bg-color: #2d2d2d;
+            /* 输入框文字颜色 */
             --input-text-color: #E0E0E0;
+            /* 消息背景颜色 */
             --message-bg-color: #2d2d2d;
+            /* 消息文字颜色 */
             --message-text-color: #E0E0E0;
+
         }
 
         /* 加载动画 */
@@ -50,6 +68,7 @@
             }
         }
 
+        /* 加载动画容器 */
         .loading-spinner {
             width: 24px;
             height: 24px;
@@ -57,7 +76,7 @@
             border-radius: 50%;
             border-top-color: transparent;
             animation: spin 1s linear infinite;
-            margin: 0 auto;
+            margin: 4px 0 0 8px;
         }
 
         /* 基础样式重置 */
@@ -67,8 +86,10 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             transition: color var(--transition-duration), background-color var(--transition-duration);
+            -webkit-font-smoothing: antialiased;
         }
 
+        /* 基础样式重置 */
         body {
             background: var(--bg-color);
             color: var(--text-color);
@@ -86,6 +107,8 @@
             max-width: 1200px;
             margin: 0 auto;
             width: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #eee;
         }
 
         /* 消息容器布局 */
@@ -121,19 +144,56 @@
             white-space: pre-wrap;
         }
 
-        /* 用户消息样式 */
-        .user-message-bubble {
-            background: var(--primary-color);
-            color: white;
-            border-radius: 18px 18px 4px 18px;
-            margin-right: 10px;
+        /* 消息气泡（带箭头） */
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            -webkit-hyphens: auto;
+            hyphens: auto;
         }
 
-        /* 机器人消息样式 */
+        /* 用户气泡（带箭头） */
+        .user-message-bubble {
+            background: var(--message-bg-color);
+            /* color: #fff;*/
+            border-radius: 18px 18px 4px 18px;
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                right: -12px;
+                transform: translateY(-50%);
+                width: 0;
+                height: 0;
+                border: 8px solid transparent;
+                border-left-color: var(--message-bg-color);
+            }
+        }
+
+        /* 机器人气泡（带箭头） */
         .bot-message-bubble {
             background: var(--message-bg-color);
             border-radius: 18px 18px 18px 4px;
-            margin-left: 10px;
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: -12px;
+                transform: translateY(-50%);
+                width: 0;
+                height: 0;
+                border: 8px solid transparent;
+                border-right-color: var(--message-bg-color);
+            }
         }
 
         /* 思考过程切换按钮 */
@@ -153,8 +213,11 @@
             background: var(--bg-color);
             border-radius: 8px;
             border: 1px solid var(--primary-color);
+            line-height: 1.5;
+            font-size: 14px;
         }
 
+        /* 显示思考过程内容 */
         .reasoning-content.show {
             display: block;
         }
@@ -180,6 +243,7 @@
             align-items: center;
             width: 100%;
             max-width: 1200px;
+            margin: 0 auto;
         }
 
         /* 消息输入框 */
@@ -194,9 +258,36 @@
             overflow-y: auto;
             background: var(--input-bg-color);
             color: var(--input-text-color);
+
+            &:focus {
+                outline: none;
+                border-color: var(--primary-color);
+            }
+
         }
 
-        /* 发送按钮 */
+        /* 按钮点击效果 */
+        #send-btn:active,
+        #settings-btn:active,
+        #cancel-btn:active,
+        #theme-toggle-btn:active {
+            background-color: #0056b3;
+            transform: scale(0.9);
+        }
+
+        /* 按钮点击效果 */
+        #send-btn.sending,
+        #settings-btn.sending,
+        #cancel-btn.sending,
+        #theme-toggle-btn.sending {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* 设置按钮 */
+        #settings-btn,
+        #cancel-btn,
+        #theme-toggle-btn,
         #send-btn {
             width: 40px;
             height: 40px;
@@ -207,80 +298,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            color: white;
-            transition: background-color var(--transition-duration), transform 0.1s;
-        }
-
-        #send-btn:active {
-            background-color: #0056b3;
-            transform: scale(0.9);
-        }
-
-        #send-btn.sending {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        /* 设置按钮 */
-        #settings-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             color: white;
             font-size: 18px;
             transition: background-color var(--transition-duration);
-        }
-
-        /* 设置按钮点击效果 */
-        #settings-btn:active {
-            background-color: #0056b3;
-        }
-
-        /* 取消按钮 */
-        #cancel-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-            transition: background-color var(--transition-duration);
-        }
-
-        #cancel-btn:active {
-            background-color: #0056b3;
-        }
-
-        /* 主题切换按钮 */
-        #theme-toggle-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-            transition: background-color var(--transition-duration);
-        }
-
-        #theme-toggle-btn:active {
-            background-color: #0056b3;
         }
 
         /* 响应式设计 */
@@ -290,6 +310,7 @@
             }
         }
 
+        /* 992px以上 */
         @media (min-width: 992px) {
             .message-bubble {
                 max-width: 60%;
@@ -311,6 +332,7 @@
             }
         }
 
+        /* 消息气泡样式 */
         .blinking {
             animation: blink 1s infinite;
         }
@@ -321,6 +343,7 @@
             font-weight: bold;
         }
 
+        /* 重试按钮 */
         .retry-btn {
             background: var(--primary-color);
             border: none;
@@ -331,6 +354,7 @@
             cursor: pointer;
         }
 
+        /* 重试按钮点击效果 */
         .retry-btn:active {
             background-color: #0056b3;
         }
@@ -345,8 +369,11 @@
             border-radius: 8px;
             margin: 8px 0;
             max-width: 100%;
+            tab-size: 4;
+            line-height: 1.6;
         }
 
+        /* 代码块行号 */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -356,6 +383,7 @@
             max-width: 100%;
         }
 
+        /* 代码块表头 */
         td,
         th {
             padding: 8px;
@@ -367,15 +395,18 @@
             width: 8px;
         }
 
+        /* 滚动条滑块 */
         #chat-container::-webkit-scrollbar-thumb {
             background-color: var(--primary-color);
             border-radius: 4px;
         }
 
+        /* 滚动条轨道 */
         #chat-container::-webkit-scrollbar-track {
             background-color: var(--bg-color);
         }
 
+        /* 992px以下 */
         @media (max-width: 576px) {
             .message-bubble {
                 max-width: 90%;
@@ -401,6 +432,7 @@
             align-items: center;
         }
 
+        /* 模态框内容 */
         .modal-content {
             background: var(--bg-color);
             padding: 20px;
@@ -413,6 +445,7 @@
             animation: modalSlide 0.3s ease-out;
         }
 
+        /* 模态框关闭按钮 */
         @keyframes modalSlide {
             from {
                 transform: translateY(-20px);
@@ -430,11 +463,13 @@
             margin: 15px 0;
         }
 
+        /* 参数设置项标题 */
         .param-item label {
             display: block;
             margin-bottom: 5px;
         }
 
+        /* 参数设置项输入框 */
         input[type="range"] {
             width: 100%;
             height: 5px;
@@ -444,6 +479,7 @@
             transition: opacity 0.2s;
         }
 
+        /* 滑块样式 */
         input[type="range"]:hover {
             opacity: 1;
         }
@@ -453,22 +489,24 @@
             margin-top: 20px;
             padding: 8px 16px;
             background: var(--primary-color);
-            color: white;
+            color: var(--input-text-color);
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
 
+        /* 重置默认设置按钮 */
         #reset-defaults {
             margin-top: 20px;
             padding: 8px 16px;
             background: var(--primary-color);
-            color: white;
+            color: var(--input-text-color);
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
 
+        /* 按钮组 */
         .button-group {
             display: flex;
             gap: 10px;
@@ -484,14 +522,27 @@
             color: var(--input-text-color);
             border: 1px solid var(--primary-color);
             border-radius: 4px;
+
+            &:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.15);
+            }
+
+            &:disabled {
+                background: #f0f0f0;
+                cursor: not-allowed;
+            }
         }
 
+        /* 模态框关闭按钮 */
         @media (min-height: 800px) {
             .modal-content {
                 max-height: 700px;
             }
         }
 
+        /* 重置默认设置按钮 */
         @media (max-width: 600px) {
             .modal-content {
                 width: 95%;
@@ -503,18 +554,21 @@
             }
         }
 
+        /* 重置默认设置按钮 */
         input[type="range"] {
             width: 100%;
             margin: 10px 0;
             padding: 8px 0;
         }
 
+        /* 按钮组 */
         .button-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
+        /* 按钮组 */
         #close-settings,
         #reset-defaults {
             width: 100%;
@@ -541,6 +595,7 @@
             }
         }
 
+        /* 添加旧版动画语法 */
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -562,25 +617,54 @@
             }
         }
 
+        /* 增强加载动画兼容性 */
         .loading-placeholder {
             display: inline-block;
             animation: blink 1.5s infinite;
             opacity: 0.5;
         }
+
+        /* 暗黑模式箭头颜色修正 */
+        [data-theme="dark"] .bot-message-bubble::after {
+            border-right-color: var(--message-bg-color);
+        }
+
+        /* ========== 隐藏元素 & 特殊状态 ========== */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        .message-container:empty {
+            display: none;
+        }
     </style>
+
 </head>
 
 <body>
+
+    <!-- 聊天容器 -->
     <div id="chat-container"></div>
+
+    <!-- 底部栏 -->
     <div id="input-container">
         <div class="input-wrapper">
             <button id="settings-btn">⚙️</button>
             <button id="theme-toggle-btn">☀️</button>
-            <textarea id="message-input" placeholder="Enter message..." rows="1"></textarea>
+            <textarea id="message-input" placeholder="Enter message" rows="1"></textarea>
             <button id="send-btn">🚀</button>
             <button id="cancel-btn">✖️</button>
         </div>
     </div>
+
+    <!-- 设置模态框 -->
     <div id="settings-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <h3>Model parameter settings</h3>
@@ -615,6 +699,7 @@
         </div>
 
     </div>
+
     <script>
         // 兼容旧浏览器的工具函数
         if (!Array.prototype.includes) {
@@ -726,6 +811,7 @@
             saveParams();
         }
 
+        // 设置按钮事件
         document.getElementById('reset-defaults').addEventListener('click', resetToDefaults);
         document.getElementById('system-prompt').addEventListener('input', (e) => {
             systemPrompt = e.target.value;
@@ -763,7 +849,8 @@
             container.appendChild(bubble);
             document.getElementById('chat-container').appendChild(container);
             if (!isUserScrolling) {
-                document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+                // 滚动到底部
+                scrollToBottom();
             }
             return container;
         }
@@ -889,6 +976,8 @@
                                         reasoningContentDiv.innerHTML = marked.parse(reasoningContent);
                                         reasoningContentDiv.querySelectorAll('pre code').forEach(hljs.highlightElement);
                                         reasoningContentDiv.classList.add('show');
+                                        // 滚动到底部
+                                        scrollToBottom();
                                     }
 
                                     // 处理正式回答
@@ -911,7 +1000,7 @@
                                         }
                                     }
                                 } catch (e) {
-                                    console.warn('解析 JSON 时出错:', e);
+                                    console.warn('An error occurred while parsing the JSON:', e);
                                 }
                             }
                         }
@@ -919,7 +1008,7 @@
                         conversationHistory.push({ role: 'assistant', content: finalAnswer });
                     } catch (error) {
                         if (error.name === 'AbortError') {
-                            answerText.innerHTML += '<div class="error-message">[已中止]</div>';
+                            answerText.innerHTML += '<div class="error-message">[aborted]</div>';
                         } else {
                             throw error;
                         }
@@ -955,6 +1044,8 @@
                         answerText.innerHTML = marked.parse(finalAnswer);
                         answerText.querySelectorAll('pre code').forEach(hljs.highlightElement);
                         conversationHistory.push({ role: 'assistant', content: finalAnswer });
+                        // 滚动到底部
+                        scrollToBottom();
                     } catch (error) {
                         answerText.innerHTML = `<div class="error-message">error: ${error.message}</div>`;
                     }
@@ -981,7 +1072,7 @@
                 errorDiv.className = 'error-message';
                 errorDiv.innerHTML = `
             ${errorMessage}
-            <button class="retry-btn" onclick="sendMessage()">重试</button>
+            <button class="retry-btn" onclick="sendMessage()">retry</button>
         `;
                 botBubble.appendChild(errorDiv);
             } finally {
@@ -990,7 +1081,6 @@
                 delete sendBtn.abortController;
             }
         }
-
 
         // 初始化绑定事件
         function initEvents() {
@@ -1021,7 +1111,6 @@
                 localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
             });
 
-
             // 发送按钮
             document.getElementById('send-btn').addEventListener('click', sendMessage);
 
@@ -1040,6 +1129,7 @@
 
             // 取消按钮
             document.getElementById('cancel-btn').addEventListener('click', () => {
+                const sendBtn = document.getElementById('send-btn');
                 if (sendBtn.abortController) {
                     sendBtn.abortController.abort();
                 }
@@ -1052,6 +1142,12 @@
             element.innerHTML = reasoningContent.classList.contains('show')
                 ? 'ThinKing ▲'
                 : 'ThinKing ▼';
+        }
+
+        // 滚动到聊天容器底部
+        function scrollToBottom() {
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
         // 初始化应用
@@ -1067,7 +1163,12 @@
             // 初始化提示消息
             var tipMessage = document.createElement('div');
             tipMessage.className = 'message-container bot-message-container';
-            tipMessage.innerHTML = '<div class="message-bubble bot-message-bubble">siliconflow free api<br>DeepSeek R1 Distill Qwen 7b 32k</div>';
+            tipMessage.innerHTML = `<div class="message-bubble bot-message-bubble">
+<a href="https://www.siliconflow.com">siliconflow</a> free api <br> DeepSeek R1 Distill Qwen 7b 32k <br>
+Domain: <a href="https://www.biao.chat">biao.chat</a> <br>
+github pages: <a href="https://github.com/8023BIAO/8023BIAO.github.io">8023BIAO.github.io</a>
+</div> 
+                   `;
             document.getElementById('chat-container').appendChild(tipMessage);
             document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
         });
