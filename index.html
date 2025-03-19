@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>R1 Distill Qwen 7B Chat</title>
+    <title>biao.chat</title>
     <!-- 现代浏览器直接跳过 -->
     <script type="module">window.__supportsModernES = true;</script>
 
@@ -142,9 +142,24 @@
             margin-bottom: 12px;
             overflow-wrap: anywhere;
             white-space: pre-wrap;
+
+            /* 限制最大宽度 */
+            max-width: min(80%, 1200px);
+
+            /* 内容溢出处理 */
+            overflow: visible;
+
+            /* 文字对齐方式 */
+            text-align: left;
+            /* 保持左对齐，如需整体居中可改为 center */
+
+            /* 增强的溢出保护 */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
         }
 
-        /* 消息气泡（带箭头） */
+        /* 消息气泡 */
         .message-bubble {
             max-width: 80%;
             padding: 12px 16px;
@@ -157,6 +172,37 @@
             overflow-wrap: anywhere;
             -webkit-hyphens: auto;
             hyphens: auto;
+        }
+
+        /* 针对 Markdown 元素的特别处理 */
+        .message-bubble pre {
+            max-width: 100%;
+            overflow-x: auto;
+            background: var(--bg-color) !important;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px auto;
+            /* 居中代码块 */
+        }
+
+        .message-bubble code {
+            white-space: pre-wrap;
+            display: block;
+            max-width: 100%;
+        }
+
+        .message-bubble table {
+            max-width: 100%;
+            margin: 12px auto;
+            /* 表格居中 */
+        }
+
+        .message-bubble img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 8px auto;
+            /* 图片居中 */
         }
 
         /* 用户气泡 */
@@ -234,6 +280,11 @@
             overflow-y: auto;
             background: var(--input-bg-color);
             color: var(--input-text-color);
+            max-height: 150px;
+            /* 防止过度拉伸 */
+            min-height: 48px;
+            /* 新增：自适应动画 */
+            transition: height 0.3s ease;
 
             &:focus {
                 outline: none;
@@ -498,6 +549,13 @@
             color: var(--input-text-color);
             border: 1px solid var(--primary-color);
             border-radius: 4px;
+            max-height: 150px;
+            /* 防止过度拉伸 */
+            min-height: 48px;
+            /* 新增：自适应动画 */
+            transition: height 0.3s ease;
+            max-width: 100%;
+            min-width: 100%;
 
             &:focus {
                 outline: none;
@@ -630,6 +688,34 @@
                 padding: 10px;
             }
         }
+
+        /* 添加触摸优化 */
+        @media (pointer: coarse) {
+            #send-btn {
+                min-width: 48px;
+                min-height: 48px;
+            }
+
+            .message-bubble {
+                padding: 16px;
+                font-size: 1.1em;
+            }
+        }
+
+        /* 新增：移动端底部安全区适配 */
+        @media (max-height: 600px) {
+
+            /* 小屏幕设备（如折叠屏手机） */
+            #chat-container {
+                padding-bottom: 140px;
+                /* 增加底部留白 */
+            }
+
+            .message-bubble {
+                font-size: 15px;
+                /* 缩小字体适应小屏幕 */
+            }
+        }
     </style>
 
 </head>
@@ -649,6 +735,7 @@
             <!--<button id="cancel-btn">✖️</button>-->
         </div>
     </div>
+
 
     <!-- 设置模态框 -->
     <div id="settings-modal" class="modal" style="display: none;">
@@ -1121,6 +1208,7 @@
                     sendBtn.abortController.abort();
                 }
             });*/
+
             // 移动端键盘遮挡处理
             const inputContainer = document.getElementById('input-container');
             const chatContainer = document.getElementById('chat-container');
@@ -1174,6 +1262,12 @@
                     }, 100);
                 });
             }
+
+            // 添加防抖处理
+            messageInput.addEventListener('input', debounce(() => {
+                autoSaveDraft();
+            }, 300));
+
         }
 
         // 切换推理内容显示
@@ -1211,6 +1305,7 @@ github pages: <a href="https://github.com/8023BIAO/8023BIAO.github.io">8023BIAO.
                    `;
             document.getElementById('chat-container').appendChild(tipMessage);
             document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+
         });
     </script>
 </body>
