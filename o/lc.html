@@ -168,7 +168,7 @@ body {
 <input type="number" id="paperNetWeight" placeholder="净重 (kg)" step="0.01" min="0">
 <input type="number" id="paperGrammage" placeholder="克重 (g/m²)" step="0.01" min="0">
 <input type="number" id="paperWidth" placeholder="宽度 (mm)" step="0.01" min="0">
-<input type="number" id="coreDiameter" placeholder="空纸筒直径 (mm)" value="98" step="1" min="0">
+<input type="number" id="coreDiameter" placeholder="空纸筒直径 (mm)" value="100" step="1" min="0">
 <input type="number" id="splitCount" placeholder="分切卷数量" value="2" step="1" min="1">
 </div>
 <div class="result-grid">
@@ -248,7 +248,6 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
 
 <section class="calculator-module">
 <h3 class="module-title">计算公式显示</h3>
-<div class="input-group">
 <div class="result-grid">
 <div class="result-item">
 长度：<span class="result-value" id="">(净重kg * 1000) / (克重g/m² * 宽度mm)</span></br></br>
@@ -256,8 +255,6 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
 起点距离：<span class="result-value" id="">(轴长度 - 卷纸宽度 + 两边总边距) / 2</span></br></br>
 初始张力：<span class="result-value" id="">净重kg * ( 0.02 & 0.045) 最小值-最大值 </span></br></br>
 </div>
-</div>
-
 </div>
 </section>
 
