@@ -39,7 +39,10 @@
             --message-text-color: #333333;
             /* 动画过渡时间 */
             --transition-duration: 0.3s;
-
+            /* 思考按钮颜色 */
+            --thinking-color: #a6a6a6;
+            /* 思考文字颜色  */
+            --thinking-text-color: #a6a6a6;
         }
 
         /* 暗黑模式变量 */
@@ -58,6 +61,10 @@
             --message-bg-color: #2d2d2d;
             /* 消息文字颜色 */
             --message-text-color: #E0E0E0;
+            /* 思考按钮颜色 */
+            --thinking-color: #a6a6a6;
+            /* 思考文字颜色  */
+            --thinking-text-color: #a6a6a6;
 
         }
 
@@ -241,11 +248,12 @@
 
         /* 思考过程切换按钮 */
         .toggle-reasoning {
-            color: var(--primary-color);
+            color: var(--thinking-color);
             cursor: pointer;
             font-size: 14px;
             margin-top: 8px;
             display: inline-block;
+            color: var(--thinking-text-color);
         }
 
         /* 思考过程内容 */
@@ -258,6 +266,7 @@
             border: 1px solid var(--primary-color);
             line-height: 1.5;
             font-size: 14px;
+            color: var(--thinking-text-color);
         }
 
         /* 显示思考过程内容 */
