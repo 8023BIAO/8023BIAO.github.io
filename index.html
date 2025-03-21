@@ -98,6 +98,27 @@
             flex-direction: column;
         }
 
+        a {
+            position: relative;
+            color: #0056b3;
+            text-decoration: none;
+        }
+
+        a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: currentColor;
+            transition: width 0.3s ease;
+        }
+
+        a:hover::after {
+            width: 100%;
+        }
+
         /* 聊天容器 */
         #chat-container {
             flex: 1;
