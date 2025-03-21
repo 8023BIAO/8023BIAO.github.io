@@ -328,24 +328,25 @@
         /* 按钮点击效果 */
         #send-btn:active,
         #settings-btn:active,
-        /*#cancel-btn:active,*/
         #theme-toggle-btn:active {
             background-color: #0056b3;
             transform: scale(0.9);
         }
 
         /* 按钮点击效果 */
-        #send-btn.sending,
         #settings-btn.sending,
-        /* #cancel-btn.sending,*/
         #theme-toggle-btn.sending {
             pointer-events: none;
             opacity: 0.7;
         }
 
+        #send-btn.sending {
+            opacity: 0.7;
+            /* 保留pointer-events允许点击 */
+        }
+
         /* 设置按钮 */
         #settings-btn,
-        /*#cancel-btn,*/
         #theme-toggle-btn,
         #send-btn {
             width: 40px;
@@ -772,7 +773,6 @@
             <button id="theme-toggle-btn">☀️</button>
             <textarea id="message-input" placeholder="Enter message" rows="1"></textarea>
             <button id="send-btn">🚀</button>
-            <!--<button id="cancel-btn">✖️</button>-->
         </div>
     </div>
 
@@ -842,7 +842,7 @@
             temperature: 0.7,
             top_p: 0.7,
             top_k: 60,
-            frequency_penalty: 0
+            frequency_penalty: 0.5
         };
 
         // 状态管理
@@ -976,6 +976,17 @@
             return isFetchSupported && isReadableStreamSupported;
         }
 
+        // 取消请求
+        function cancelRequest() {
+            const sendBtn = document.getElementById('send-btn');
+            if (sendBtn.abortController) {
+                sendBtn.abortController.abort();
+                sendBtn.innerHTML = '🚀'; // 立即恢复发送图标
+                sendBtn.classList.remove('sending');
+                delete sendBtn.abortController;
+            }
+        }
+
         // 发送消息
         async function sendMessage() {
             const message = document.getElementById('message-input').value.trim();
@@ -983,8 +994,11 @@
 
             const sendBtn = document.getElementById('send-btn');
             const originalBtnText = sendBtn.innerHTML;
+
             sendBtn.classList.add('sending');
-            sendBtn.innerHTML = '⏳';
+            sendBtn.innerHTML = '✖️'; // 改为叉号图标
+            sendBtn.dataset.originalClickHandler = sendBtn.onclick; // 保存原始点击处理器
+            sendBtn.onclick = cancelRequest; // 绑定取消函数
 
             // 创建中止控制器用于可能的请求中断
             const abortController = new AbortController();
@@ -1193,6 +1207,10 @@
                 sendBtn.classList.remove('sending');
                 sendBtn.innerHTML = originalBtnText;
                 delete sendBtn.abortController;
+                // 在现有finally块中添加
+                sendBtn.onclick = sendBtn.dataset.originalClickHandler; // 恢复原始点击处理器
+                // 自动滚动到底部
+                setTimeout(scrollToBottom, 50);
             }
         }
 
@@ -1241,14 +1259,6 @@
                     sendMessage();
                 }
             });
-
-            /* 取消按钮
-            document.getElementById('cancel-btn').addEventListener('click', () => {
-                const sendBtn = document.getElementById('send-btn');
-                if (sendBtn.abortController) {
-                    sendBtn.abortController.abort();
-                }
-            });*/
 
             // 移动端键盘遮挡处理
             const inputContainer = document.getElementById('input-container');
