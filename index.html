@@ -13,13 +13,15 @@
         document.write(`
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6,es2015,es2016,es2017,es2018,es2019,fetch,Array.prototype.includes,AbortController,TextDecoder,ReadableStream"><\/script>
     <script src="https://cdn.jsdelivr.net/npm/web-streams-polyfill@4.0.0/dist/ponyfill.min.js"><\/script>
-    <script src="https://cdn.jsdelivr.net/npm/text-encoding-utf-8@2.0.0/lib/encoding.min.js"><\/script>
-`);
+    <script src="https://cdn.jsdelivr.net/npm/text-encoding-utf-8@2.0.0/lib/encoding.min.js"><\/script>`);
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js"></script>
+
     <!-- 核心功能库 -->
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
     <style>
         /* 基础变量定义 */
         :root {
@@ -65,7 +67,6 @@
             --thinking-color: #a6a6a6;
             /* 思考文字颜色  */
             --thinking-text-color: #a6a6a6;
-
         }
 
         /* 加载动画 */
@@ -200,6 +201,8 @@
             overflow-wrap: anywhere;
             -webkit-hyphens: auto;
             hyphens: auto;
+            /* 新增表格处理 */
+            table-layout: fixed;
         }
 
         /* 针对 Markdown 元素的特别处理 */
@@ -210,7 +213,6 @@
             padding: 12px;
             border-radius: 8px;
             margin: 10px auto;
-            /* 居中代码块 */
         }
 
         .message-bubble code {
@@ -746,6 +748,14 @@
                 /* 缩小字体适应小屏幕 */
             }
         }
+
+        [data-theme="dark"] .hljs {
+            color: var(--text-color) !important;
+        }
+
+        [data-theme="dark"] .hljs-subst {
+            color: var(--text-color) !important;
+        }
     </style>
 
 </head>
@@ -946,6 +956,7 @@
                 bubble.innerHTML = marked.parse(content);
                 bubble.querySelectorAll('pre code').forEach(function (block) {
                     hljs.highlightElement(block);
+                    block.style.maxWidth = "100%"; // 防止代码块溢出
                 });
             }
 
@@ -1293,11 +1304,16 @@
                 });
             }
 
+            marked.setOptions({
+                gfm: true, // 启用 GitHub 风格表格支持
+                breaks: true, // 允许换行符
+                xhtml: true // 生成标准 XHTML 标签
+            });
+
             // 添加防抖处理
             messageInput.addEventListener('input', debounce(() => {
                 autoSaveDraft();
             }, 300));
-
         }
 
         // 切换推理内容显示
