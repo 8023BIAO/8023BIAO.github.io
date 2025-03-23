@@ -815,7 +815,6 @@
             background-size: 200% 100%;
             animation: skeleton-wave 1.5s infinite;
             border-radius: 12px;
-            aspect-ratio: 9/16;
         }
 
         .progress-bar {
@@ -851,7 +850,6 @@
             background-size: 200% 100%;
             animation: skeleton-wave 1.5s infinite;
             border-radius: 12px;
-
         }
 
         @keyframes skeleton-wave {
@@ -1381,7 +1379,7 @@
                 }
 
                 // 插入绘图占位符
-                placeholderContainer = appendDrawingPlaceholder();
+                placeholderContainer = appendDrawingPlaceholder(drawingParams.image_size);
 
                 // 准备绘图参数
                 const params = {
@@ -1429,7 +1427,7 @@
         }
 
         // 占位符函数
-        function appendDrawingPlaceholder() {
+        function appendDrawingPlaceholder(image_size) {
             const container = document.createElement('div');
             container.className = 'message-container bot-message-container';
 
@@ -1439,6 +1437,12 @@
             <div class="progress-bar"></div>
         </div>
     `;
+
+            // 设置占位符尺寸
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'image-container';
+            imageContainer.style.width = image_size.width + 'px';
+            imageContainer.style.height = image_size.height + 'px';
 
             document.getElementById('chat-container').appendChild(container);
             scrollToBottom();
@@ -1952,7 +1956,7 @@
                 //document.getElementById('message-input').value = '';
 
                 document.getElementById('message-input').placeholder = isDrawingMode ?
-                    "Enter image description (e.g. A cute cat)" :
+                    "Enter image description" :
                     "Enter message";
 
                 // 替换提示方式（原appendMessage调用）
@@ -1968,7 +1972,7 @@
             });
 
             document.getElementById('message-input').placeholder = !isDrawingMode ?
-                "Enter image description (e.g. A cute cat)" :
+                "Enter image description" :
                 "Enter message";
 
             // 初始化时读取状态
