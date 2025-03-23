@@ -990,6 +990,7 @@
 </head>
 
 <body>
+
     <button id="theme-toggle-btn">☀️</button>
 
     <!-- 聊天容器 -->
@@ -999,13 +1000,11 @@
     <div id="input-container">
         <div class="input-wrapper">
             <button id="settings-btn">⚙️</button>
-
             <button id="text-imagesMod-btn">🖼️</button><!--图文模式切换-->
             <textarea id="message-input" placeholder="Enter message" rows="1"></textarea>
             <button id="send-btn">🚀</button>
         </div>
     </div>
-
 
     <!-- 文本对话ai设置模态框 -->
     <div id="settings-modal" class="modal" style="display: none;">
@@ -1372,6 +1371,14 @@
             try {
                 // 添加用户消息
                 appendMessage(`DrawPrompt: ${prompt}`, true);
+
+                // 在发送消息函数开头添加：
+                if (conversationHistory.length === 0) {
+                    const tipElement = document.getElementById('init-tip-message');
+                    if (tipElement) {
+                        tipElement.style.display = 'none';
+                    }
+                }
 
                 // 插入绘图占位符
                 placeholderContainer = appendDrawingPlaceholder();
