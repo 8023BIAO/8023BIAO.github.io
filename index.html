@@ -348,6 +348,33 @@
             }
         }
 
+        #theme-toggle-btn {
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            left: 20px !important;
+            right: auto !important;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            transition: background-color var(--transition-duration);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            left: auto;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease;
+            font-size: 1.2rem;
+        }
+
         /* 按钮点击效果 */
         #send-btn:active,
         #settings-btn:active,
@@ -373,7 +400,6 @@
 
         /* 设置按钮 */
         #settings-btn,
-        #theme-toggle-btn,
         #send-btn,
         #text-imagesMod-btn {
             width: 40px;
@@ -751,11 +777,6 @@
 
         /* 添加触摸优化 */
         @media (pointer: coarse) {
-            #send-btn {
-                min-width: 48px;
-                min-height: 48px;
-            }
-
             .message-bubble {
                 padding: 16px;
                 font-size: 1.1em;
@@ -830,7 +851,7 @@
             background-size: 200% 100%;
             animation: skeleton-wave 1.5s infinite;
             border-radius: 12px;
-            aspect-ratio: 1/1;
+
         }
 
         @keyframes skeleton-wave {
@@ -844,11 +865,132 @@
             --skeleton-bg: #2a2a2a;
             --skeleton-highlight: #3a3a3a;
         }
+
+        /* 新增提示样式 */
+        .mode-toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--message-bg-color);
+            color: var(--message-text-color);
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: toastFade 800ms ease-out;
+            z-index: 999;
+        }
+
+        @keyframes toastFade {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, 10px);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+
+            80% {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -10px);
+            }
+        }
+
+        /* 图片缩放相关样式 */
+        .message-bubble img {
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-origin: center center;
+            max-width: 100%;
+            height: auto;
+            backface-visibility: hidden;
+            /* 优化缩放表现 */
+        }
+
+        .message-bubble img.zoomed {
+            z-index: 1000;
+            position: relative;
+            transform: scale(2);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 全屏模式样式 */
+        .img-fullscreen {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) scale(var(--scale, 1)) !important;
+            max-width: 90vw !important;
+            max-height: 90vh !important;
+            cursor: zoom-out !important;
+            z-index: 9999 !important;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            cursor: grab;
+            transition: transform 0.3s ease-out;
+            touch-action: none;
+
+        }
+
+        /* 全屏模式下的遮罩层 */
+        .img-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9998;
+            cursor: zoom-out;
+        }
+
+        .img-fullscreen:active {
+            cursor: grabbing;
+        }
+
+        /* 缩放控制按钮 */
+        .zoom-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            display: flex;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .zoom-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            padding: 0 10px;
+            transition: transform 0.2s;
+        }
+
+        .zoom-btn:hover {
+            transform: scale(1.2);
+        }
     </style>
 
 </head>
 
 <body>
+    <button id="theme-toggle-btn">☀️</button>
 
     <!-- 聊天容器 -->
     <div id="chat-container"></div>
@@ -857,7 +999,7 @@
     <div id="input-container">
         <div class="input-wrapper">
             <button id="settings-btn">⚙️</button>
-            <button id="theme-toggle-btn">☀️</button>
+
             <button id="text-imagesMod-btn">🖼️</button><!--图文模式切换-->
             <textarea id="message-input" placeholder="Enter message" rows="1"></textarea>
             <button id="send-btn">🚀</button>
@@ -926,8 +1068,8 @@
                 <input type="range" id="num_inference_steps" value="20" min="1" max="100" step="1">
             </div>
             <div class="param-item">
-                <label>guidance_scale:<span id="guidance_scale-value">7.5</span></label>
-                <input type="range" id="guidance_scale" value="7.5" min="0" max="20" step="0.1">
+                <label>guidance_scale:<span id="guidance_scale-value">7</span></label>
+                <input type="range" id="guidance_scale" value="7" min="0" max="20" step="0.1">
             </div>
             <div class="button-group">
                 <button id="drawing-defaults-btn">default</button>
@@ -986,7 +1128,7 @@
             "batch_size": 1, //生成数量
             "seed": 4999999999,//种子范围
             "num_inference_steps": 20,//推理步骤数(画图步骤)
-            "guidance_scale": 7.5,//此值用于控制生成的图像与给定提示之间的匹配程度。值越高，生成的图像就越倾向于与文本提示严格匹配。值越低，生成的图像就越有创意和多样性，可能包含更多意想不到的元素。
+            "guidance_scale": 4,//此值用于控制生成的图像与给定提示之间的匹配程度。值越高，生成的图像就越倾向于与文本提示严格匹配。值越低，生成的图像就越有创意和多样性，可能包含更多意想不到的元素。
         }
 
         // 新增全局变量
@@ -1031,7 +1173,7 @@
                 }
             });
 
-            // 绘图参数初始化（增强版）
+            // 绘图参数初始化
             const savedDrawingParams = localStorage.getItem('drawingParams');
             drawingParams = savedDrawingParams ? { ...DRAWING_PARAMS, ...JSON.parse(savedDrawingParams) } : { ...DRAWING_PARAMS };
 
@@ -1222,7 +1364,7 @@
             }
         }
 
-        // 修改后的 handleImageGeneration 函数
+        // 发送绘图消息 函数
         async function handleImageGeneration(prompt) {
             const sendBtn = document.getElementById('send-btn');
             let placeholderContainer; // 存储占位符容器引用
@@ -1266,10 +1408,10 @@
             } catch (error) {
                 // 错误处理中也需要移除占位符
                 if (placeholderContainer) {
-                    placeholderContainer.querySelector('.drawing-skeleton').replaceWith(
-
-                    );
+                    placeholderContainer.querySelector('.drawing-skeleton').replaceWith();
                     placeholderContainer.querySelector('.progress-bar').remove();
+                    placeholderContainer.querySelector('.message-bubble').remove();
+                    placeholderContainer.querySelector('.bot-message-bubble').remove();
                 }
 
                 console.error('Image generation failed:', error);
@@ -1279,7 +1421,7 @@
             }
         }
 
-        // 新增占位符函数
+        // 占位符函数
         function appendDrawingPlaceholder() {
             const container = document.createElement('div');
             container.className = 'message-container bot-message-container';
@@ -1296,7 +1438,7 @@
             return container; // 返回容器引用以便后续操作
         }
 
-        // 修改后的 appendImageResults 函数
+        // 图片生成函数
         function appendImageResults(images) {
             const container = document.createElement('div');
             container.className = 'message-container bot-message-container';
@@ -1310,6 +1452,108 @@
             images.forEach(img => {
                 const imgElem = document.createElement('img');
                 imgElem.src = img.url;
+                imgElem.style.cursor = 'zoom-in'; // 初始光标样式
+
+                imgElem.addEventListener('click', function (e) {
+                    e.stopPropagation();
+
+                    // 创建全屏元素
+                    const clone = this.cloneNode(true);
+                    const overlay = document.createElement('div');
+                    overlay.className = 'img-overlay';
+
+                    // 创建控制按钮
+                    const controls = document.createElement('div');
+                    controls.className = 'zoom-controls';
+
+                    const zoomInBtn = document.createElement('button');
+                    zoomInBtn.className = 'zoom-btn';
+                    zoomInBtn.innerHTML = '+';
+
+                    const zoomOutBtn = document.createElement('button');
+                    zoomOutBtn.className = 'zoom-btn';
+                    zoomOutBtn.innerHTML = '-';
+
+                    const closeBtn = document.createElement('button');
+                    closeBtn.className = 'zoom-btn';
+                    closeBtn.innerHTML = 'x';
+
+                    // 初始化缩放状态
+                    let currentScale = 1;
+
+                    // 缩放功能函数
+                    const setScale = (scale) => {
+                        currentScale = Math.min(Math.max(0.5, scale), 5);
+                        clone.style.setProperty('--scale', currentScale);
+                    };
+
+                    // 按钮点击事件
+                    zoomInBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        setScale(currentScale * 1.2);
+                    });
+
+                    zoomOutBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        setScale(currentScale * 0.8);
+                    });
+
+                    // 修改关闭按钮点击事件
+                    closeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        closeFullscreen();
+                    });
+
+                    // 鼠标滚轮缩放
+                    clone.addEventListener('wheel', (e) => {
+                        e.preventDefault();
+                        setScale(currentScale * (e.deltaY > 0 ? 0.9 : 1.1));
+                    });
+
+                    // 双击重置缩放
+                    clone.addEventListener('dblclick', () => {
+                        setScale(1);
+                    });
+
+                    // 修改遮罩层点击事件
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) { // 确保点击的是遮罩层本身
+                            closeFullscreen();
+                        }
+                    });
+
+                    // 添加元素
+                    controls.append(zoomInBtn, zoomOutBtn, closeBtn);
+                    clone.classList.add('img-fullscreen');
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(clone);
+                    document.body.appendChild(controls);
+
+                    // 关闭函数
+                    const closeFullscreen = () => {
+                        document.body.removeChild(overlay);
+                        document.body.removeChild(clone);
+                        document.body.removeChild(controls);
+                    };
+
+                    // 初始化缩放
+                    setScale(1);
+                });
+
+                // +++ 添加鼠标滚轮缩放支持 +++
+                let scale = 1;
+                imgElem.addEventListener('wheel', function (e) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                    scale *= delta;
+                    scale = Math.min(Math.max(1, scale), 5); // 限制缩放范围1-5倍
+                    this.style.transform = `scale(${scale})`;
+
+                    // 更新光标状态
+                    this.style.cursor = scale > 1 ? 'zoom-out' : 'zoom-in';
+                    this.classList.toggle('zoomed', scale > 1);
+                });
+
                 bubble.appendChild(imgElem);
             });
 
@@ -1433,7 +1677,7 @@
 
                             buffer += decoder.decode(value, { stream: true });
 
-                            // 增强的分块处理逻辑
+                            // 分块处理逻辑
                             const chunks = buffer.split('\n');
                             buffer = chunks.pop() || ''; // 保留未完成部分
 
@@ -1627,22 +1871,17 @@
             const inputContainer = document.getElementById('input-container');
             const chatContainer = document.getElementById('chat-container');
 
-            // 修改后新增滚动判断逻辑
+            // 滚动判断逻辑
             function adjustInputPosition() {
                 const chatContainer = document.getElementById('chat-container');
                 const inputHeight = inputContainer.offsetHeight;
                 const keyboardHeight = window.innerHeight - document.documentElement.clientHeight;
-                const isAtBottom = chatContainer.scrollHeight - chatContainer.clientHeight <= chatContainer.scrollTop + 1;
 
-                // 自动滚动逻辑
-                if (isAtBottom) {
-                    chatContainer.style.marginBottom = `${inputHeight + keyboardHeight}px`;
-                    setTimeout(() => {
-                        chatContainer.scrollTop = chatContainer.scrollHeight;
-                    }, 50);
-                } else {
-                    chatContainer.style.marginBottom = `${inputHeight}px`;
-                }
+                // 强制设置 margin 并滚动到底部
+                chatContainer.style.marginBottom = `${inputHeight + keyboardHeight}px`;
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 50);
             }
 
             // 监听输入框聚焦
@@ -1694,6 +1933,7 @@
                 xhtml: true // 生成标准 XHTML 标签
             });
 
+
             // 切换文本/图片模式
             document.getElementById('text-imagesMod-btn').addEventListener('click', function () {
                 isDrawingMode = !isDrawingMode;
@@ -1702,16 +1942,27 @@
                 this.textContent = isDrawingMode ? LLM_ICON : DRAWING_ICON;
 
                 // 清除输入框
-                document.getElementById('message-input').value = '';
+                //document.getElementById('message-input').value = '';
 
-                // 提示模式切换
-                const modeTip = isDrawingMode ?
-                    "Switched 🖼️ to Drawing Mode (Enter Picture Description)" :
-                    "Switched 📄 to text conversation mode";
-                appendMessage(modeTip, false);
+                document.getElementById('message-input').placeholder = isDrawingMode ?
+                    "Enter image description (e.g. A cute cat)" :
+                    "Enter message";
 
+                // 替换提示方式（原appendMessage调用）
+                const toast = document.createElement('div');
+                toast.className = 'mode-toast';
+                toast.textContent = isDrawingMode ? "🖼️ Drawing Mode" : "📄 Text Mode";
+                document.body.appendChild(toast);
+
+                setTimeout(() => toast.remove(), 800);
+
+                // 切换模式
                 localStorage.setItem('drawingMode', isDrawingMode.toString());
             });
+
+            document.getElementById('message-input').placeholder = !isDrawingMode ?
+                "Enter image description (e.g. A cute cat)" :
+                "Enter message";
 
             // 初始化时读取状态
             if (localStorage.getItem('drawingMode') === 'true') {
@@ -1729,6 +1980,22 @@
                 const diff = chatContainer.scrollHeight - chatContainer.clientHeight;
                 isUserScrolling = Math.abs(chatContainer.scrollTop - diff) > 50;
             });
+
+            if (isMobile) {
+                // 添加触摸滚动优化
+                let startY = 0;
+                chatContainer.addEventListener('touchstart', e => {
+                    startY = e.touches[0].clientY;
+                }, { passive: true });
+
+                chatContainer.addEventListener('touchmove', e => {
+                    const deltaY = e.touches[0].clientY - startY;
+                    // 向下滑动时自动滚动到底部
+                    if (deltaY < -30) {
+                        scrollToBottom();
+                    }
+                }, { passive: true });
+            }
 
             // 添加防抖处理
             messageInput.addEventListener('input', debounce(() => {
