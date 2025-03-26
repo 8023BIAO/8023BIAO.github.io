@@ -1300,8 +1300,6 @@
         let isDrawingMode = false; // 当前模式状态
         let drawingParams = { ...DRAWING_PARAMS }; // 绘图参数
 
-        // 全局绘图模型选择
-        let pollinationsModel = localStorage.getItem('pollinations-selected-model') || 'flux';
         // 临时存储base64图片
         var base64Image = null;
 
@@ -1373,8 +1371,11 @@
                 });
             });
 
-            // 初始化模型选择 如果没有默认值则使用flxu
-            document.getElementById('pollinations-model-select').value = pollinationsModel || 'flux';
+            // 初始化模型选择 如果没有默认值则使用flux
+            let pollinationsModel = localStorage.getItem('pollinations-selected-model') || 'flux';
+            document.getElementById('pollinations-model-select').value = pollinationsModel;
+
+
         }
 
         // 加载参数
@@ -2158,7 +2159,6 @@
                 pollinationsModel = e.target.value;
                 localStorage.setItem('pollinations-selected-model', pollinationsModel);
             });
-
 
             // 窗口点击关闭模态框
             window.addEventListener('click', (e) => {
