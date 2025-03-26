@@ -1306,6 +1306,10 @@
         // 临时存储base64图片
         var base64Image = null;
 
+        // 初始化绘图参数
+        drawingParams.image = null;
+        delete drawingParams.image;
+
         // 全局绘图模型选择
         var drawingModelSwitch = 'Kolors' ? localStorage.getItem('drawing-model') : 'Kolors';
 
@@ -1370,7 +1374,8 @@
                 });
             });
 
-            document.getElementById('pollinations-model-select').value = pollinationsModel;
+            // 初始化模型选择 如果没有默认值则使用flxu
+            document.getElementById('pollinations-model-select').value = pollinationsModel || 'flxu';
 
         }
 
@@ -1548,20 +1553,21 @@
             try {
 
                 // 如果 drawingParams.image 有参数 用户上传的图片 发送到聊天
-                if (drawingParams.image) {
-                    // 发送图片
-                    const container = document.createElement('div');
-                    container.className = 'message-container user-message-container';
-                    const bubble = document.createElement('div');
-                    bubble.className = 'message-bubble user-message-bubble';
-                    bubble.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
-                    bubble.style.gap = '10px';
-                    const imgElem = document.createElement('img');
-                    imgElem.src = drawingParams.image;
-                    bubble.appendChild(imgElem);
-                    container.appendChild(bubble);
-                    document.getElementById('chat-container').appendChild(container);
-                }
+
+                /* if (drawingParams.image) {
+                     // 发送图片
+                     const container = document.createElement('div');
+                     container.className = 'message-container user-message-container';
+                     const bubble = document.createElement('div');
+                     bubble.className = 'message-bubble user-message-bubble';
+                     bubble.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+                     bubble.style.gap = '10px';
+                     const imgElem = document.createElement('img');
+                     imgElem.src = drawingParams.image;
+                     bubble.appendChild(imgElem);
+                     container.appendChild(bubble);
+                     document.getElementById('chat-container').appendChild(container);
+                 }*/
 
                 // 添加用户消息
                 appendMessage(`DrawPrompt: ${prompt}`, true);
