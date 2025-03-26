@@ -1129,12 +1129,64 @@
             margin-bottom: 5px;
             color: var(--text-color);
         }
+
+        /* 新增闪烁动画 */
+        @keyframes twinkle {
+            0% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 0.8;
+            }
+        }
+
+        .drawing-skeleton {
+            width: 100%;
+            height: 200px;
+            /* 根据实际尺寸调整 */
+            background: rgba(200, 200, 200, 0.3);
+            border-radius: 12px;
+            animation:
+                twinkle 1.5s ease-in-out infinite,
+                /* 新增闪烁动画 */
+                skeleton-wave 3s linear infinite;
+            /* 保留原有波浪效果 */
+            margin-bottom: 8px;
+        }
+
+        /* 暗黑模式适配 */
+        [data-theme="dark"] .drawing-skeleton {
+            background: rgba(100, 100, 100, 0.3);
+            animation:
+                twinkle 1.5s ease-in-out infinite,
+                skeleton-wave-dark 3s linear infinite;
+            /* 深色版波浪效果 */
+        }
+
+        /* 深色版波浪动画 */
+        @keyframes skeleton-wave-dark {
+            100% {
+                background-position: -200% 100%;
+            }
+        }
+
+        /* 占位符号动画控制 */
+        .drawing-skeleton {
+            --twinkle-duration: 1.5s;
+            --wave-duration: 3s;
+            --base-opacity: 0.3;
+            --twinkle-range: 0.4;
+        }
     </style>
 
 </head>
 
 <body>
-
 
     <!-- 聊天容器 -->
     <div id="chat-container">
@@ -1201,11 +1253,14 @@
                 <label>pollinations model:</label>
                 <select id="pollinations-model-select" class="param-item">
                     <option value="flux" selected>flux</option>
-                    <option value="flux-pro">flux-pro</option>
+                    <!--
+                    未开放以下模型
+                     <option value="flux-pro">flux-pro</option>
                     <option value="flux-realism">flux-realism</option>
                     <option value="flux-anime">flux-anime</option>
                     <option value="flux-3d">flux-3d</option>
                     <option value="flux-cablyai">flux-cablyai</option>
+                    -->
                     <option value="turbo">turbo</option>
                 </select>
             </div>
@@ -1309,6 +1364,9 @@
 
         // 全局绘图模型选择
         var drawingModelSwitch = 'Kolors' ? localStorage.getItem('drawing-model') : 'Kolors';
+
+        // pollinations模型切换
+        var pollinationsModel = localStorage.getItem('pollinations-selected-model') || 'flux';
 
         // 全局变量和滚动监听
         var isUserScrolling = false;
@@ -1569,7 +1627,7 @@
                  }*/
 
                 // 添加用户消息
-                appendMessage(`DrawPrompt: ${prompt}`, true);
+                appendMessage(prompt, true);
 
                 // 添加绘图占位符
                 if (conversationHistory.length === 0) {
@@ -1616,7 +1674,6 @@
                     // pollination模型绘图
                 } else if (drawingModelSwitch === 'pollinations') {
                     //变量 api (替换 description 访问就可以获取图片)
-
                     var api = `https://image.pollinations.ai/prompt/{description}?width={width}&height={height}&model=${pollinationsModel}&enhance=true&private=true&nologo=true&safe=false&seed={seed}`;
 
                     // 替换 description 为 prompt
@@ -1677,11 +1734,14 @@
         </div>
     `;
 
+            // 解析占位符尺寸
+            const [width, height,] = image_size.split('x');
+
             // 设置占位符尺寸
             const imageContainer = document.createElement('div');
             imageContainer.className = 'image-container';
-            imageContainer.style.width = image_size.width + 'px';
-            imageContainer.style.height = image_size.height + 'px';
+            imageContainer.style.width = `${width}px`;
+            imageContainer.style.height = `${height}px`;
 
             document.getElementById('chat-container').appendChild(container);
             scrollToBottom();
@@ -2158,6 +2218,7 @@
             document.getElementById('pollinations-model-select').addEventListener('change', function (e) {
                 pollinationsModel = e.target.value;
                 localStorage.setItem('pollinations-selected-model', pollinationsModel);
+
             });
 
             // 窗口点击关闭模态框
@@ -2419,7 +2480,7 @@
             // 更新模型设置参数可见性
             updateParamVisibility();
 
-            // 新增：阻止模态框内容冒泡
+            // 阻止模态框内容冒泡
             document.querySelectorAll('.modal-content').forEach(content => {
                 content.addEventListener('click', e => e.stopPropagation());
             });
