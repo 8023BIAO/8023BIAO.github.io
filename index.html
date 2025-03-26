@@ -1054,6 +1054,81 @@
         .zoom-btn:hover {
             transform: scale(1.2);
         }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            max-width: 400px;
+            margin: 50px auto;
+            position: relative;
+        }
+
+        .option {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            background: (var(--bg-color));
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border-radius: 8px;
+        }
+
+        .option.active {
+            background: var(--primary-color);
+            color: var(--text-color);
+        }
+
+        .switch-button {
+            width: 40px;
+            height: 40px;
+            background: var(--text-color);
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 -20px;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .switch-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px var(--primary-color);
+        }
+
+        .switch-button::before {
+            content: "↔";
+            font-size: 20px;
+            color: var(--message-bg-color);
+        }
+
+        /* 禁用文字选择 */
+        .option,
+        .switch-button {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #pollinations-model-select {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            background: var(--input-bg-color);
+            color: var(--input-text-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        #pollinations-model-container label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
     </style>
 
 </head>
@@ -1082,7 +1157,7 @@
         <div class="modal-content">
             <h3>Model parameter settings</h3>
             <div class="param-item">
-                <label>System Prompt:</label>
+                <label>System prompt:</label>
                 <textarea id="system-prompt" rows="3"></textarea>
             </div>
             <div class="param-item">
@@ -1115,36 +1190,56 @@
     <!-- 图像生成设置模态框 -->
     <div id="drawing-settings-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <h3>Model parameter settings</h3>
+            <h3>Model switch</h3>
+            <div class="switch-container">
+                <button class="option active" data-value="kolors">Kolors</button>
+                <div class="switch-button"></div>
+                <button class="option" data-value="pollinations">pollinations</button>
+            </div>
+            <!-- pollinations模型切换 -->
+            <div id="pollinations-model-container" style="display: none; margin-top: 15px;">
+                <label>pollinations model:</label>
+                <select id="pollinations-model-select" class="param-item">
+                    <option value="flux">flux</option>
+                    <option value="flux-pro">flux-pro</option>
+                    <option value="flux-realism">flux-realism</option>
+                    <option value="flux-anime">flux-anime</option>
+                    <option value="flux-3d">flux-3d</option>
+                    <option value="flux-cablyai">flux-cablyai</option>
+                    <option value="turbo">turbo</option>
+                </select>
+            </div>
+            <h3 id="model-params-title">Model parameter settings</h3>
             <div class="param-item">
-                <label>negative_prompt:</label>
+                <label>Negative prompt:</label>
                 <textarea id="negative_prompt" rows="3"></textarea>
             </div>
             <div class="param-item">
-                <label>image_size:</label>
+                <label>Image size:</label>
                 <input type="text" id="image_size" value="1024x1024"
                     placeholder="1024x1024, 960x1280, 768x1024, 720x1440, 720x1280, others">
             </div>
             <div class="param-item">
-                <label>batch_size:<span id="batch_size-value">1</span></label>
+                <label>Batch size:<span id="batch_size-value">1</span></label>
                 <input type="range" id="batch_size" value="1" min="1" max="4" step="1">
             </div>
             <div class="param-item">
-                <label>seed:<span id="seed-value">4999999999</span></label>
+                <label>Seed:<span id="seed-value">4999999999</span></label>
                 <input type="range" id="seed" value="4999999999" min="0" max="9999999999" step="1">
             </div>
             <div class="param-item">
-                <label>num_inference_steps:<span id="num_inference_steps-value">20</span></label>
+                <label>Number inference steps:<span id="num_inference_steps-value">20</span></label>
                 <input type="range" id="num_inference_steps" value="20" min="1" max="100" step="1">
             </div>
             <div class="param-item">
-                <label>guidance_scale:<span id="guidance_scale-value">7</span></label>
+                <label>Guidance scale:<span id="guidance_scale-value">7</span></label>
                 <input type="range" id="guidance_scale" value="7" min="0" max="20" step="0.1">
             </div>
             <div class="button-group">
                 <button id="drawing-defaults-btn">default</button>
                 <button id="drawing-hide-btn">hide</button>
             </div>
+
         </div>
     </div>
 
@@ -1205,8 +1300,14 @@
         let isDrawingMode = false; // 当前模式状态
         let drawingParams = { ...DRAWING_PARAMS }; // 绘图参数
 
+        // 在全局变量部分添加
+        let pollinationsModel = localStorage.getItem('pollinations-selected-model') || 'flxu';
+
         // 临时存储base64图片
         var base64Image = null;
+
+        // 全局绘图模型选择
+        var drawingModelSwitch = 'Kolors' ? localStorage.getItem('drawing-model') : 'Kolors';
 
         // 全局变量和滚动监听
         var isUserScrolling = false;
@@ -1268,6 +1369,8 @@
                     if (valueDisplay) valueDisplay.textContent = drawingParams[key];
                 });
             });
+
+            document.getElementById('pollinations-model-select').value = pollinationsModel;
 
         }
 
@@ -1463,7 +1566,6 @@
                 // 添加用户消息
                 appendMessage(`DrawPrompt: ${prompt}`, true);
 
-
                 // 在发送消息函数开头添加：
                 if (conversationHistory.length === 0) {
                     const tipElement = document.getElementById('init-tip-message');
@@ -1475,34 +1577,72 @@
                 // 插入绘图占位符
                 placeholderContainer = appendDrawingPlaceholder(drawingParams.image_size);
 
-                // 准备绘图参数
-                const params = {
-                    model: DRAWING_MODEL,
-                    prompt: prompt,
-                    ...drawingParams
-                };
+                // 如果绘图模型是kolors
+                if (drawingModelSwitch === 'kolors') {
+                    // 准备绘图参数
+                    const params = {
+                        model: DRAWING_MODEL,
+                        prompt: prompt,
+                        ...drawingParams
+                    };
 
-                // 发送请求
-                const response = await fetch(DRAWING_API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + API_KEY
-                    },
-                    body: JSON.stringify(params)
-                });
-                const data = await response.json();
+                    // 发送请求
+                    const response = await fetch(DRAWING_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + API_KEY
+                        },
+                        body: JSON.stringify(params)
+                    });
+                    const data = await response.json();
 
-                // 替换占位符为真实图片
-                const imageContainer = appendImageResults(data.data);
+                    // 替换占位符为真实图片
+                    const imageContainer = appendImageResults(data.data);
 
-                // 移除占位符（安全判断）
-                if (placeholderContainer && placeholderContainer.parentNode) {
-                    placeholderContainer.parentNode.removeChild(placeholderContainer);
+                    // 移除占位符（安全判断）
+                    if (placeholderContainer && placeholderContainer.parentNode) {
+                        placeholderContainer.parentNode.removeChild(placeholderContainer);
+                    }
+
+                    // 自动滚动
+                    setTimeout(scrollToBottom, 50);
+
+                    // pollination模型绘图
+                } else if (drawingModelSwitch === 'pollinations') {
+                    //变量 api (替换 description 访问就可以获取图片)
+
+                    var api = `https://image.pollinations.ai/prompt/{description}?width={width}&height={height}&model=${pollinationsModel}&enhance=true&private=true&nologo=true&safe=false&seed={seed}`;
+
+                    // 替换 description 为 prompt
+                    api = api.replace('{description}', encodeURI(prompt))
+
+                    // 替换 width 和 height
+                    const [width, height,] = drawingParams.image_size.split('x');
+                    api = api.replace('{width}', width)
+                    api = api.replace('{height}', height)
+
+                    // 替换 seed
+                    api = api.replace('{seed}', drawingParams.seed)
+
+                    // 发送get请求(直接返回图片)
+                    const response = await fetch(api)
+
+                    // 异步获取图片
+                    const img = new Image();
+                    img.src = response.url;
+                    img.onload = () => {
+                        // 替换占位符为真实图片
+                        appendImageResults([{ url: response.url }]);
+                        // 移除占位符（安全判断）
+                        if (placeholderContainer && placeholderContainer.parentNode) {
+                            placeholderContainer.parentNode.removeChild(placeholderContainer);
+                        }
+                        // 自动滚动
+                        setTimeout(scrollToBottom, 50);
+                    };
+
                 }
-
-                // 自动滚动
-                setTimeout(scrollToBottom, 50);
 
             } catch (error) {
                 // 错误处理中也需要移除占位符
@@ -1919,6 +2059,85 @@
             setTimeout(() => toast.remove(), 800);
         }
 
+        // 新增：控制参数项可见性的函数
+        function updateParamVisibility() {
+
+            // 在kolors模式下，隐藏默认参数按钮
+            document.getElementById('drawing-defaults-btn').style.display = drawingModelSwitch === 'pollinations' ? 'none' : 'block';
+
+            // 在pollinations模式下，隐藏 Model parameter settings h3标题
+            document.getElementById('model-params-title').style.display = drawingModelSwitch === 'pollinations' ? 'none' : 'block';
+
+            // 在pollinations模式下，隐藏 Upload image按钮
+            document.getElementById('upload-image-btn').style.display = drawingModelSwitch === 'pollinations' ? 'none' : 'block';
+
+            const modelSelectContainer = document.getElementById('pollinations-model-container');
+            modelSelectContainer.style.display = drawingModelSwitch === 'pollinations' ? 'block' : 'none';
+
+            const kolorsParams = ['negative_prompt', 'batch_size', 'num_inference_steps', 'guidance_scale'];
+            kolorsParams.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    // 隐藏整个参数项容器（包含label和input）
+                    element.closest('.param-item').style.display =
+                        drawingModelSwitch === 'pollinations' ? 'none' : 'block';
+                }
+
+            });
+        }
+
+        // 绘图模型切换按钮事件脚本
+        function toggleDrawingMode() {
+            const switchButton = document.querySelector('.switch-button');
+            const options = document.querySelectorAll('.option');
+            let isLeftActive = true; // 默认状态
+
+
+            function toggleOptions() {
+                options.forEach(option => option.classList.toggle('active'));
+                isLeftActive = !isLeftActive;
+                updateParamVisibility(); // 切换时更新显示状态
+                // 确保模型选择器显示正确
+                document.getElementById('pollinations-model-select').value = pollinationsModel;
+            }
+
+            // 按钮点击切换
+            switchButton.addEventListener('click', toggleOptions);
+
+            // 直接点击选项切换
+            options.forEach(option => {
+                option.addEventListener('click', function () {
+                    const targetModel = this.dataset.value;
+                    const shouldToggle = (targetModel === 'kolors' && !isLeftActive) ||
+                        (targetModel === 'pollinations' && isLeftActive);
+
+                    if (shouldToggle) {
+                        drawingModelSwitch = targetModel;
+                        localStorage.setItem('drawing-model', targetModel);
+                        toggleOptions();
+                    }
+                });
+            });
+
+            // 初始化状态
+            const savedModel = localStorage.getItem('drawing-model') || 'kolors';
+            drawingModelSwitch = savedModel;
+
+            options.forEach(option => option.classList.remove('active'));
+            const activeOption = document.querySelector(`.option[data-value="${savedModel}"]`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+                isLeftActive = savedModel === 'kolors';
+            }
+
+            if (!['kolors', 'pollinations'].includes(savedModel)) {
+                localStorage.setItem('drawing-model', 'kolors');
+            }
+
+            // 初始化时更新参数可见性
+            updateParamVisibility();
+        }
+
         // 初始化绑定事件
         function initEvents() {
 
@@ -1928,6 +2147,12 @@
                     'drawing-settings-modal' : 'settings-modal';
                 document.getElementById(modal).style.display = 'flex';
                 adjustModalPosition();
+            });
+
+            // Pollinations模型选择事件
+            document.getElementById('pollinations-model-select').addEventListener('change', function (e) {
+                pollinationsModel = e.target.value;
+                localStorage.setItem('pollinations-selected-model', pollinationsModel);
             });
 
 
@@ -1992,7 +2217,7 @@
                 const keyboardHeight = window.innerHeight - document.documentElement.clientHeight;
 
                 // 强制设置 margin 并滚动到底部
-                chatContainer.style.marginBottom = `${inputHeight + keyboardHeight}px`;
+                //  chatContainer.style.marginBottom = `${inputHeight + keyboardHeight}px`;
                 setTimeout(() => {
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                 }, 50);
@@ -2155,8 +2380,9 @@
                 // 清除输入框
                 //document.getElementById('message-input').value = '';
 
-                // 更新上传按钮显示状态
-                document.getElementById('upload-image-btn').style.display = isDrawingMode ? 'block' : 'none';
+                // 合并后的上传按钮显示逻辑
+                document.getElementById('upload-image-btn').style.display =
+                    (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
 
                 document.getElementById('message-input').placeholder = isDrawingMode ?
                     "Enter image description" :
@@ -2173,6 +2399,9 @@
                 "Enter image description" :
                 "Enter message";
 
+            // 绘图模式切换按钮
+            toggleDrawingMode();
+
             // 初始化时读取状态
             if (localStorage.getItem('drawingMode') === 'true') {
                 isDrawingMode = true;
@@ -2182,6 +2411,9 @@
                 // 初始化上传按钮
                 document.getElementById('upload-image-btn').style.display = isDrawingMode ? 'block' : 'none';
             }
+
+            // 更新模型设置参数可见性
+            updateParamVisibility();
 
             // 新增：阻止模态框内容冒泡
             document.querySelectorAll('.modal-content').forEach(content => {
@@ -2246,7 +2478,7 @@
             var tipMessage = document.createElement('div');
             tipMessage.className = 'message-container bot-message-container';
             tipMessage.innerHTML = `<div class="message-bubble bot-message-bubble">
-<a href="https://siliconflow.com">siliconflow</a> free api <br> 
+<a href="https://siliconflow.com">siliconflow</a> free api | <a href="https://pollinations.ai/">pollinations</a> free api <br> 
 huggingface: <a href = "https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/blob/main/README.md">DeepSeek R1 Distill Qwen 7b 32k</a> | <a href = "https://huggingface.co/Kwai-Kolors/Kolors">Kolors</a> <br> 
 Domain: <a href="https://biao.chat">biao.chat</a> <br>
 github pages: <a href="https://github.com/8023BIAO/8023BIAO.github.io">8023BIAO.github.io</a>
