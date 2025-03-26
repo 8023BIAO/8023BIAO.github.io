@@ -1200,7 +1200,7 @@
             <div id="pollinations-model-container" style="display: none; margin-top: 15px;">
                 <label>pollinations model:</label>
                 <select id="pollinations-model-select" class="param-item">
-                    <option value="flux">flux</option>
+                    <option value="flux" selected>flux</option>
                     <option value="flux-pro">flux-pro</option>
                     <option value="flux-realism">flux-realism</option>
                     <option value="flux-anime">flux-anime</option>
@@ -1300,9 +1300,8 @@
         let isDrawingMode = false; // 当前模式状态
         let drawingParams = { ...DRAWING_PARAMS }; // 绘图参数
 
-        // 在全局变量部分添加
-        let pollinationsModel = localStorage.getItem('pollinations-selected-model') || 'flxu';
-
+        // 全局绘图模型选择
+        let pollinationsModel = localStorage.getItem('pollinations-selected-model') || 'flux';
         // 临时存储base64图片
         var base64Image = null;
 
@@ -1375,8 +1374,7 @@
             });
 
             // 初始化模型选择 如果没有默认值则使用flxu
-            document.getElementById('pollinations-model-select').value = pollinationsModel || 'flxu';
-
+            document.getElementById('pollinations-model-select').value = pollinationsModel || 'flux';
         }
 
         // 加载参数
@@ -1572,7 +1570,7 @@
                 // 添加用户消息
                 appendMessage(`DrawPrompt: ${prompt}`, true);
 
-                // 在发送消息函数开头添加：
+                // 添加绘图占位符
                 if (conversationHistory.length === 0) {
                     const tipElement = document.getElementById('init-tip-message');
                     if (tipElement) {
@@ -1841,7 +1839,7 @@
             const abortController = new AbortController();
             sendBtn.abortController = abortController; // 存储以供后续使用
 
-            // 在发送消息函数开头添加：
+            // 发送消息
             if (conversationHistory.length === 0) {
                 const tipElement = document.getElementById('init-tip-message');
                 if (tipElement) {
@@ -2235,7 +2233,7 @@
                 window.addEventListener('resize', adjustInputPosition);
             });
 
-            // 修改后添加滚动恢复
+            // 添加滚动恢复
             messageInput.addEventListener('blur', () => {
                 window.removeEventListener('resize', adjustInputPosition);
                 const chatContainer = document.getElementById('chat-container');
@@ -2333,7 +2331,7 @@
 
                             // 添加绘图参数
                             drawingParams.image = base64Image;
-                            // 在文件读取成功后添加：
+                            // 在文件读取成功后：
                             reader.onload = (e) => {
                                 base64Image = e.target.result;
 
