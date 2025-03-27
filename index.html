@@ -2098,7 +2098,7 @@
                     (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
 
                 document.getElementById('message-input').placeholder = isDrawingMode ?
-                    "enter image description" :
+                    "enter description" :
                     "enter message";
 
                 // 替换提示方式
@@ -2113,12 +2113,12 @@
                 }, 300);
             });
 
-            document.getElementById('message-input').placeholder = !isDrawingMode ?
-                "enter image description" :
-                "enter message";
-
             // 绘图模式切换按钮
             toggleDrawingMode();
+
+            document.getElementById('message-input').placeholder = localStorage.getItem('drawingMode') === 'true' ?
+                "enter description" :
+                "enter message";
 
             // 初始化时读取状态
             if (localStorage.getItem('drawingMode') === 'true') {
