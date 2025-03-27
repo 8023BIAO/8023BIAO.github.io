@@ -870,7 +870,7 @@
         <div class="input-wrapper">
             <button id="settings-btn">⚙️</button>
             <button id="text-imagesMod-btn">🖼️</button><!--图文模式切换-->
-            <textarea id="message-input" placeholder="Enter message" rows="1"></textarea>
+            <textarea id="message-input" placeholder="enter message" rows="1"></textarea>
             <button id="send-btn">🚀</button>
         </div>
     </div>
@@ -987,7 +987,7 @@
             };
         }
 
-        // ai api key
+        // siliconflow ai api key
         const API_KEY = 'sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh';
 
         // 文本对话图标
@@ -1321,7 +1321,6 @@
 
                     // pollination模型绘图
                 } else if (drawingModelSwitch === 'pollinations') {
-                    //变量 api (替换 description 访问就可以获取图片)
                     var api = `https://image.pollinations.ai/prompt/{description}?width={width}&height={height}&model=${pollinationsModel}&enhance=true&private=true&nologo=true&safe=false&seed={seed}`;
 
                     // 替换 description 为 prompt
@@ -1498,7 +1497,7 @@
                     setScale(1);
                 });
 
-                // +++ 添加鼠标滚轮缩放支持 +++
+                // 添加鼠标滚轮缩放支持
                 let scale = 1;
                 imgElem.addEventListener('wheel', function (e) {
                     e.preventDefault();
@@ -1932,7 +1931,6 @@
                 const keyboardHeight = window.innerHeight - document.documentElement.clientHeight;
 
                 // 强制设置 margin 并滚动到底部
-                //  chatContainer.style.marginBottom = `${inputHeight + keyboardHeight}px`;
                 setTimeout(() => {
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                 }, 50);
@@ -2100,8 +2098,8 @@
                     (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
 
                 document.getElementById('message-input').placeholder = isDrawingMode ?
-                    "Enter image description" :
-                    "Enter message";
+                    "enter image description" :
+                    "enter message";
 
                 // 替换提示方式
                 showToast(isDrawingMode ? "🖼️ Drawing Mode" : "📄 Text Mode");
@@ -2116,8 +2114,8 @@
             });
 
             document.getElementById('message-input').placeholder = !isDrawingMode ?
-                "Enter image description" :
-                "Enter message";
+                "enter image description" :
+                "enter message";
 
             // 绘图模式切换按钮
             toggleDrawingMode();
