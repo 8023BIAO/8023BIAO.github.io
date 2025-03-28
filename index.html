@@ -545,7 +545,8 @@
         #system-prompt,
         #negative_prompt,
         #seed,
-        #image_size,
+        #image_width,
+        #image_height,
         #pollinations-model-select {
             width: 100%;
             padding: 8px;
@@ -871,12 +872,15 @@
             </div>
             <div class="param-item">
                 <label>seed:</label>
-                <input type="number" id="seed" min="0" max="9999999999" step="1" value="4999999999">
+                <input type="number" id="seed" min="0" step="1" value="1">
             </div>
             <div class="param-item">
-                <label>image size:</label>
-                <input type="text" id="image_size" value="1024x1024"
-                    placeholder="1024x1024, 960x1280, 768x1024, 720x1440, 720x1280, others">
+                <label>width:</label>
+                <input type="number" id="image_width" min="0" step="1" value="1024">
+            </div>
+            <div class="param-item">
+                <label>height:</label>
+                <input type="number" id="image_height" min="0" step="1" value="1024">
             </div>
             <div class="param-item">
                 <label>batch size:<span id="batch_size-value">1</span></label>
@@ -944,11 +948,15 @@
         const DRAWING_MODEL = 'Kwai-Kolors/Kolors';
         const DRAWING_PARAMS = {
             "negative_prompt": "",// 否定提示(反提示词)
-            "image_size": "1024x1024", //生成大小
+            //"image_size": "1024x1024", //生成大小
             "batch_size": 1, //生成数量
-            "seed": 4999999999,//种子范围
+            "seed": 1,//种子范围
             "num_inference_steps": 20,//推理步骤数(画图步骤)
             "guidance_scale": 4,//此值用于控制生成的图像与给定提示之间的匹配程度。值越高，生成的图像就越倾向于与文本提示严格匹配。值越低，生成的图像就越有创意和多样性，可能包含更多意想不到的元素。
+
+            //下面两项是自己添加的
+            "image_width": 1024,
+            "image_height": 1024,
         }
 
         // 新增全局变量
@@ -1117,7 +1125,6 @@
             });
 
             // 特别处理文本框
-            document.getElementById('image_size').value = DRAWING_PARAMS.image_size;
             document.getElementById('negative_prompt').value = '';
 
             // 保存到本地存储
@@ -1208,15 +1215,24 @@
                 appendMessage(prompt, true);
 
                 // 插入绘图占位符
-                placeholderContainer = appendDrawingPlaceholder(drawingParams.image_size);
+                placeholderContainer = appendDrawingPlaceholder(drawingParams.width, drawingParams.height);
 
                 // 如果绘图模型是kolors
                 if (drawingModelSwitch === 'kolors') {
+
+                    //定义局部变量 去除宽高，改成image_size
+                    const kolors_post_drawingParams = {
+                        ...drawingParams,
+                        image_size: `${drawingParams.image_width}x${drawingParams.image_height}`
+                    };
+                    delete kolors_post_drawingParams.image_width;
+                    delete kolors_post_drawingParams.image_height;
+
                     // 准备绘图参数
                     const params = {
                         model: DRAWING_MODEL,
                         prompt: prompt,
-                        ...drawingParams
+                        ...kolors_post_drawingParams
                     };
 
                     // 发送请求
@@ -1248,10 +1264,8 @@
                     // 替换 description 为 prompt
                     api = api.replace('{description}', encodeURI(prompt))
 
-                    // 替换 width 和 height
-                    const [width, height,] = drawingParams.image_size.split('x');
-                    api = api.replace('{width}', width)
-                    api = api.replace('{height}', height)
+                    api = api.replace('{width}', drawingParams.image_width)
+                    api = api.replace('{height}', drawingParams.image_height)
 
                     // 替换 seed
                     api = api.replace('{seed}', drawingParams.seed)
@@ -1292,7 +1306,7 @@
         }
 
         // 占位符函数
-        function appendDrawingPlaceholder(image_size) {
+        function appendDrawingPlaceholder(width, height) {
             const container = document.createElement('div');
             container.className = 'message-container bot-message-container';
 
@@ -1302,9 +1316,6 @@
             <div class="progress-bar"></div>
         </div>
     `;
-
-            // 解析占位符尺寸
-            const [width, height,] = image_size.split('x');
 
             // 设置占位符尺寸
             const imageContainer = document.createElement('div');
@@ -1627,8 +1638,9 @@
             // 在kolors模式下，隐藏默认参数按钮
             document.getElementById('drawing-defaults-btn').style.display = drawingModelSwitch === 'pollinations' ? 'none' : 'block';
 
-            // 在pollinations模式下，隐藏 Upload image按钮
-            document.getElementById('upload-image-btn').style.display = drawingModelSwitch === 'pollinations' ? 'none' : 'block';
+            // 合并后的上传按钮显示逻辑
+            document.getElementById('upload-image-btn').style.display =
+                (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
 
             const modelSelectContainer = document.getElementById('pollinations-model-container');
             modelSelectContainer.style.display = drawingModelSwitch === 'pollinations' ? 'block' : 'none';
@@ -1846,6 +1858,7 @@
             messageInput.addEventListener('focus', () => {
                 adjustInputPosition();
                 window.addEventListener('resize', adjustInputPosition);
+                setTimeout(() => inputRef.scrollIntoView({ behavior: 'smooth' }), 300)
             });
 
             // 添加滚动恢复
@@ -1892,8 +1905,9 @@
             });
 
 
-            // 如果是绘图模式就显示上传图片按钮
-            document.getElementById('upload-image-btn').style.display = isDrawingMode ? 'block' : 'none';
+            // 合并后的上传按钮显示逻辑
+            document.getElementById('upload-image-btn').style.display =
+                (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
 
             // 上传图片按钮的点击事件
             document.getElementById('upload-image-btn').addEventListener('click', function (e) {
@@ -1996,9 +2010,6 @@
                 // 更新按钮图标
                 this.textContent = isDrawingMode ? LLM_ICON : DRAWING_ICON;
 
-                // 清除输入框
-                //document.getElementById('message-input').value = '';
-
                 // 合并后的上传按钮显示逻辑
                 document.getElementById('upload-image-btn').style.display =
                     (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
@@ -2033,7 +2044,8 @@
                 // 初始化按钮状态
                 document.getElementById('text-imagesMod-btn').textContent = isDrawingMode ? LLM_ICON : DRAWING_ICON;
                 // 初始化上传按钮
-                document.getElementById('upload-image-btn').style.display = isDrawingMode ? 'block' : 'none';
+                document.getElementById('upload-image-btn').style.display =
+                    (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
             }
 
             // 更新模型设置参数可见性
