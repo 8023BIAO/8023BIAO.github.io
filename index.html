@@ -955,8 +955,8 @@
             "guidance_scale": 4,//此值用于控制生成的图像与给定提示之间的匹配程度。值越高，生成的图像就越倾向于与文本提示严格匹配。值越低，生成的图像就越有创意和多样性，可能包含更多意想不到的元素。
 
             //下面两项是自己添加的
-            "image_width": 1024,
-            "image_height": 1024,
+            "image_width": 832,
+            "image_height": 1216,
         }
 
         // 新增全局变量
@@ -966,9 +966,11 @@
         // 临时存储base64图片
         var base64Image = null;
 
-        // 初始化绘图参数
-        drawingParams.image = null;
-        delete drawingParams.image;
+        if (drawingParams.image) {
+            // 初始化绘图参数
+            drawingParams.image = null;
+            delete drawingParams.image;
+        }
 
         // 全局绘图模型选择
         var drawingModelSwitch = 'Kolors' ? localStorage.getItem('drawing-model') : 'Kolors';
