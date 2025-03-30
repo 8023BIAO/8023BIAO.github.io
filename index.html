@@ -280,10 +280,10 @@
         }
 
         .message-bubble img {
-            max-width: min(100%, 600px);
+            max-width: min(100%);
             height: auto;
             display: block;
-            margin: 8px auto;
+            margin: auto;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, opacity 0.3s ease-in;
@@ -619,8 +619,8 @@
         .progress-bar::after {
             content: '';
             position: absolute;
-            height: 100%;
-            width: 30%;
+            height: 40px;
+            width: 40px;
             background: #007AFF;
             animation: progress 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
@@ -642,8 +642,8 @@
 
         /* ========== 绘图骨架屏 ========== */
         .drawing-skeleton {
-            width: 100%;
-            height: 200px;
+            width: 40px;
+            height: 40px;
             background: linear-gradient(120deg,
                     var(--skeleton-bg) 30%,
                     var(--skeleton-highlight) 38%,
@@ -725,7 +725,7 @@
             }
 
             #chat-container {
-                padding-bottom: 120px;
+                padding-bottom: 150px;
             }
 
             #input-container {
@@ -753,7 +753,7 @@
 
         @media (max-height: 600px) {
             #chat-container {
-                padding-bottom: 140px;
+                padding-bottom: 150px;
             }
         }
 
@@ -988,6 +988,10 @@
         var isDarkTheme = false;
         var isUserScrolling = false;
 
+
+        // 绘图参数存储上一个值(用于对比)
+        var lastDrawingParams = {};
+
         // 初始化主题
         function initTheme() {
             var theme = localStorage.getItem('theme');
@@ -1214,10 +1218,21 @@
             try {
 
                 // 添加用户消息
-                appendMessage(prompt, true);
+                //appendMessage(prompt, true);
 
                 // 插入绘图占位符
                 placeholderContainer = appendDrawingPlaceholder(drawingParams.width, drawingParams.height);
+
+                // 如果现在的参数等于上一个参数（完全相同），seed就+1
+                if (lastDrawingParams && JSON.stringify(lastDrawingParams) === JSON.stringify(drawingParams)) {
+                    drawingParams.seed = (drawingParams.seed || 0) + 1;
+                    // 存储
+                    localStorage.setItem('drawingParams', JSON.stringify(drawingParams));
+                }
+
+                // 更新记录的上次参数
+                lastDrawingParams = JSON.parse(JSON.stringify(drawingParams));
+
 
                 // 如果绘图模型是kolors
                 if (drawingModelSwitch === 'kolors') {
@@ -1246,10 +1261,11 @@
                         },
                         body: JSON.stringify(params)
                     });
+
                     const data = await response.json();
 
                     // 替换占位符为真实图片
-                    const imageContainer = appendImageResults(data.data);
+                    appendImageResults(data.data);
 
                     // 移除占位符（安全判断）
                     if (placeholderContainer && placeholderContainer.parentNode) {
@@ -1258,6 +1274,9 @@
 
                     // 自动滚动
                     setTimeout(scrollToBottom, 50);
+
+                    // 存储现在的绘图参数
+                    lastDrawingParams = { ...drawingParams }
 
                     // pollination模型绘图
                 } else if (drawingModelSwitch === 'pollinations') {
@@ -1287,6 +1306,10 @@
                         }
                         // 自动滚动
                         setTimeout(scrollToBottom, 50);
+
+                        // 存储现在的绘图参数
+                        lastDrawingParams = { ...drawingParams }
+
                     };
 
                 }
@@ -1318,12 +1341,6 @@
             <div class="progress-bar"></div>
         </div>
     `;
-
-            // 设置占位符尺寸
-            const imageContainer = document.createElement('div');
-            imageContainer.className = 'image-container';
-            imageContainer.style.width = `${width}px`;
-            imageContainer.style.height = `${height}px`;
 
             document.getElementById('chat-container').appendChild(container);
             scrollToBottom();
@@ -1724,7 +1741,11 @@
                 const modal = isDrawingMode ?
                     'drawing-settings-modal' : 'settings-modal';
                 document.getElementById(modal).style.display = 'flex';
-                adjustModalPosition();
+                if (isDrawingMode) {
+                    // 只更新seed输入框的值
+                    const seedInput = document.getElementById('seed');
+                    seedInput.value = drawingParams.seed;
+                }
             });
 
             // Pollinations模型选择事件
@@ -1833,7 +1854,6 @@
                 }
 
             });
-
 
             messageInput.addEventListener('focus', () => {
                 // 添加短暂延迟确保布局稳定
@@ -2119,3 +2139,7 @@
 </body>
 
 </html>
+
+
+<!--
+-->
