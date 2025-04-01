@@ -93,7 +93,7 @@
 
         @keyframes skeleton-wave {
             100% {
-                background-position: 100% 100%;
+                background-position: 200% 100%;
             }
         }
 
@@ -280,13 +280,15 @@
         }
 
         .message-bubble img {
-            max-width: min(100%);
+            max-width: 100%;
             height: auto;
             display: block;
             margin: auto;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, opacity 0.3s ease-in;
+            animation: fadeIn 0.5s ease-in;
+            border-radius: 8px;
         }
 
         .message-bubble img:hover {
@@ -547,7 +549,8 @@
         #seed,
         #image_width,
         #image_height,
-        #pollinations-model-select {
+        #pollinations-model-select,
+        #proportional_selection {
             width: 100%;
             padding: 8px;
             margin: 10px 0;
@@ -609,22 +612,6 @@
             opacity: 0.5;
         }
 
-        .progress-bar {
-            height: 0.5px;
-            background: rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            height: 40px;
-            width: 40px;
-            background: #007AFF;
-            animation: progress 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
         .mode-toast {
             position: fixed;
             bottom: 80px;
@@ -642,24 +629,47 @@
 
         /* ========== 绘图骨架屏 ========== */
         .drawing-skeleton {
-            width: 40px;
-            height: 40px;
+            width: 200px;
+            height: 200px;
+            /* 确保渐变方向正确 */
             background: linear-gradient(120deg,
-                    var(--skeleton-bg) 30%,
-                    var(--skeleton-highlight) 38%,
-                    var(--skeleton-bg) 48%);
-            background-size: 200% 100%;
+                    var(--skeleton-bg) 25%,
+                    var(--skeleton-highlight) 50%,
+                    var(--skeleton-bg) 75%);
+            background-size: 400% 100%;
+            /* 增大背景尺寸 */
             animation:
-                twinkle 1.5s ease-in-out infinite,
-                skeleton-wave 3s linear infinite;
+                skeleton-wave 1.5s linear infinite,
+                twinkle 2s ease-in-out infinite;
             border-radius: 12px;
-            margin-bottom: 8px;
         }
 
         [data-theme="dark"] .drawing-skeleton {
             animation:
-                twinkle 1.5s ease-in-out infinite,
-                skeleton-wave-dark 3s linear infinite;
+                skeleton-wave-dark 1.5s linear infinite,
+                twinkle 2s ease-in-out infinite;
+        }
+
+        /* 兼容 */
+        .drawing-skeleton {
+            -webkit-animation:
+                skeleton-wave 1.5s linear infinite,
+                twinkle 2s ease-in-out infinite;
+            animation:
+                skeleton-wave 1.5s linear infinite,
+                twinkle 2s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         /* ========== 模式切换器 ========== */
@@ -894,6 +904,16 @@
                 <label>guidance scale:<span id="guidance_scale-value">7</span></label>
                 <input type="range" id="guidance_scale" value="7" min="0" max="20" step="0.1">
             </div>
+            <select id="proportional_selection" class="param-item">
+                <option value="9:16" selected>9:16</option>
+                <option value="10:16">10:16</option>
+                <option value="16:9">16:9</option>
+                <option value="16:10">16:10</option>
+                <option value="1:1">1:1</option>
+                <option value="2:3">2:3</option>
+                <option value="3:4">3:4</option>>
+                <option value="4:3">4:3</option>
+            </select>
             <div class="button-group">
                 <button id="drawing-defaults-btn">default</button>
                 <button id="drawing-hide-btn">hide</button>
@@ -955,8 +975,9 @@
             "guidance_scale": 4,//此值用于控制生成的图像与给定提示之间的匹配程度。值越高，生成的图像就越倾向于与文本提示严格匹配。值越低，生成的图像就越有创意和多样性，可能包含更多意想不到的元素。
 
             //下面两项是自己添加的
-            "image_width": 832,
-            "image_height": 1216,
+            "image_width": 768,
+            "image_height": 1368,
+            "proportional_selection": "9:16",// 画布比例
         }
 
         // 新增全局变量
@@ -1213,15 +1234,14 @@
         // 发送绘图消息 函数
         async function handleImageGeneration(prompt) {
             const sendBtn = document.getElementById('send-btn');
-            let placeholderContainer; // 存储占位符容器引用
 
             try {
 
-                // 添加用户消息
-                //appendMessage(prompt, true);
-
-                // 插入绘图占位符
-                placeholderContainer = appendDrawingPlaceholder(drawingParams.width, drawingParams.height);
+                // 立即创建并显示骨架
+                const skeletonCount = drawingParams.batch_size || 1;
+                const skeletonContainer = createImageSkeleton(skeletonCount);
+                document.getElementById('chat-container').appendChild(skeletonContainer);
+                scrollToBottom();
 
                 // 如果现在的参数等于上一个参数（完全相同），seed就+1
                 if (lastDrawingParams && JSON.stringify(lastDrawingParams) === JSON.stringify(drawingParams)) {
@@ -1264,13 +1284,8 @@
 
                     const data = await response.json();
 
-                    // 替换占位符为真实图片
-                    appendImageResults(data.data);
-
-                    // 移除占位符（安全判断）
-                    if (placeholderContainer && placeholderContainer.parentNode) {
-                        placeholderContainer.parentNode.removeChild(placeholderContainer);
-                    }
+                    // 显示图片
+                    appendImageResults(data.data, skeletonContainer);
 
                     // 自动滚动
                     setTimeout(scrollToBottom, 50);
@@ -1294,35 +1309,25 @@
                     // 发送get请求(直接返回图片)
                     const response = await fetch(api)
 
-                    // 异步获取图片
                     const img = new Image();
                     img.src = response.url;
                     img.onload = () => {
-                        // 替换占位符为真实图片
-                        appendImageResults([{ url: response.url }]);
-                        // 移除占位符（安全判断）
-                        if (placeholderContainer && placeholderContainer.parentNode) {
-                            placeholderContainer.parentNode.removeChild(placeholderContainer);
-                        }
-                        // 自动滚动
+                        appendImageResults([{ url: response.url }], skeletonContainer);
                         setTimeout(scrollToBottom, 50);
-
-                        // 存储现在的绘图参数
-                        lastDrawingParams = { ...drawingParams }
-
+                        lastDrawingParams = { ...drawingParams };
+                    };
+                    img.onerror = () => {
+                        appendMessage('Failed to generate image', false);
                     };
 
                 }
 
             } catch (error) {
-                // 错误处理中也需要移除占位符
-                if (placeholderContainer) {
-                    placeholderContainer.querySelector('.drawing-skeleton').replaceWith();
-                    placeholderContainer.querySelector('.progress-bar').remove();
-                    placeholderContainer.querySelector('.message-bubble').remove();
-                    placeholderContainer.querySelector('.bot-message-bubble').remove();
-                }
-
+                skeletonContainer.querySelector('.message-bubble').innerHTML = `
+      <div class="error-message">
+        Image generation failed: ${error.message}
+        <button class="retry-btn" onclick="handleImageGeneration('${prompt}')">Retry</button>
+      </div>`;
                 console.error('Image generation failed:', error);
                 appendMessage(`Error: ${error.message}`, false);
             } finally {
@@ -1330,49 +1335,41 @@
             }
         }
 
-        // 占位符函数
-        function appendDrawingPlaceholder(width, height) {
-            const container = document.createElement('div');
-            container.className = 'message-container bot-message-container';
-
-            container.innerHTML = `
-        <div class="message-bubble bot-message-bubble">
-            <div class="drawing-skeleton"></div>
-            <div class="progress-bar"></div>
-        </div>
-    `;
-
-            document.getElementById('chat-container').appendChild(container);
-            scrollToBottom();
-            return container; // 返回容器引用以便后续操作
-        }
-
         // 图片生成函数
-        function appendImageResults(images) {
-            const container = document.createElement('div');
-            container.className = 'message-container bot-message-container';
+        function appendImageResults(images, skeletonContainer) {
+            const bubble = skeletonContainer.querySelector('.message-bubble');
 
-            const bubble = document.createElement('div');
-            bubble.className = 'message-bubble bot-message-bubble';
-            bubble.style.display = 'grid';
-            bubble.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
-            bubble.style.gap = '10px';
-
-            images.forEach(img => {
-                const imgElem = document.createElement('img');
-                imgElem.src = img.url;
-                bubble.appendChild(imgElem);
+            // 移除所有骨架元素
+            bubble.querySelectorAll('.drawing-skeleton').forEach(skeleton => {
+                skeleton.remove();
             });
 
-            container.appendChild(bubble);
-            document.getElementById('chat-container').appendChild(container);
+            // 添加实际图片
+            images.forEach(img => {
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'image-container';
+
+                const imgElem = document.createElement('img');
+                imgElem.src = img.url;
+                imgElem.style.opacity = '0';
+                imgElem.style.transition = 'opacity 0.3s ease';
+
+                imgElem.onload = () => {
+                    imgElem.style.opacity = '1';
+                };
+
+                imgElem.onerror = () => {
+                    imgContainer.innerHTML = '<div class="error">Failed to load image</div>';
+                };
+
+                imgContainer.appendChild(imgElem);
+                bubble.appendChild(imgContainer);
+            });
 
             // 添加渐现动画
             setTimeout(() => {
-                bubble.style.opacity = 1;
+                bubble.style.opacity = '1';
             }, 50);
-
-            return container;
         }
 
         class RequestQueue {
@@ -1408,7 +1405,6 @@
 
         // 使用示例
         const requestQueue = new RequestQueue();
-
 
         // 发送消息
         async function sendMessage() {
@@ -1733,6 +1729,36 @@
             }, 300);
         }
 
+        // 独立的骨架生成函数
+        function createImageSkeleton(count = 1) {
+            const container = document.createElement('div');
+            container.className = 'message-container bot-message-container';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble bot-message-bubble';
+            bubble.style.display = 'grid';
+            bubble.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+            bubble.style.gap = '10px';
+
+            for (let i = 0; i < count; i++) {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'drawing-skeleton';
+                skeleton.style.width = '200px';
+                skeleton.style.height = '200px';
+                skeleton.style.margin = '10px';
+                skeleton.style.position = 'relative'; // 新增定位
+
+                const shimmer = document.createElement('div');
+                shimmer.className = 'drawing-skeleton';
+
+                skeleton.appendChild(shimmer);
+                bubble.appendChild(skeleton);
+            }
+
+            container.appendChild(bubble);
+            return container;
+        }
+
         // 初始化绑定事件
         function initEvents() {
 
@@ -1742,9 +1768,17 @@
                     'drawing-settings-modal' : 'settings-modal';
                 document.getElementById(modal).style.display = 'flex';
                 if (isDrawingMode) {
-                    // 只更新seed输入框的值
+                    // 更新seed输入框的值
                     const seedInput = document.getElementById('seed');
                     seedInput.value = drawingParams.seed;
+
+                    // 更新宽
+                    const widthInput = document.getElementById('image_width');
+                    widthInput.value = drawingParams.image_width;
+
+                    // 更新高
+                    const heightInput = document.getElementById('image_height');
+                    heightInput.value = drawingParams.image_height;
                 }
             });
 
@@ -1752,6 +1786,46 @@
             document.getElementById('pollinations-model-select').addEventListener('change', function (e) {
                 pollinationsModel = e.target.value;
                 localStorage.setItem('pollinations-selected-model', pollinationsModel);
+
+            });
+
+            // 比例选择事件
+            document.getElementById('proportional_selection').addEventListener('change', function (e) {
+                // 输入参数示例
+                const aspect_ratio = e.target.value; // 假设原始宽高比字符串
+                const max_pixel = 1024 * 1024; // 总像素限制（此处示例为1024²）
+
+                // 步骤1：分割宽高比字符串并转换为整数
+                const [w, h] = aspect_ratio.split(':').map(e => parseInt(e));
+
+                // 步骤2：计算宽高
+                const calculateDimensions = (x, y) => {
+                    const value = Math.sqrt(max_pixel * x / y); // 计算平方根
+                    return Math.round(value / 8) * 8; // 四舍五入到8的倍数
+                };
+
+                // 生成宽高数组
+                const [width, height] = [
+                    calculateDimensions(w, h),
+                    calculateDimensions(h, w)
+                ];
+
+                // 修改宽高参数
+                drawingParams.image_width = width;
+                drawingParams.image_height = height;
+
+                if (isDrawingMode) {
+                    // 更新宽
+                    const widthInput = document.getElementById('image_width');
+                    widthInput.value = drawingParams.image_width;
+
+                    // 更新高
+                    const heightInput = document.getElementById('image_height');
+                    heightInput.value = drawingParams.image_height;
+                }
+
+                // 存储
+                localStorage.setItem('drawingParams', JSON.stringify(drawingParams));
 
             });
 
@@ -2100,8 +2174,3 @@
 </body>
 
 </html>
-
-<!--
-本项目使用ai编写，本人不会HTML+CSS+JS。
-
--->
