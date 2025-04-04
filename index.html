@@ -292,7 +292,7 @@
         }
 
         .message-bubble img:hover {
-            transform: scale(1.02);
+            transform: scale(1.01);
         }
 
         .message-bubble img.zoomed {
@@ -629,8 +629,12 @@
 
         /* ========== 绘图骨架屏 ========== */
         .drawing-skeleton {
-            width: 200px;
-            height: 200px;
+            width: var(--skeleton-width, 200px) !important;
+            height: auto !important;
+            aspect-ratio: var(--aspect-ratio);
+            max-width: 100%;
+            object-fit: contain;
+
             /* 确保渐变方向正确 */
             background: linear-gradient(120deg,
                     var(--skeleton-bg) 25%,
@@ -642,6 +646,9 @@
                 skeleton-wave 1.5s linear infinite,
                 twinkle 2s ease-in-out infinite;
             border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease-out;
         }
 
         [data-theme="dark"] .drawing-skeleton {
@@ -943,7 +950,7 @@
         }
 
         // siliconflow ai api key
-        const API_KEY = 'sk-vsdojuraozihpgcenfgtwuvjbnqtvrpilkfevtsofhpqqwqh';
+        const API_KEY = 'sk-wbhopaqbxdhiqlkuophhmwnimugbmwdpuoiqhzujwgdcgnvc';
 
         // 文本对话图标
         const LLM_ICON = '📄'
@@ -994,7 +1001,7 @@
         }
 
         // 全局绘图模型选择
-        var drawingModelSwitch = 'Kolors' ? localStorage.getItem('drawing-model') : 'Kolors';
+        var drawingModelSwitch = localStorage.getItem('drawing-model') || 'pollinations';
 
         // pollinations模型切换
         var pollinationsModel = localStorage.getItem('pollinations-selected-model') || 'flux';
@@ -1233,7 +1240,10 @@
 
         // 发送绘图消息 函数
         async function handleImageGeneration(prompt) {
+
             const sendBtn = document.getElementById('send-btn');
+
+            let timeoutId; // 声明超时ID
 
             try {
 
@@ -1241,6 +1251,29 @@
                 const skeletonCount = drawingParams.batch_size || 1;
                 const skeletonContainer = createImageSkeleton(skeletonCount);
                 document.getElementById('chat-container').appendChild(skeletonContainer);
+
+                // 添加15秒超时检测
+                timeoutId = setTimeout(() => {
+                    // 重置按钮状态
+                    sendBtn.classList.remove('sending');
+
+                    // 超时处理逻辑
+                    if (!skeletonContainer.isConnected) return; // 如果骨架已移除则退出
+
+                    // 移除骨架
+                    skeletonContainer.remove();
+
+                    // 取消可能仍在进行的请求
+                    if (sendBtn.abortController) {
+                        sendBtn.abortController.abort();
+                        delete sendBtn.abortController;
+                    }
+
+                    // 显示错误提示
+                    showToast('Request timed out after 15 seconds');
+                }, 15000); // 15秒超时
+
+                // 滚动到底部
                 scrollToBottom();
 
                 // 如果现在的参数等于上一个参数（完全相同），seed就+1
@@ -1253,7 +1286,6 @@
                 // 更新记录的上次参数
                 lastDrawingParams = JSON.parse(JSON.stringify(drawingParams));
 
-
                 // 如果绘图模型是kolors
                 if (drawingModelSwitch === 'kolors') {
 
@@ -1262,8 +1294,10 @@
                         ...drawingParams,
                         image_size: `${drawingParams.image_width}x${drawingParams.image_height}`
                     };
+
                     delete kolors_post_drawingParams.image_width;
                     delete kolors_post_drawingParams.image_height;
+                    delete kolors_post_drawingParams.proportional_selection;
 
                     // 准备绘图参数
                     const params = {
@@ -1284,14 +1318,21 @@
 
                     const data = await response.json();
 
-                    // 显示图片
-                    appendImageResults(data.data, skeletonContainer);
+                    // 如果获取失败就移除骨架
+                    if ((!response.ok)) {
+                        //appendMessage(JSON.stringify(data.data));
+                        showToast('Failed to generate image', false);
+                        skeletonContainer.remove();
+                        sendBtn.classList.remove('sending');
+                        clearTimeout(timeoutId);
+                    } else {
 
-                    // 自动滚动
-                    setTimeout(scrollToBottom, 50);
+                        // 显示图片
+                        appendImageResults(data.data, skeletonContainer);
 
-                    // 存储现在的绘图参数
-                    lastDrawingParams = { ...drawingParams }
+                        // 存储现在的绘图参数
+                        lastDrawingParams = { ...drawingParams }
+                    }
 
                     // pollination模型绘图
                 } else if (drawingModelSwitch === 'pollinations') {
@@ -1313,30 +1354,78 @@
                     img.src = response.url;
                     img.onload = () => {
                         appendImageResults([{ url: response.url }], skeletonContainer);
-                        setTimeout(scrollToBottom, 50);
                         lastDrawingParams = { ...drawingParams };
                     };
                     img.onerror = () => {
-                        appendMessage('Failed to generate image', false);
+                        clearTimeout(timeoutId);
+                        showToast('Failed to generate image', false);
+                        skeletonContainer.remove();
+                        sendBtn.classList.remove('sending');
                     };
 
                 }
 
             } catch (error) {
-                skeletonContainer.querySelector('.message-bubble').innerHTML = `
-      <div class="error-message">
-        Image generation failed: ${error.message}
-        <button class="retry-btn" onclick="handleImageGeneration('${prompt}')">Retry</button>
-      </div>`;
-                console.error('Image generation failed:', error);
-                appendMessage(`Error: ${error.message}`, false);
+                const chatContainer = document.getElementById('chat-container');
+                // 1. 精准获取当前骨架容器
+                const skeletonContainer = Array.from(chatContainer.children)
+                    .reverse()
+                    .find(el => el.classList.contains('skeleton-container'));
+
+                // 2. 错误边界保护
+                if (!skeletonContainer?.isConnected) {
+                    console.warn('Skeleton container already removed');
+                    return;
+                }
+
+                // 3. 创建错误节点
+                const bubble = skeletonContainer.querySelector('.message-bubble');
+                const errorWrapper = document.createElement('div');
+                errorWrapper.className = 'error-message';
+                errorWrapper.innerHTML = `
+        <p>Image generation failed: ${error.message}</p>
+        <button class="retry-btn">Retry</button>
+    `;
+
+                // 4. 移动端适配处理
+                const isMobile = /Mobile|iP(hone|od|ad)|Android/.test(navigator.userAgent);
+                if (isMobile) {
+                    skeletonContainer.style.display = 'none';
+                    setTimeout(() => skeletonContainer.remove(), 300);
+                } else {
+                    skeletonContainer.remove();
+                }
+
+                // 5. 动态事件绑定
+                errorWrapper.querySelector('.retry-btn').addEventListener(
+                    isMobile ? 'touchend' : 'click',
+                    () => handleImageGeneration(prompt)
+                );
+
+                // 6. 安全替换内容
+                if (bubble && bubble.isConnected) {
+                    bubble.replaceChildren(errorWrapper);
+                }
+
+                console.error('Generation failed:', error);
+                sendBtn.classList.remove('sending');
+                clearTimeout(timeoutId);
             } finally {
                 sendBtn.classList.remove('sending');
+                // 无论成功失败都清除超时检测
+                clearTimeout(timeoutId);
             }
         }
 
         // 图片生成函数
         function appendImageResults(images, skeletonContainer) {
+
+            if (/Mobile|iP(hone|od|ad)|Android/.test(navigator.userAgent)) {
+                skeletonContainer.querySelectorAll('.drawing-skeleton').forEach(s => {
+                    s.style.display = 'none'; // 移动端强制隐藏
+                });
+            }
+
             const bubble = skeletonContainer.querySelector('.message-bubble');
 
             // 移除所有骨架元素
@@ -1358,18 +1447,20 @@
                     imgElem.style.opacity = '1';
                 };
 
+                const loadTimer = setTimeout(() => {
+                    imgElem.style.opacity = '1'; // 强制显示
+                }, 3000);
+
                 imgElem.onerror = () => {
                     imgContainer.innerHTML = '<div class="error">Failed to load image</div>';
                 };
 
                 imgContainer.appendChild(imgElem);
                 bubble.appendChild(imgContainer);
-            });
-
-            // 添加渐现动画
-            setTimeout(() => {
                 bubble.style.opacity = '1';
-            }, 50);
+                sendBtn.classList.remove('sending');
+                scrollToBottom();
+            });
         }
 
         class RequestQueue {
@@ -1706,7 +1797,7 @@
             });
 
             // 初始化状态
-            const savedModel = localStorage.getItem('drawing-model') || 'kolors';
+            const savedModel = localStorage.getItem('drawing-model') || 'pollinations';
             drawingModelSwitch = savedModel;
 
             options.forEach(option => option.classList.remove('active'));
@@ -1732,28 +1823,46 @@
         // 独立的骨架生成函数
         function createImageSkeleton(count = 1) {
             const container = document.createElement('div');
-            container.className = 'message-container bot-message-container';
+            container.className = 'message-container bot-message-container skeleton-container'; // 添加标识类
+
+            // 创建后立即插入DOM确保能获取父容器尺寸
+            document.getElementById('chat-container').appendChild(container);
 
             const bubble = document.createElement('div');
             bubble.className = 'message-bubble bot-message-bubble';
-            bubble.style.display = 'grid';
-            bubble.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+            // 改用flex布局增强兼容性
+            bubble.style.display = 'flex';
+            bubble.style.flexWrap = 'wrap';
             bubble.style.gap = '10px';
 
-            for (let i = 0; i < count; i++) {
-                const skeleton = document.createElement('div');
-                skeleton.className = 'drawing-skeleton';
-                skeleton.style.width = '200px';
-                skeleton.style.height = '200px';
-                skeleton.style.margin = '10px';
-                skeleton.style.position = 'relative'; // 新增定位
+            // 异步计算确保布局稳定
+            requestAnimationFrame(() => {
+                // 获取目标图片容器的计算样式
+                const sampleImg = document.querySelector('.message-bubble img');
+                if (sampleImg) {
+                    const { width, height } = sampleImg.getBoundingClientRect();
+                    // 动态设置骨架尺寸
+                    bubble.style.gridTemplateColumns = `repeat(auto-fit, minmax(${width}px, 1fr))`;
+                }
 
-                const shimmer = document.createElement('div');
-                shimmer.className = 'drawing-skeleton';
+                // 创建骨架项
+                for (let i = 0; i < count; i++) {
+                    const skeleton = document.createElement('div');
+                    skeleton.className = 'drawing-skeleton';
 
-                skeleton.appendChild(shimmer);
-                bubble.appendChild(skeleton);
-            }
+                    // 动态计算宽高比
+                    const aspectRatio = drawingParams.image_height / drawingParams.image_width;
+
+                    // 使用CSS自定义属性传递尺寸
+                    skeleton.style.setProperty('--skeleton-width', `${drawingParams.image_width}px`);
+                    skeleton.style.aspectRatio = `${drawingParams.image_width}/${drawingParams.image_height}`;
+
+                    // 添加移动端触摸事件占位（解决部分浏览器渲染问题）
+                    skeleton.ontouchstart = () => { };
+
+                    bubble.appendChild(skeleton);
+                }
+            });
 
             container.appendChild(bubble);
             return container;
@@ -2173,15 +2282,3 @@
 </body>
 
 </html>
-
-<!--
-
- 完全透明：代码开源托管于 GitHub Pages
-
- 极简主义：无需注册/登录，无复杂界面。无次数限制(遵守硅基流动 & Pollinations 免费API规则调用)
-
- 用户群体：无本地部署条件用户，移动端用户，尝鲜用户。
-
-输入网址「biao.chat」 → 立即使用
-
--->
