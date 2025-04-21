@@ -271,6 +271,21 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
             </div>
         </section>
 
+        <!-- 分切直径计算模块 -->
+        <section class="calculator-module">
+            <h3 class="module-title">分切直径计算</h3>
+            <div class="input-group">
+                <input type="number" id="totalDiameter" placeholder="原纸总直径 (mm)" step="1" min="0">
+                <input type="number" id="coreDiameter2" placeholder="原纸芯空心纸芯直径 (mm)" step="1" min="0" value="100">
+                <input type="number" id="splitCount3" placeholder="分切数量" step="1" min="1" value="2">
+            </div>
+            <div class="result-grid">
+                <div class="result-item">
+                    建议：<span class="result-value" id="splitDiameterResult">0</span>
+                </div>
+            </div>
+        </section>
+
         <section class="calculator-module">
             <h3 class="module-title">计算公式</h3>
             <div class="result-grid">
@@ -649,6 +664,51 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
 
             calculateCuttingWeight(); // 初始计算
         })();
+
+        // 直径分切计算
+        (function initSplitCalculator() {
+            const elements = {
+                totalDia: document.getElementById('totalDiameter'),
+                coreDia: document.getElementById('coreDiameter2'),
+                splitNum: document.getElementById('splitCount3'),
+                result: document.getElementById('splitDiameterResult')
+            };
+
+            function calculateSplitDiameter() {
+                try {
+                    // 输入值标准化（含边界处理）
+                    const totalDiameter = InputValidator.validate(elements.totalDia.value, 1); // 总直径必须≥1mm
+                    const coreDiameter = InputValidator.validate(elements.coreDia.value, 0); // 空心直径可0（实心纸卷场景）
+                    const splitCount = InputValidator.validate(elements.splitNum.value, 1); // 分切数必须≥1
+
+                    // 工程逻辑校验
+                    if (coreDiameter >= totalDiameter) {
+                        throw new Error('参数错误');
+                    }
+
+                    // 核心计算：基于面积守恒原理（圆环面积均分）
+                    const totalArea = Math.PI * ((totalDiameter / 2) ** 2 - (coreDiameter / 2) ** 2); // 总有效面积
+                    const singleArea = totalArea / splitCount; // 单卷有效面积
+                    const singleRadius = Math.sqrt(singleArea / Math.PI); // 单卷半径
+                    const splitDiameter = (2 * singleRadius).toFixed(1); // 计算直径并保留1位小数
+
+                    //计算 纸环垂直宽度(大圆半径减小纸芯半径)
+                    const singleCoreRadius = Math.sqrt((singleArea - Math.PI * (coreDiameter / 2) ** 2) / Math.PI).toFixed(1);
+
+                    elements.result.innerHTML = `单个直径约：` + splitDiameter + ' mm' + '<br>' + '单个纸环垂直宽度约： ' + singleCoreRadius + ' mm';
+                } catch (error) {
+                    elements.result.textContent = error.message || '输入异常'; // 友好错误提示
+                }
+            }
+
+            // 全量输入项监听（修复原监听不全问题）
+            [elements.totalDia, elements.coreDia, elements.splitNum].forEach(input => {
+                input.addEventListener('input', calculateSplitDiameter);
+            });
+
+            calculateSplitDiameter(); // 初始化计算
+        })();
+
 
     </script>
 </body>
