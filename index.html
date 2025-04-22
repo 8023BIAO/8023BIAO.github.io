@@ -371,7 +371,6 @@
         #settings-btn,
         #send-btn,
         #text-imagesMod-btn,
-        #upload-image-btn,
         #theme-toggle-btn {
             width: 40px;
             height: 40px;
@@ -396,55 +395,10 @@
             font-size: 1.2rem;
         }
 
-        #upload-image-btn {
-            position: absolute;
-            bottom: calc(100% + 20px);
-            left: 20px;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            font-size: 1.2rem;
-        }
-
-        #upload-image-btn.has-image {
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            border: 2px solid var(--primary-color);
-            transition: transform 0.3s ease;
-        }
-
-        #upload-image-btn.has-image:hover {
-            transform: scale(1.5);
-            z-index: 1000;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-        }
-
-        #upload-image-preview {
-            position: fixed;
-            bottom: 100px;
-            left: 20px;
-            width: 100px;
-            height: 100px;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-            background-size: cover;
-            background-position: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 1000;
-        }
-
-        #upload-image-preview.show {
-            opacity: 1;
-        }
-
         #send-btn:active,
         #settings-btn:active,
         #theme-toggle-btn:active,
         #text-imagesMod-btn:active,
-        #upload-image-btn:active,
         .retry-btn:active {
             background-color: #0056b3;
             transform: scale(0.9);
@@ -452,8 +406,7 @@
 
         #settings-btn.sending,
         #theme-toggle-btn.sending,
-        #text-imagesMod-btn.sending,
-        #upload-image-btn.sending {
+        #text-imagesMod-btn.sending {
             pointer-events: none;
             opacity: 0.7;
         }
@@ -545,7 +498,6 @@
         }
 
         #system-prompt,
-        #negative_prompt,
         #seed,
         #image_width,
         #image_height,
@@ -679,62 +631,6 @@
             }
         }
 
-        /* ========== 模式切换器 ========== */
-        .switch-container {
-            display: flex;
-            align-items: center;
-            max-width: 400px;
-            margin: 50px auto;
-            position: relative;
-        }
-
-        .option {
-            flex: 1;
-            padding: 15px 30px;
-            border: none;
-            background: var(--bg-color);
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            border-radius: 8px;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .option.active {
-            background: var(--primary-color);
-            color: var(--text-color);
-        }
-
-        .switch-button {
-            width: 40px;
-            height: 40px;
-            background: var(--text-color);
-            border: 2px solid #ddd;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 -20px;
-            z-index: 1;
-            transition: all 0.3s ease;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .switch-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 2px 8px var(--primary-color);
-        }
-
-        .switch-button::before {
-            content: "↔";
-            font-size: 20px;
-            color: var(--message-bg-color);
-        }
-
         /* ========== 响应式设计 ========== */
         @media (max-width: 768px) {
             .message-bubble {
@@ -823,7 +719,6 @@
 
     <!-- 底部栏 -->
     <div id="input-container">
-        <button id="upload-image-btn">📎</button>
         <div class="input-wrapper">
             <button id="settings-btn">⚙️</button>
             <button id="text-imagesMod-btn">🖼️</button><!--图文模式切换-->
@@ -869,23 +764,12 @@
     <!-- 图像生成设置模态框 -->
     <div id="drawing-settings-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <div class="switch-container">
-                <button class="option active" data-value="kolors">kolors</button>
-                <div class="switch-button"></div>
-                <button class="option" data-value="pollinations">pollinations</button>
-            </div>
-            <!-- pollinations模型切换 -->
-            <div id="pollinations-model-container" style="display: none; margin-top: 15px;">
+            <div id="pollinations-model-container" style="margin-top: 15px;">
                 <label>pollinations model:</label>
                 <select id="pollinations-model-select" class="param-item">
                     <option value="flux" selected>flux</option>
                     <option value="turbo">turbo</option>
                 </select>
-            </div>
-
-            <div class="param-item">
-                <label>negative prompt:</label>
-                <textarea id="negative_prompt" rows="3"></textarea>
             </div>
             <div class="param-item">
                 <label>seed:</label>
@@ -898,18 +782,6 @@
             <div class="param-item">
                 <label>height:</label>
                 <input type="number" id="image_height" min="0" step="1" value="1024">
-            </div>
-            <div class="param-item">
-                <label>batch size:<span id="batch_size-value">1</span></label>
-                <input type="range" id="batch_size" value="1" min="1" max="4" step="1">
-            </div>
-            <div class="param-item">
-                <label>number inference steps:<span id="num_inference_steps-value">20</span></label>
-                <input type="range" id="num_inference_steps" value="20" min="1" max="100" step="1">
-            </div>
-            <div class="param-item">
-                <label>guidance scale:<span id="guidance_scale-value">7</span></label>
-                <input type="range" id="guidance_scale" value="7" min="0" max="20" step="0.1">
             </div>
             <select id="proportional_selection" class="param-item">
                 <option value="9:16" selected>9:16</option>
@@ -950,7 +822,7 @@
         }
 
         // siliconflow ai api key
-        const API_KEY = 'sk-wbhopaqbxdhiqlkuophhmwnimugbmwdpuoiqhzujwgdcgnvc';
+        const API_KEY = 'sk-bofwgvgaicljbyckkhnlyoqonfqxfaahlqkdaxsqjykjscxc';
 
         // 文本对话图标
         const LLM_ICON = '📄'
@@ -971,37 +843,17 @@
         };
 
         // 绘图全局配置
-        const DRAWING_API_URL = 'https://api.siliconflow.cn/v1/images/generations';
-        const DRAWING_MODEL = 'Kwai-Kolors/Kolors';
         const DRAWING_PARAMS = {
-            "negative_prompt": "",// 否定提示(反提示词)
-            //"image_size": "1024x1024", //生成大小
-            "batch_size": 1, //生成数量
             "seed": 1,//种子范围
-            "num_inference_steps": 20,//推理步骤数(画图步骤)
-            "guidance_scale": 4,//此值用于控制生成的图像与给定提示之间的匹配程度。值越高，生成的图像就越倾向于与文本提示严格匹配。值越低，生成的图像就越有创意和多样性，可能包含更多意想不到的元素。
-
-            //下面两项是自己添加的
             "image_width": 768,
             "image_height": 1368,
             "proportional_selection": "9:16",// 画布比例
+            "pollinations-model-select": "flux"// 模型选择
         }
 
         // 是否是绘图模式
         let isDrawingMode = false; // 当前模式状态
         let drawingParams = { ...DRAWING_PARAMS }; // 绘图参数
-
-        // 临时存储base64图片
-        var base64Image = null;
-
-        if (drawingParams.image) {
-            // 初始化绘图参数
-            drawingParams.image = null;
-            delete drawingParams.image;
-        }
-
-        // 全局绘图模型选择
-        var drawingModelSwitch = localStorage.getItem('drawing-model') || 'pollinations';
 
         // pollinations模型切换
         var pollinationsModel = localStorage.getItem('pollinations-selected-model') || 'flux';
@@ -1015,7 +867,6 @@
         var systemPrompt = '';
         var isDarkTheme = false;
         var isUserScrolling = false;
-
 
         // 绘图参数存储上一个值(用于对比)
         var lastDrawingParams = {};
@@ -1079,7 +930,7 @@
             const savedSystemPrompt = localStorage.getItem('systemPrompt');
 
             const savedDrawingParams = localStorage.getItem('drawingParams');
-            const savedNegativePrompt = localStorage.getItem('negative_prompt');
+
 
             if (savedParams) {
                 modelParams = { ...LLM_DEFAULT_PARAMS, ...JSON.parse(savedParams) };
@@ -1101,8 +952,6 @@
                 drawingParams = { ...DRAWING_PARAMS, ...JSON.parse(savedDrawingParams) };
             }
 
-            document.getElementById('negative_prompt').value = savedNegativePrompt || '';
-
             Object.keys(drawingParams).forEach(key => {
                 const element = document.getElementById(key);
                 if (element) {
@@ -1121,7 +970,6 @@
         // 绘图保存参数
         function saveDrawingParams() {
             localStorage.setItem('drawingParams', JSON.stringify(drawingParams));
-            localStorage.setItem('negative_prompt', drawingParams.negative_prompt);
         }
 
         // 重置默认参数
@@ -1158,9 +1006,6 @@
                 }
             });
 
-            // 特别处理文本框
-            document.getElementById('negative_prompt').value = '';
-
             // 保存到本地存储
             saveDrawingParams();
         }
@@ -1174,10 +1019,6 @@
 
         // 绘图设置按钮事件
         document.getElementById('drawing-defaults-btn').addEventListener('click', resetDrawingParams);
-        document.getElementById('negative_prompt').addEventListener('input', (e) => {
-            drawingParams.negative_prompt = e.target.value;
-            saveDrawingParams();
-        });
 
         // 设置按钮事件
         document.querySelectorAll('input[type="range"]').forEach(input => {
@@ -1191,7 +1032,6 @@
                 saveDrawingParams();
             });
         });
-
 
         // 消息渲染函数
         function appendMessage(content, isUser) {
@@ -1210,8 +1050,8 @@
                     block.style.maxWidth = "100%"; // 防止代码块溢出
                 });
             }
-
             container.appendChild(bubble);
+
             document.getElementById('chat-container').appendChild(container);
             if (!isUserScrolling) {
                 // 滚动到底部
@@ -1241,6 +1081,7 @@
         // 发送绘图消息 函数
         async function handleImageGeneration(prompt) {
 
+            // 获取发送按钮
             const sendBtn = document.getElementById('send-btn');
 
             let timeoutId; // 声明超时ID
@@ -1248,7 +1089,7 @@
             try {
 
                 // 立即创建并显示骨架
-                const skeletonCount = drawingParams.batch_size || 1;
+                const skeletonCount = 1;
                 const skeletonContainer = createImageSkeleton(skeletonCount);
                 document.getElementById('chat-container').appendChild(skeletonContainer);
 
@@ -1286,84 +1127,35 @@
                 // 更新记录的上次参数
                 lastDrawingParams = JSON.parse(JSON.stringify(drawingParams));
 
-                // 如果绘图模型是kolors
-                if (drawingModelSwitch === 'kolors') {
+                // pollinations.ai api
+                var api = `https://image.pollinations.ai/prompt/{description}?width={width}&height={height}&model=${pollinationsModel}&enhance=true&private=true&nologo=true&safe=false&seed={seed}`;
 
-                    //定义局部变量 去除宽高，改成image_size
-                    const kolors_post_drawingParams = {
-                        ...drawingParams,
-                        image_size: `${drawingParams.image_width}x${drawingParams.image_height}`
-                    };
+                // 替换 description 为 prompt
+                api = api.replace('{description}', encodeURI(prompt))
 
-                    delete kolors_post_drawingParams.image_width;
-                    delete kolors_post_drawingParams.image_height;
-                    delete kolors_post_drawingParams.proportional_selection;
+                //替换 width和height
+                api = api.replace('{width}', drawingParams.image_width)
+                api = api.replace('{height}', drawingParams.image_height)
 
-                    // 准备绘图参数
-                    const params = {
-                        model: DRAWING_MODEL,
-                        prompt: prompt,
-                        ...kolors_post_drawingParams
-                    };
+                // 替换 seed
+                api = api.replace('{seed}', drawingParams.seed)
 
-                    // 发送请求
-                    const response = await fetch(DRAWING_API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + API_KEY
-                        },
-                        body: JSON.stringify(params)
-                    });
+                // 发送get请求(直接返回图片)
+                const response = await fetch(api)
 
-                    const data = await response.json();
+                const img = new Image();
+                img.src = response.url;
+                img.onload = () => {
+                    appendImageResults([{ url: response.url }], skeletonContainer);
+                    lastDrawingParams = { ...drawingParams };
+                };
+                img.onerror = () => {
+                    clearTimeout(timeoutId);
+                    showToast('Failed to generate image', false);
+                    skeletonContainer.remove();
+                    sendBtn.classList.remove('sending');
+                };
 
-                    // 如果获取失败就移除骨架
-                    if ((!response.ok)) {
-                        //appendMessage(JSON.stringify(data.data));
-                        showToast('Failed to generate image', false);
-                        skeletonContainer.remove();
-                        sendBtn.classList.remove('sending');
-                        clearTimeout(timeoutId);
-                    } else {
-
-                        // 显示图片
-                        appendImageResults(data.data, skeletonContainer);
-
-                        // 存储现在的绘图参数
-                        lastDrawingParams = { ...drawingParams }
-                    }
-
-                    // pollination模型绘图
-                } else if (drawingModelSwitch === 'pollinations') {
-                    var api = `https://image.pollinations.ai/prompt/{description}?width={width}&height={height}&model=${pollinationsModel}&enhance=true&private=true&nologo=true&safe=false&seed={seed}`;
-
-                    // 替换 description 为 prompt
-                    api = api.replace('{description}', encodeURI(prompt))
-
-                    api = api.replace('{width}', drawingParams.image_width)
-                    api = api.replace('{height}', drawingParams.image_height)
-
-                    // 替换 seed
-                    api = api.replace('{seed}', drawingParams.seed)
-
-                    // 发送get请求(直接返回图片)
-                    const response = await fetch(api)
-
-                    const img = new Image();
-                    img.src = response.url;
-                    img.onload = () => {
-                        appendImageResults([{ url: response.url }], skeletonContainer);
-                        lastDrawingParams = { ...drawingParams };
-                    };
-                    img.onerror = () => {
-                        clearTimeout(timeoutId);
-                        showToast('Failed to generate image', false);
-                        skeletonContainer.remove();
-                        sendBtn.classList.remove('sending');
-                    };
-
-                }
 
             } catch (error) {
                 const chatContainer = document.getElementById('chat-container');
@@ -1738,88 +1530,6 @@
             setTimeout(() => toast.remove(), 800);
         }
 
-        // 新增：控制参数项可见性的函数
-        function updateParamVisibility() {
-
-            // 在kolors模式下，隐藏默认参数按钮
-            document.getElementById('drawing-defaults-btn').style.display = drawingModelSwitch === 'pollinations' ? 'none' : 'block';
-
-            // 合并后的上传按钮显示逻辑
-            document.getElementById('upload-image-btn').style.display =
-                (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
-
-            const modelSelectContainer = document.getElementById('pollinations-model-container');
-            modelSelectContainer.style.display = drawingModelSwitch === 'pollinations' ? 'block' : 'none';
-
-            const kolorsParams = ['negative_prompt', 'batch_size', 'num_inference_steps', 'guidance_scale'];
-            kolorsParams.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    // 隐藏整个参数项容器（包含label和input）
-                    element.closest('.param-item').style.display =
-                        drawingModelSwitch === 'pollinations' ? 'none' : 'block';
-                }
-
-            });
-        }
-
-        // 绘图模型切换按钮事件脚本
-        function toggleDrawingMode() {
-            const switchButton = document.querySelector('.switch-button');
-            const options = document.querySelectorAll('.option');
-            let isLeftActive = true; // 默认状态
-
-
-            function toggleOptions() {
-                options.forEach(option => option.classList.toggle('active'));
-                isLeftActive = !isLeftActive;
-                updateParamVisibility(); // 切换时更新显示状态
-                // 确保模型选择器显示正确
-                document.getElementById('pollinations-model-select').value = pollinationsModel;
-            }
-
-            // 按钮点击切换
-            switchButton.addEventListener('click', toggleOptions);
-
-            // 直接点击选项切换
-            options.forEach(option => {
-                option.addEventListener('click', function () {
-                    const targetModel = this.dataset.value;
-                    const shouldToggle = (targetModel === 'kolors' && !isLeftActive) ||
-                        (targetModel === 'pollinations' && isLeftActive);
-
-                    if (shouldToggle) {
-                        drawingModelSwitch = targetModel;
-                        localStorage.setItem('drawing-model', targetModel);
-                        toggleOptions();
-                    }
-                });
-            });
-
-            // 初始化状态
-            const savedModel = localStorage.getItem('drawing-model') || 'pollinations';
-            drawingModelSwitch = savedModel;
-
-            options.forEach(option => option.classList.remove('active'));
-            const activeOption = document.querySelector(`.option[data-value="${savedModel}"]`);
-            if (activeOption) {
-                activeOption.classList.add('active');
-                isLeftActive = savedModel === 'kolors';
-            }
-
-            if (!['kolors', 'pollinations'].includes(savedModel)) {
-                localStorage.setItem('drawing-model', 'kolors');
-            }
-
-            // 初始化时更新参数可见性
-            updateParamVisibility();
-
-            // 输入框自动聚焦
-            setTimeout(() => {
-                document.getElementById('message-input').focus();
-            }, 300);
-        }
-
         // 独立的骨架生成函数
         function createImageSkeleton(count = 1) {
             const container = document.createElement('div');
@@ -1982,6 +1692,7 @@
                 this.style.height = this.scrollHeight + 'px';
             });
 
+            // 回车发送
             messageInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -2088,113 +1799,12 @@
                 xhtml: true // 生成标准 XHTML 标签
             });
 
-
-            // 合并后的上传按钮显示逻辑
-            document.getElementById('upload-image-btn').style.display =
-                (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
-
-            // 上传图片按钮的点击事件
-            document.getElementById('upload-image-btn').addEventListener('click', function (e) {
-                const btn = e.target.closest('#upload-image-btn');
-
-                if (base64Image) {
-                    // 清除已上传图片
-                    base64Image = null;
-                    // 移除预览效果
-                    btn.innerHTML = '📎';
-                    btn.style.backgroundImage = '';
-                    btn.classList.remove('has-image');
-                    // 从绘图参数中移除
-                    delete drawingParams.image;
-                    return;
-                }
-
-                // 创建隐藏的文件输入
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.accept = 'image/*';
-                fileInput.style.display = 'none';
-
-                // 文件选择处理
-                fileInput.addEventListener('change', async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-
-                    // 验证文件类型和大小（最大50MB）
-                    if (!file.type.startsWith('image/')) {
-                        showToast('Please select an image file', 'error');
-                        return;
-                    }
-                    if (file.size > 50 * 1024 * 1024) {
-                        showToast('The size of the image cannot exceed 50MB', 'error');
-                        return;
-                    }
-
-                    // 转换为base64
-                    try {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            base64Image = e.target.result;
-                            // 更新按钮显示
-                            btn.innerHTML = '×';
-                            btn.style.backgroundImage = `url(${base64Image})`;
-                            btn.classList.add('has-image');
-
-                            // 添加绘图参数
-                            drawingParams.image = base64Image;
-                            // 在文件读取成功后：
-                            reader.onload = (e) => {
-                                base64Image = e.target.result;
-
-                                // 设置按钮背景
-                                btn.style.backgroundImage = `url(${base64Image})`;
-                                btn.classList.add('has-image');
-
-                                // 创建预览层
-                                const previewLayer = document.createElement('div');
-                                previewLayer.id = 'upload-image-preview';
-                                document.body.appendChild(previewLayer);
-
-                                // 按钮交互事件
-                                btn.addEventListener('mouseenter', () => {
-                                    previewLayer.style.backgroundImage = `url(${base64Image})`;
-                                    previewLayer.classList.add('show');
-                                });
-
-                                btn.addEventListener('mouseleave', () => {
-                                    previewLayer.classList.remove('show');
-                                });
-
-                                // 点击清除时同步移除预览
-                                btn.addEventListener('click', () => {
-                                    previewLayer.remove();
-                                });
-                            };
-                            showToast('Image has been uploaded ✅');
-                        };
-                        reader.readAsDataURL(file);
-                    } catch (error) {
-                        console.error('Image upload failed:', error);
-                        showToast('Upload failed, please try again', 'error');
-                    }
-                });
-
-                // 触发文件选择
-                document.body.appendChild(fileInput);
-                fileInput.click();
-                fileInput.remove();
-            });
-
             // 切换文本/图片模式
             document.getElementById('text-imagesMod-btn').addEventListener('click', function () {
                 isDrawingMode = !isDrawingMode;
 
                 // 更新按钮图标
                 this.textContent = isDrawingMode ? LLM_ICON : DRAWING_ICON;
-
-                // 合并后的上传按钮显示逻辑
-                document.getElementById('upload-image-btn').style.display =
-                    (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
 
                 document.getElementById('message-input').placeholder = isDrawingMode ?
                     "enter description" :
@@ -2212,9 +1822,7 @@
                 }, 300);
             });
 
-            // 绘图模式切换按钮
-            toggleDrawingMode();
-
+            // 初始化参数
             document.getElementById('message-input').placeholder = localStorage.getItem('drawingMode') === 'true' ?
                 "enter description" :
                 "enter message";
@@ -2225,13 +1833,7 @@
                 document.getElementById('text-imagesMod-btn').textContent = LLM_ICON;
                 // 初始化按钮状态
                 document.getElementById('text-imagesMod-btn').textContent = isDrawingMode ? LLM_ICON : DRAWING_ICON;
-                // 初始化上传按钮
-                document.getElementById('upload-image-btn').style.display =
-                    (isDrawingMode && drawingModelSwitch !== 'pollinations') ? 'block' : 'none';
             }
-
-            // 更新模型设置参数可见性
-            updateParamVisibility();
 
             // 阻止模态框内容冒泡
             document.querySelectorAll('.modal-content').forEach(content => {
