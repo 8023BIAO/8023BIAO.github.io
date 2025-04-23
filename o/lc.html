@@ -5,6 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>卷纸计算相关</title>
+    <!-- 1. 引入 KaTeX 核心样式和脚本 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <!-- 2. 添加自动渲染扩展 -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, { delimiters: [
+      { left: '$$', right: '$$', display: true },    // 块级公式
+        { left: '\\[', right: '\\]', display: true }, // 支持 \[ \]
+        { left: '\\(', right: '\\)', display: false }  // 行内公式
+        
+    ], throwOnError: false})"></script>
     <style>
         /* ===== 基础变量定义 ===== */
         :root {
@@ -159,6 +170,45 @@
             font-size: 18px;
         }
 
+        /* ===== 数学公式 ===== */
+        /* 优化样式 */
+        .calculator-module {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .formula-main {
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 4px;
+        }
+
+        .formula-steps {
+            color: #6c757d;
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+
+        .formula-example {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .katex {
+            font-size: 1.1em;
+        }
+
+        .katex-formula {
+            display: block;
+            margin: 10px 0;
+            font-size: 1.05em !important;
+            padding: 2px 4px;
+        }
+
         /* ===== 响应式设计 ===== */
         @media (max-width: 768px) {
             body {
@@ -273,11 +323,12 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
 
         <!-- 分切直径计算模块 -->
         <section class="calculator-module">
-            <h3 class="module-title">分切直径计算</h3>
+            <h3 class="module-title">分切直径面积计算</h3>
             <div class="input-group">
                 <input type="number" id="totalDiameter" placeholder="原纸总直径 (mm)" step="1" min="0">
                 <input type="number" id="coreDiameter2" placeholder="原纸芯空心纸芯直径 (mm)" step="1" min="0" value="100">
                 <input type="number" id="splitCount3" placeholder="分切数量" step="1" min="1" value="2">
+                <input type="number" id="splitCountCore" placeholder="分切后空纸芯直径(mm)" step="1" min="0" value="100">
             </div>
             <div class="result-grid">
                 <div class="result-item">
@@ -290,10 +341,75 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
             <h3 class="module-title">计算公式</h3>
             <div class="result-grid">
                 <div class="result-item">
-                    长度：<span class="result-value" id="">(净重kg * 1000) / (克重g/m² * 宽度mm)</span></br></br>
-                    分切重量：<span class="result-value" id="">净重 * (分切后宽度 / 原宽度)</span></br></br>
-                    起点距离：<span class="result-value" id="">(轴长度 - 卷纸宽度 + 两边总边距) / 2</span></br></br>
-                    初始张力：<span class="result-value" id="">净重kg * ( 0.02 & 0.045) 最小值-最大值 </span></br></br>
+                    <!-- 长度公式 -->
+                    长度：
+
+                    \( \text{长度} = \frac{\text{净重}_{\text{kg}} \times 1000}{\text{克重}_{\text{g/m}^2} \times
+                    \text{宽度}_{\text{mm}}} \)
+                    <br><br>
+
+                    <!-- 分切重量公式 -->
+                    分切重量：
+
+                    \( \text{分切重量} = \text{净重} \times \frac{\text{分切后宽度}}{\text{原宽度}} \)
+                    <br><br>
+
+                    <!-- 起点距离公式 -->
+                    起点距离：
+
+                    \( \text{起点距离} = \frac{\text{轴长度} - \text{卷纸宽度} + \text{两边总边距}}{2} \)
+                    <br><br>
+
+                    <!-- 初始张力公式 -->
+                    初始张力：
+
+                    \( \text{初始张力} = \text{净重}_{\text{kg}} \times (0.02 \sim 0.045)\ \text{kg} \)
+                    <br>
+                    <small>（范围：最小值 \( 0.02 \times \text{净重} \) ~ 最大值 \( 0.045 \times \text{净重} \)）</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="calculator-module">
+            <h3 class="module-title">基于面积守恒 分切计算公式</h3>
+            <div class="result-grid">
+                <div class="result-item">
+                    <!-- 主公式 -->
+                    <div class="formula-main">
+                        分切后直径：
+                        <span class="katex-formula">
+                            $$ D_{\text{split}} = 2 \times \sqrt{ \frac{D_{\text{total}}^2 - D_{\text{core}}^2}{4N} +
+                            \frac{D_{\text{splitCore}}^2}{4} } $$
+                        </span>
+                    </div>
+
+                    <!-- 分步公式（KaTeX 行内模式） -->
+                    <div class="formula-steps">
+                        \( \text{总有效面积} = \pi \left( \frac{D_{\text{total}}}{2} \right)^2 - \pi \left(
+                        \frac{D_{\text{core}}}{2} \right)^2 \)<br>
+                        \( \text{单卷有效面积} = \frac{\text{总有效面积}}{N} \)<br>
+                        \( \text{单卷总面积} = \text{单卷有效面积} + \pi \left( \frac{D_{\text{splitCore}}}{2} \right)^2 \)<br>
+                        \( \text{最终直径} = 2 \times \sqrt{ \frac{\text{单卷总面积}}{\pi} } \)
+                    </div>
+
+                    <!-- 计算示例 -->
+                    <div class="formula-example">
+                        <strong>实际应用示例：</strong><br>
+                        当原纸总直径=200mm，原纸芯直径=100mm，分切数量=2，分切后空纸芯直径=50mm时：<br>
+                        \( D_{\text{total}}=200\text{mm},\ D_{\text{core}}=100\text{mm},\ N=2,\
+                        D_{\text{splitCore}}=50\text{mm} \) 时：<br>
+
+                        \[
+                        \begin{aligned}
+                        D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^2}{4} } \\
+                        &= 2 \times \sqrt{ \frac{40000 - 10000}{8} + \frac{2500}{4} } \\
+                        &= 2 \times \sqrt{3750 + 625} \\
+                        &= 2 \times \sqrt{4375} \\
+                        &\approx 2 \times 66.14 \\
+                        &= 132.3\text{mm}
+                        \end{aligned}
+                        \]
+                    </div>
                 </div>
             </div>
         </section>
@@ -665,50 +781,58 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
             calculateCuttingWeight(); // 初始计算
         })();
 
-        // 直径分切计算
+
+        // 分切芯径计算模块
         (function initSplitCalculator() {
             const elements = {
-                totalDia: document.getElementById('totalDiameter'),
-                coreDia: document.getElementById('coreDiameter2'),
-                splitNum: document.getElementById('splitCount3'),
-                result: document.getElementById('splitDiameterResult')
+                totalDia: document.getElementById('totalDiameter'),      // 原总直径
+                coreDia: document.getElementById('coreDiameter2'),       // 原纸芯径
+                splitNum: document.getElementById('splitCount3'),        // 分切数量
+                result: document.getElementById('splitDiameterResult'), // 结果显示
+                splitCountCore: document.getElementById('splitCountCore') // 分切后空纸芯
             };
 
             function calculateSplitDiameter() {
                 try {
                     // 输入值标准化（含边界处理）
-                    const totalDiameter = InputValidator.validate(elements.totalDia.value, 1); // 总直径必须≥1mm
-                    const coreDiameter = InputValidator.validate(elements.coreDia.value, 0); // 空心直径可0（实心纸卷场景）
-                    const splitCount = InputValidator.validate(elements.splitNum.value, 1); // 分切数必须≥1
+                    const totalDiameter = InputValidator.validate(elements.totalDia.value, 1);
+                    const coreDiameter = InputValidator.validate(elements.coreDia.value, 0);//原纸芯径
+                    const splitCount = InputValidator.validate(elements.splitNum.value, 1);
+                    const splitCore = InputValidator.validate(elements.splitCountCore.value, 0);//分切后空纸芯
 
                     // 工程逻辑校验
-                    if (coreDiameter >= totalDiameter) {
-                        throw new Error('参数错误');
-                    }
+                    if (coreDiameter >= totalDiameter) throw new Error('原纸芯径不能≥总直径');
+                    if (splitCore >= totalDiameter) throw new Error('分切芯径不能≥总直径');
 
-                    // 核心计算：基于面积守恒原理（圆环面积均分）
-                    const totalArea = Math.PI * ((totalDiameter / 2) ** 2 - (coreDiameter / 2) ** 2); // 总有效面积
-                    const singleArea = totalArea / splitCount; // 单卷有效面积
-                    const singleRadius = Math.sqrt(singleArea / Math.PI); // 单卷半径
-                    const splitDiameter = (2 * singleRadius).toFixed(1); // 计算直径并保留1位小数
+                    // 核心计算（双重芯径补偿）
+                    const totalEffectiveArea = Math.PI * ( // 总有效面积
+                        (totalDiameter / 2) ** 2 -
+                        (coreDiameter / 2) ** 2
+                    );
 
-                    //计算 纸环垂直宽度(大圆半径减小纸芯半径)
-                    const singleCoreRadius = Math.sqrt((singleArea - Math.PI * (coreDiameter / 2) ** 2) / Math.PI).toFixed(1);
+                    const splitEffectiveArea = totalEffectiveArea / splitCount; // 单卷有效面积
 
-                    elements.result.innerHTML = `单个直径约：` + splitDiameter + ' mm' + '<br>' + '单个纸环垂直宽度约： ' + singleCoreRadius + ' mm';
+                    // 分切后总面积 = 有效面积 + 新芯径面积
+                    const splitTotalArea = splitEffectiveArea + Math.PI * (splitCore / 2) ** 2;
+
+                    // 最终直径计算
+                    const splitDiameter = 2 * Math.sqrt(splitTotalArea / Math.PI);
+
+                    // 结果输出
+                    elements.result.innerHTML = `
+                分切后直径约：${splitDiameter.toFixed(1)}mm<br>
+                 基于面积守恒，仅供参考`;
                 } catch (error) {
-                    elements.result.textContent = error.message || '输入异常'; // 友好错误提示
+                    elements.result.textContent = error.message || '输入异常';
                 }
             }
 
-            // 全量输入项监听（修复原监听不全问题）
-            [elements.totalDia, elements.coreDia, elements.splitNum].forEach(input => {
-                input.addEventListener('input', calculateSplitDiameter);
-            });
+            // 全输入监听
+            [elements.totalDia, elements.coreDia, elements.splitNum, elements.splitCountCore]
+                .forEach(input => input.addEventListener('input', calculateSplitDiameter));
 
             calculateSplitDiameter(); // 初始化计算
         })();
-
 
     </script>
 </body>
