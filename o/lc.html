@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -14,7 +15,7 @@
       { left: '$$', right: '$$', display: true },    // 块级公式
         { left: '\\[', right: '\\]', display: true }, // 支持 \[ \]
         { left: '\\(', right: '\\)', display: false }  // 行内公式
-        
+     
     ], throwOnError: false})"></script>
     <style>
         /* ===== 基础变量定义 ===== */
@@ -323,7 +324,7 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
 
         <!-- 分切直径计算模块 -->
         <section class="calculator-module">
-            <h3 class="module-title">分切直径面积计算</h3>
+            <h3 class="module-title">分切直径计算(面积守恒)</h3>
             <div class="input-group">
                 <input type="number" id="totalDiameter" placeholder="原纸总直径 (mm)" step="1" min="0">
                 <input type="number" id="coreDiameter2" placeholder="原纸芯空心纸芯直径 (mm)" step="1" min="0" value="100">
@@ -342,36 +343,31 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
             <div class="result-grid">
                 <div class="result-item">
                     <!-- 长度公式 -->
-                    长度：
 
                     \( \text{长度} = \frac{\text{净重}_{\text{kg}} \times 1000}{\text{克重}_{\text{g/m}^2} \times
                     \text{宽度}_{\text{mm}}} \)
                     <br><br>
 
                     <!-- 分切重量公式 -->
-                    分切重量：
 
                     \( \text{分切重量} = \text{净重} \times \frac{\text{分切后宽度}}{\text{原宽度}} \)
                     <br><br>
 
                     <!-- 起点距离公式 -->
-                    起点距离：
 
                     \( \text{起点距离} = \frac{\text{轴长度} - \text{卷纸宽度} + \text{两边总边距}}{2} \)
                     <br><br>
 
                     <!-- 初始张力公式 -->
-                    初始张力：
-
                     \( \text{初始张力} = \text{净重}_{\text{kg}} \times (0.02 \sim 0.045)\ \text{kg} \)
-                    <br>
+                    <br><br>
                     <small>（范围：最小值 \( 0.02 \times \text{净重} \) ~ 最大值 \( 0.045 \times \text{净重} \)）</small>
                 </div>
             </div>
         </section>
 
         <section class="calculator-module">
-            <h3 class="module-title">基于面积守恒 分切计算公式</h3>
+            <h3 class="module-title">基于面积守恒 分切直径计算公式</h3>
             <div class="result-grid">
                 <div class="result-item">
                     <!-- 主公式 -->
@@ -397,7 +393,7 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
                         <strong>实际应用示例：</strong><br>
                         当原纸总直径=200mm，原纸芯直径=100mm，分切数量=2，分切后空纸芯直径=50mm时：<br>
                         \( D_{\text{total}}=200\text{mm},\ D_{\text{core}}=100\text{mm},\ N=2,\
-                        D_{\text{splitCore}}=50\text{mm} \) 时：<br>
+                        D_{\text{splitCore}}=50\text{mm} \) <br>
 
                         \[
                         \begin{aligned}
