@@ -326,10 +326,10 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
         <section class="calculator-module">
             <h3 class="module-title">分切直径计算(面积守恒)</h3>
             <div class="input-group">
-                <input type="number" id="totalDiameter" placeholder="原纸总直径 (mm)" step="1" min="0">
-                <input type="number" id="coreDiameter2" placeholder="原纸芯空心纸芯直径 (mm)" step="1" min="0" value="100">
-                <input type="number" id="splitCount3" placeholder="分切数量" step="1" min="1" value="2">
-                <input type="number" id="splitCountCore" placeholder="分切后空纸芯直径(mm)" step="1" min="0" value="100">
+                <input type="number" id="totalDiameter" placeholder="原纸 总直径 (mm)" step="1" min="0">
+                <input type="number" id="coreDiameter2" placeholder="原纸 空心纸芯直径 (mm)" step="1" min="0" value="100">
+                <input type="number" id="splitCount3" placeholder="分切刀数" step="1" min="1" value="2">
+                <input type="number" id="splitCountCore" placeholder="分切后 空纸芯直径(mm)" step="1" min="0" value="100">
             </div>
             <div class="result-grid">
                 <div class="result-item">
@@ -817,7 +817,7 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
                     // 结果输出
                     elements.result.innerHTML = `
                 分切后直径约：${splitDiameter.toFixed(1)}mm<br>
-                 基于面积守恒，仅供参考`;
+                 基于面积守恒，与实际数据可能有误差，仅供参考`; 
                 } catch (error) {
                     elements.result.textContent = error.message || '输入异常';
                 }
