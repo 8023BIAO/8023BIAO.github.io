@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -323,7 +324,7 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
 
     <!-- 分切直径计算模块 -->
     <section class="calculator-module">
-      <h3 class="module-title">分切直径计算</h3>
+      <h3 class="module-title">直径分切计算</h3>
       <div class="input-group">
         <input type="number" id="totalDiameter" placeholder="原纸 总直径 (mm)" step="1" min="0">
         <input type="number" id="coreDiameter2" placeholder="原纸 空心纸芯直径 (mm)" step="1" min="0" value="100">
@@ -336,6 +337,24 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
         </div>
       </div>
     </section>
+    
+    <!-- 直径合并计算模块 -->
+<section class="calculator-module">
+  <h3 class="module-title">直径合并计算</h3>
+  <div class="input-group">
+    <input type="text" id="diameterFormula" placeholder="输入直径(mm)，如 100*2 + 80*3">
+    <input type="number" id="originalCoreDiameter" placeholder="原纸空心筒直径 (mm)" value="100" step="1" min="0">
+    <input type="number" id="newCoreDiameter" placeholder="合并后空纸芯直径 (mm)" value="100" step="1" min="0">
+  </div>
+  <div class="result-grid">
+    <div class="result-item">
+      合并后直径：<span class="result-value" id="mergedDiameterResult">0</span> mm
+    </div>
+    <div class="result-item">
+      纯纸环宽度：<span class="result-value" id="paperRingWidthResult">0</span> mm
+    </div>
+  </div>
+</section>
 
     <section class="calculator-module">
       <h3 class="module-title">计算公式</h3>
@@ -841,6 +860,73 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
       // 初始化计算
       calculateSplitDiameter();
     })();
+    
+    // 直径合并计算模块
+  (function initMergeCalculator() {
+    // DOM元素引用
+    const elements = {
+      formula: document.getElementById('diameterFormula'),
+      originalCore: document.getElementById('originalCoreDiameter'),
+      newCore: document.getElementById('newCoreDiameter'),
+      mergedDiameter: document.getElementById('mergedDiameterResult'),
+      paperRingWidth: document.getElementById('paperRingWidthResult')
+    };
+    
+    // 核心计算逻辑
+    function calculateMergedDiameter() {
+      try {
+        // 获取输入值
+        const formula = elements.formula.value.replace(/\s/g, ''); // 去除空格
+        const originalCore = InputValidator.validate(elements.originalCore.value, 0);
+        const newCore = InputValidator.validate(elements.newCore.value, 0);
+        
+        // 解析表达式
+        const segments = formula.split('+');
+        let totalEffectiveArea = 0; // 总有效面积
+        
+        segments.forEach(seg => {
+          const parts = seg.split('*');
+          const diameter = InputValidator.validate(parts[0], 0);
+          const count = parts.length > 1 ? InputValidator.validate(parts[1], 1) : 1;
+          
+          if (diameter > 0 && count > 0) {
+            // 计算每个圆的完整面积
+            const fullArea = Math.PI * Math.pow(diameter / 2, 2);
+            // 减去原纸芯面积 [行业标准：原纸芯直径通常为100mm][1](@ref)
+            const coreArea = Math.PI * Math.pow(originalCore / 2, 2);
+            // 累加有效面积
+            totalEffectiveArea += (fullArea - coreArea) * count;
+          }
+        });
+        
+        // 添加新纸芯面积
+        const newCoreArea = Math.PI * Math.pow(newCore / 2, 2);
+        const newTotalArea = totalEffectiveArea + newCoreArea;
+        
+        // 计算新圆直径
+        const newDiameter = 2 * Math.sqrt(newTotalArea / Math.PI);
+        
+        // 计算纯纸环宽度
+        const paperRingWidth = (newDiameter - newCore) / 2;
+        
+        // 更新显示
+        elements.mergedDiameter.textContent = newDiameter.toFixed(1);
+        elements.paperRingWidth.textContent = paperRingWidth.toFixed(1);
+        
+      } catch (error) {
+        console.error('直径合并计算错误:', error);
+        elements.mergedDiameter.textContent = '输入错误';
+        elements.paperRingWidth.textContent = '输入错误';
+      }
+    }
+    
+    // 事件监听
+    [elements.formula, elements.originalCore, elements.newCore].forEach(input => {
+      input.addEventListener('input', calculateMergedDiameter);
+    });
+    
+    calculateMergedDiameter(); // 初始计算
+  })();
 
   </script>
 </body>
