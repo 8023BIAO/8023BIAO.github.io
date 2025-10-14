@@ -254,9 +254,9 @@
         <div class="result-item">
           单卷长度：<span class="result-value" id="singleLengthResult">0</span> m
         </div>
-        <div class="result-item">
+        <!--<div class="result-item">
           推荐初始张力：<span class="result-value" id="tensionRecommendation">0</span> kg
-        </div>
+        </div>-->
       </div>
     </section>
 
@@ -276,7 +276,7 @@
     </section>
 
     <!-- 起点距离计算模块 -->
-    <section class="calculator-module">
+   <!-- <section class="calculator-module">
       <h3 class="module-title">起点距离计算</h3>
       <div class="input-group">
         <input type="number" id="shaftLength" placeholder="轴长度 (mm)" step="1" min="0" value="1800">
@@ -288,7 +288,7 @@
           起点距离：<span class="result-value" id="startPositionResult">0</span> mm
         </div>
       </div>
-    </section>
+    </section>-->
 
     <!-- 刀片分配计算模块
 <section class="calculator-module">
@@ -356,33 +356,33 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
   </div>
 </section>
 
-    <section class="calculator-module">
+   <!-- <section class="calculator-module">
       <h3 class="module-title">计算公式</h3>
       <div class="result-grid">
-        <div class="result-item">
+        <div class="result-item">-->
           <!-- 长度公式 -->
 
-          \( \text{长度} = \frac{\text{净重}_{\text{kg}} \times 1000}{\text{克重}_{\text{g/m}^2} \times
-          \text{宽度}_{\text{mm}}} \)
-          <br><br>
+        <!-- \( \text{长度} = \frac{\text{净重}_{\text{kg}} \times 1000}{\text{克重}_{\text{g/m}^2} \times
+          \text{宽度}_{\text{mm}}} \)-->
+          <!--<br><br>-->
 
           <!-- 分切重量公式 -->
 
-          \( \text{分切重量} = \text{净重} \times \frac{\text{分切后宽度}}{\text{原宽度}} \)
-          <br><br>
+          <!--\( \text{分切重量} = \text{净重} \times \frac{\text{分切后宽度}}{\text{原宽度}} \)
+          <br><br>-->
 
           <!-- 起点距离公式 -->
 
-          \( \text{起点距离} = \frac{\text{轴长度} - \text{卷纸宽度} + \text{两边总边距}}{2} \)
-          <br><br>
+          <!--\( \text{起点距离} = \frac{\text{轴长度} - \text{卷纸宽度} + \text{两边总边距}}{2} \)
+          <br><br>-->
 
           <!-- 初始张力公式 -->
-          \( \text{初始张力} = \text{净重}_{\text{kg}} \times (0.02 \sim 0.045)\ \text{kg} \)
+          <!--\( \text{初始张力} = \text{净重}_{\text{kg}} \times (0.02 \sim 0.045)\ \text{kg} \)
           <br><br>
           <small>（范围：最小值 \( 0.02 \times \text{净重} \) ~ 最大值 \( 0.045 \times \text{净重} \)）</small>
         </div>
       </div>
-    </section>
+    </section>-->
 
     <!-- <section class="calculator-module">
 <h3 class="module-title">分切直径计算公式</h3>
@@ -482,7 +482,7 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
         splitCount: document.getElementById('splitCount'),
         totalLength: document.getElementById('totalLengthResult'),
         singleLength: document.getElementById('singleLengthResult'),
-        tension: document.getElementById('tensionRecommendation')
+        //tension: document.getElementById('tensionRecommendation')
       };
 
       // 核心计算逻辑
@@ -513,19 +513,19 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
           const singleLength = totalLength / splitCount; // 单卷长度
 
           // 张力计算
-          const minTension = netWeight * TENSION.MIN_RATIO; // 最小张力
-          const maxTension = netWeight * TENSION.MAX_RATIO; // 最大张力
+          //const minTension = netWeight * TENSION.MIN_RATIO; // 最小张力
+          //const maxTension = netWeight * TENSION.MAX_RATIO; // 最大张力
 
           // 更新显示
           elements.totalLength.textContent = totalLength.toFixed(2);
           elements.singleLength.textContent = singleLength.toFixed(2);
-          elements.tension.textContent = `${minTension.toFixed(1)} - ${maxTension.toFixed(1)}`;
+          //elements.tension.textContent = `${minTension.toFixed(1)} - ${maxTension.toFixed(1)}`;
 
         } catch (error) {
           console.error('卷纸参数计算错误:', error);
           elements.totalLength.textContent = '错误';
           elements.singleLength.textContent = '错误';
-          elements.tension.textContent = '错误';
+          //elements.tension.textContent = '错误';
         }
       }
 
@@ -628,7 +628,7 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
     })();
 
     // 起点距离计算模块
-    (function initPositionCalculator() {
+   /* (function initPositionCalculator() {
       const elements = {
         shaftLength: document.getElementById('shaftLength'),
         edgeMargin: document.getElementById('edgeMargin'),
@@ -660,7 +660,7 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
         .forEach(input => input.addEventListener('input', calculatePosition));
 
       calculatePosition(); // 初始计算
-    })();
+    })();*/
 
     /* 刀片分配计算模块
     (function initBladeCalculator() {
