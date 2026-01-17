@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -260,7 +259,12 @@
       </div>
     </section>
 
-    <!-- 分栋计算模块 -->
+    <!--
+    ====================================
+    隐藏开始：分栋计算模块
+    ====================================
+    -->
+    <!--
     <section class="calculator-module">
       <h3 class="module-title">分栋计算</h3>
       <div class="input-group">
@@ -274,9 +278,16 @@
         </div>
       </div>
     </section>
+    -->
+    <!--
+    ====================================
+    隐藏结束：分栋计算模块
+    ====================================
+    -->
 
     <!-- 起点距离计算模块 -->
-   <!-- <section class="calculator-module">
+    <!--
+    <section class="calculator-module">
       <h3 class="module-title">起点距离计算</h3>
       <div class="input-group">
         <input type="number" id="shaftLength" placeholder="轴长度 (mm)" step="1" min="0" value="1800">
@@ -288,26 +299,32 @@
           起点距离：<span class="result-value" id="startPositionResult">0</span> mm
         </div>
       </div>
-    </section>-->
+    </section>
+    -->
 
     <!-- 刀片分配计算模块
-<section class="calculator-module">
-<h3 class="module-title">分切刀片均分计算</h3>
-<div class="input-group">
-<input type="number" id="lowerBlades" placeholder="下圆刀片数" step="1" min="0" value="28">
-<input type="number" id="cuttingBlades" placeholder="切割刀数" step="1" min="0">
-<input type="number" id="flashEdges" placeholder="飞边数" step="1" min="0" max="2"
-oninput="this.value = Math.min(2, Math.max(0, this.value))">
-</div>
-<div class="result-grid">
-<div class="result-item">
-分配方案：<span class="result-value" id="bladeDistributionResult"></span>
-</div>
-</div>
-</section>
--->
+    <section class="calculator-module">
+    <h3 class="module-title">分切刀片均分计算</h3>
+    <div class="input-group">
+    <input type="number" id="lowerBlades" placeholder="下圆刀片数" step="1" min="0" value="28">
+    <input type="number" id="cuttingBlades" placeholder="切割刀数" step="1" min="0">
+    <input type="number" id="flashEdges" placeholder="飞边数" step="1" min="0" max="2"
+    oninput="this.value = Math.min(2, Math.max(0, this.value))">
+    </div>
+    <div class="result-grid">
+    <div class="result-item">
+    分配方案：<span class="result-value" id="bladeDistributionResult"></span>
+    </div>
+    </div>
+    </section>
+    -->
 
-    <!-- 分切重量计算模块 -->
+    <!--
+    ====================================
+    隐藏开始：分切重量计算模块
+    ====================================
+    -->
+    <!--
     <section class="calculator-module">
       <h3 class="module-title">分切重量计算</h3>
       <div class="input-group">
@@ -321,6 +338,12 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
         </div>
       </div>
     </section>
+    -->
+    <!--
+    ====================================
+    隐藏结束：分切重量计算模块
+    ====================================
+    -->
 
     <!-- 直径分切计算模块 -->
     <section class="calculator-module">
@@ -339,42 +362,43 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
     </section>
     
     <!-- 直径合并计算模块 -->
-<section class="calculator-module">
-  <h3 class="module-title">直径合并计算</h3>
-  <div class="input-group">
-    <input type="text" id="diameterFormula" placeholder="输入直径(mm)，如 100*2 + 80*3">
-    <input type="number" id="originalCoreDiameter" placeholder="原纸空心筒直径 (mm)" value="100" step="1" min="0">
-    <input type="number" id="newCoreDiameter" placeholder="合并后空纸芯直径 (mm)" value="100" step="1" min="0">
-  </div>
-  <div class="result-grid">
-    <div class="result-item">
-      合并后直径：<span class="result-value" id="mergedDiameterResult">0</span> mm
-    </div>
-    <div class="result-item">
-      纯纸环宽度：<span class="result-value" id="paperRingWidthResult">0</span> mm
-    </div>
-  </div>
-</section>
+    <section class="calculator-module">
+      <h3 class="module-title">直径合并计算</h3>
+      <div class="input-group">
+        <input type="text" id="diameterFormula" placeholder="输入直径(mm)，如 100*2 + 80*3">
+        <input type="number" id="originalCoreDiameter" placeholder="原纸空心筒直径 (mm)" value="100" step="1" min="0">
+        <input type="number" id="newCoreDiameter" placeholder="合并后空纸芯直径 (mm)" value="100" step="1" min="0">
+      </div>
+      <div class="result-grid">
+        <div class="result-item">
+          合并后直径：<span class="result-value" id="mergedDiameterResult">0</span> mm
+        </div>
+        <div class="result-item">
+          纯纸环宽度：<span class="result-value" id="paperRingWidthResult">0</span> mm
+        </div>
+      </div>
+    </section>
 
-   <!-- <section class="calculator-module">
+    <!--
+    <section class="calculator-module">
       <h3 class="module-title">计算公式</h3>
       <div class="result-grid">
-        <div class="result-item">-->
+        <div class="result-item">
           <!-- 长度公式 -->
 
         <!-- \( \text{长度} = \frac{\text{净重}_{\text{kg}} \times 1000}{\text{克重}_{\text{g/m}^2} \times
-          \text{宽度}_{\text{mm}}} \)-->
-          <!--<br><br>-->
+          \text{宽度}_{\text{mm}}} \)
+          <br><br>
 
           <!-- 分切重量公式 -->
 
           <!--\( \text{分切重量} = \text{净重} \times \frac{\text{分切后宽度}}{\text{原宽度}} \)
-          <br><br>-->
+          <br><br>
 
           <!-- 起点距离公式 -->
 
           <!--\( \text{起点距离} = \frac{\text{轴长度} - \text{卷纸宽度} + \text{两边总边距}}{2} \)
-          <br><br>-->
+          <br><br>
 
           <!-- 初始张力公式 -->
           <!--\( \text{初始张力} = \text{净重}_{\text{kg}} \times (0.02 \sim 0.045)\ \text{kg} \)
@@ -382,51 +406,56 @@ oninput="this.value = Math.min(2, Math.max(0, this.value))">
           <small>（范围：最小值 \( 0.02 \times \text{净重} \) ~ 最大值 \( 0.045 \times \text{净重} \)）</small>
         </div>
       </div>
-    </section>-->
+    </section>
+    -->
 
-    <!-- <section class="calculator-module">
-<h3 class="module-title">分切直径计算公式</h3>
-<div class="result-grid">
-<div class="result-item">-->
+    <!--
+    <section class="calculator-module">
+    <h3 class="module-title">分切直径计算公式</h3>
+    <div class="result-grid">
+    <div class="result-item">
     <!-- 主公式 -->
     <!--<div class="formula-main">
-分切后直径：
-<span class="katex-formula">
-$$ D_{\text{split}} = 2 \times \sqrt{ \frac{D_{\text{total}}^2 - D_{\text{core}}^2}{4N} +
-\frac{D_{\text{splitCore}}^2}{4} } $$
-</span>
-</div>--<
+    分切后直径：
+    <span class="katex-formula">
+    $$ D_{\text{split}} = 2 \times \sqrt{ \frac{D_{\text{total}}^2 - D_{\text{core}}^2}{4N} +
+    \frac{D_{\text{splitCore}}^2}{4} } $$
+    </span>
+    </div>
 
-<!-- 分步公式（KaTeX 行内模式） -->
-    <!-- <div class="formula-steps">
-\( \text{总有效面积} = \pi \left( \frac{D_{\text{total}}}{2} \right)^2 - \pi \left(
-\frac{D_{\text{core}}}{2} \right)^2 \)<br>
-\( \text{单卷有效面积} = \frac{\text{总有效面积}}{N} \)<br>
-\( \text{单卷总面积} = \text{单卷有效面积} + \pi \left( \frac{D_{\text{splitCore}}}{2} \right)^2 \)<br>
-\( \text{最终直径} = 2 \times \sqrt{ \frac{\text{单卷总面积}}{\pi} } \)
-</div>-->
+    <!-- 分步公式（KaTeX 行内模式） -->
+    <!--
+    <div class="formula-steps">
+    \( \text{总有效面积} = \pi \left( \frac{D_{\text{total}}}{2} \right)^2 - \pi \left(
+    \frac{D_{\text{core}}}{2} \right)^2 \)<br>
+    \( \text{单卷有效面积} = \frac{\text{总有效面积}}{N} \)<br>
+    \( \text{单卷总面积} = \text{单卷有效面积} + \pi \left( \frac{D_{\text{splitCore}}}{2} \right)^2 \)<br>
+    \( \text{最终直径} = 2 \times \sqrt{ \frac{\text{单卷总面积}}{\pi} } \)
+    </div>
 
     <!-- 计算示例 -->
-    <!--<div class="formula-example">
-<strong>实际应用示例：</strong><br>
-当原纸总直径=200mm，原纸芯直径=100mm，分切数量=2，分切后空纸芯直径=50mm时：<br>
-\( D_{\text{total}}=200\text{mm},\ D_{\text{core}}=100\text{mm},\ N=2,\
-D_{\text{splitCore}}=50\text{mm} \) <br>
+    <!--
+    <div class="formula-example">
+    <strong>实际应用示例：</strong><br>
+    当原纸总直径=200mm，原纸芯直径=100mm，分切数量=2，分切后空纸芯直径=50mm时：<br>
+    \( D_{\text{total}}=200\text{mm},\ D_{\text{core}}=100\text{mm},\ N=2,\
+    D_{\text{splitCore}}=50\text{mm} \) <br>
 
-\[
-\begin{aligned}
-D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^2}{4} } \\
-&= 2 \times \sqrt{ \frac{40000 - 10000}{8} + \frac{2500}{4} } \\
-&= 2 \times \sqrt{3750 + 625} \\
-&= 2 \times \sqrt{4375} \\
-&\approx 2 \times 66.14 \\
-&= 132.3\text{mm}
-\end{aligned}
-\]
-</div>
-</div>
-</div>
-</section>-->
+    \[
+    \begin{aligned}
+    D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^2}{4} } \\
+    &= 2 \times \sqrt{ \frac{40000 - 10000}{8} + \frac{2500}{4} } \\
+    &= 2 \times \sqrt{3750 + 625} \\
+    &= 2 \times \sqrt{4375} \\
+    &\approx 2 \times 66.14 \\
+    &= 132.3\text{mm}
+    \end{aligned}
+    \]
+    </div>
+    </div>
+    </div>
+    </section>
+    -->
 
   </main>
 
@@ -540,6 +569,12 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
       calculateParameters(); // 初始计算
     })();
 
+    /*
+    ====================================
+    隐藏开始：分栋计算模块
+    ====================================
+    */
+    /*
     // 分栋建议计算模块
     (function initDistributionCalculator() {
       const elements = {
@@ -619,16 +654,21 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
         }
       }
 
-
       // 事件监听
       [elements.formula, elements.splitCount, elements.maxHeight]
         .forEach(input => input.addEventListener('input', calculateDistribution));
 
       calculateDistribution(); // 初始计算
     })();
+    */
+    /*
+    ====================================
+    隐藏结束：分栋计算模块
+    ====================================
+    */
 
     // 起点距离计算模块
-   /* (function initPositionCalculator() {
+    /* (function initPositionCalculator() {
       const elements = {
         shaftLength: document.getElementById('shaftLength'),
         edgeMargin: document.getElementById('edgeMargin'),
@@ -660,7 +700,7 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
         .forEach(input => input.addEventListener('input', calculatePosition));
 
       calculatePosition(); // 初始计算
-    })();*/
+    })(); */
 
     /* 刀片分配计算模块
     (function initBladeCalculator() {
@@ -727,8 +767,14 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
       });
     
       calculateBladeDistribution(); // 初始计算
-    })();*/
+    })(); */
 
+    /*
+    ====================================
+    隐藏开始：分切重量计算模块
+    ====================================
+    */
+    /*
     // 分切重量计算模块
     (function initCuttingCalculator() {
       const elements = {
@@ -771,6 +817,7 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
           }*/
 
           // 生成结果
+          /*
           let results = [];
           splitSegments.forEach(({ width, count }) => {
             const totalSegmentWeight = netWeight * (width * count) / originalWidth;
@@ -794,6 +841,12 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
 
       calculateCuttingWeight(); // 初始计算
     })();
+    */
+    /*
+    ====================================
+    隐藏结束：分切重量计算模块
+    ====================================
+    */
 
     // 分切芯径计算模块
     (function initSplitCalculator() {
@@ -862,73 +915,71 @@ D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^
     })();
     
     // 直径合并计算模块
-  (function initMergeCalculator() {
-    // DOM元素引用
-    const elements = {
-      formula: document.getElementById('diameterFormula'),
-      originalCore: document.getElementById('originalCoreDiameter'),
-      newCore: document.getElementById('newCoreDiameter'),
-      mergedDiameter: document.getElementById('mergedDiameterResult'),
-      paperRingWidth: document.getElementById('paperRingWidthResult')
-    };
-    
-    // 核心计算逻辑
-    function calculateMergedDiameter() {
-      try {
-        // 获取输入值
-        const formula = elements.formula.value.replace(/\s/g, ''); // 去除空格
-        const originalCore = InputValidator.validate(elements.originalCore.value, 0);
-        const newCore = InputValidator.validate(elements.newCore.value, 0);
-        
-        // 解析表达式
-        const segments = formula.split('+');
-        let totalEffectiveArea = 0; // 总有效面积
-        
-        segments.forEach(seg => {
-          const parts = seg.split('*');
-          const diameter = InputValidator.validate(parts[0], 0);
-          const count = parts.length > 1 ? InputValidator.validate(parts[1], 1) : 1;
+    (function initMergeCalculator() {
+      // DOM元素引用
+      const elements = {
+        formula: document.getElementById('diameterFormula'),
+        originalCore: document.getElementById('originalCoreDiameter'),
+        newCore: document.getElementById('newCoreDiameter'),
+        mergedDiameter: document.getElementById('mergedDiameterResult'),
+        paperRingWidth: document.getElementById('paperRingWidthResult')
+      };
+      
+      // 核心计算逻辑
+      function calculateMergedDiameter() {
+        try {
+          // 获取输入值
+          const formula = elements.formula.value.replace(/\s/g, ''); // 去除空格
+          const originalCore = InputValidator.validate(elements.originalCore.value, 0);
+          const newCore = InputValidator.validate(elements.newCore.value, 0);
           
-          if (diameter > 0 && count > 0) {
-            // 计算每个圆的完整面积
-            const fullArea = Math.PI * Math.pow(diameter / 2, 2);
-            // 减去原纸芯面积 [行业标准：原纸芯直径通常为100mm][1](@ref)
-            const coreArea = Math.PI * Math.pow(originalCore / 2, 2);
-            // 累加有效面积
-            totalEffectiveArea += (fullArea - coreArea) * count;
-          }
-        });
-        
-        // 添加新纸芯面积
-        const newCoreArea = Math.PI * Math.pow(newCore / 2, 2);
-        const newTotalArea = totalEffectiveArea + newCoreArea;
-        
-        // 计算新圆直径
-        const newDiameter = 2 * Math.sqrt(newTotalArea / Math.PI);
-        
-        // 计算纯纸环宽度
-        const paperRingWidth = (newDiameter - newCore) / 2;
-        
-        // 更新显示
-        elements.mergedDiameter.textContent = newDiameter.toFixed(1);
-        elements.paperRingWidth.textContent = paperRingWidth.toFixed(1);
-        
-      } catch (error) {
-        console.error('直径合并计算错误:', error);
-        elements.mergedDiameter.textContent = '输入错误';
-        elements.paperRingWidth.textContent = '输入错误';
+          // 解析表达式
+          const segments = formula.split('+');
+          let totalEffectiveArea = 0; // 总有效面积
+          
+          segments.forEach(seg => {
+            const parts = seg.split('*');
+            const diameter = InputValidator.validate(parts[0], 0);
+            const count = parts.length > 1 ? InputValidator.validate(parts[1], 1) : 1;
+            
+            if (diameter > 0 && count > 0) {
+              // 计算每个圆的完整面积
+              const fullArea = Math.PI * Math.pow(diameter / 2, 2);
+              // 减去原纸芯面积 [行业标准：原纸芯直径通常为100mm][1](@ref)
+              const coreArea = Math.PI * Math.pow(originalCore / 2, 2);
+              // 累加有效面积
+              totalEffectiveArea += (fullArea - coreArea) * count;
+            }
+          });
+          
+          // 添加新纸芯面积
+          const newCoreArea = Math.PI * Math.pow(newCore / 2, 2);
+          const newTotalArea = totalEffectiveArea + newCoreArea;
+          
+          // 计算新圆直径
+          const newDiameter = 2 * Math.sqrt(newTotalArea / Math.PI);
+          
+          // 计算纯纸环宽度
+          const paperRingWidth = (newDiameter - newCore) / 2;
+          
+          // 更新显示
+          elements.mergedDiameter.textContent = newDiameter.toFixed(1);
+          elements.paperRingWidth.textContent = paperRingWidth.toFixed(1);
+          
+        } catch (error) {
+          console.error('直径合并计算错误:', error);
+          elements.mergedDiameter.textContent = '输入错误';
+          elements.paperRingWidth.textContent = '输入错误';
+        }
       }
-    }
-    
-    // 事件监听
-    [elements.formula, elements.originalCore, elements.newCore].forEach(input => {
-      input.addEventListener('input', calculateMergedDiameter);
-    });
-    
-    calculateMergedDiameter(); // 初始计算
-  })();
-
+      
+      // 事件监听
+      [elements.formula, elements.originalCore, elements.newCore].forEach(input => {
+        input.addEventListener('input', calculateMergedDiameter);
+      });
+      
+      calculateMergedDiameter(); // 初始计算
+    })();
   </script>
 </body>
-
 </html>
