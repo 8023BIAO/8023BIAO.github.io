@@ -1,54 +1,40 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>卷纸计算相关</title>
-  <!-- 1. 引入 KaTeX 核心样式和脚本 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-
-  <!-- 2. 添加自动渲染扩展 
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, { delimiters: [
-      { left: '$$', right: '$$', display: true },    // 块级公式
-        { left: '\\[', right: '\\]', display: true }, // 支持 \[ \]
-        { left: '\\(', right: '\\)', display: false }  // 行内公式
-     
-    ], throwOnError: false})"></script>
---> 
+  <title>卷纸计算工具</title>
   <style>
-    /* ===== 基础变量定义 ===== */
+    /* ===== 基础变量 ===== */
     :root {
       --primary-color: #1976d2;
-      --background-color: #ffffff;
+      --bg-color: #ffffff;
       --text-color: #333333;
-      --input-background: #f8f9fa;
-      --input-text: #333333;
-      --message-background: #f8f9fa;
-      --message-text: #333333;
-      --transition-speed: 0.3s;
+      --input-bg: #f8f9fa;
+      --module-bg: #f8f9fa;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      --transition: 0.3s;
     }
 
-    /* ===== 暗色主题配置 ===== */
+    /* ===== 暗色主题 ===== */
     [data-theme="dark"] {
       --primary-color: #5f98c7;
-      --background-color: #1a1a1a;
+      --bg-color: #1a1a1a;
       --text-color: #f0f0f0;
-      --input-background: #2d2d2d;
-      --input-text: #e0e0e0;
-      --message-background: #2d2d2d;
-      --message-text: #e0e0e0;
+      --input-bg: #2d2d2d;
+      --module-bg: #2d2d2d;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* ===== 基础样式 ===== */
+    /* ===== 全局样式 ===== */
     body {
-      background: var(--background-color);
+      background: var(--bg-color);
       color: var(--text-color);
       min-height: 100vh;
       padding: 20px;
-      font-family: system-ui, -apple-system, sans-serif;
-      transition: background-color var(--transition-speed) ease;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      transition: background-color var(--transition) ease, color var(--transition) ease;
+      margin: 0;
     }
 
     /* ===== 主题切换按钮 ===== */
@@ -56,188 +42,142 @@
       position: fixed;
       top: 20px;
       left: 20px;
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       background: var(--primary-color);
       border: none;
       border-radius: 50%;
       cursor: pointer;
       color: white;
-      font-size: 1.2rem;
-      transition: transform 0.2s ease;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+      z-index: 1000;
     }
+    .theme-toggle:hover { transform: scale(1.1); }
+    .theme-toggle:active { transform: scale(0.95); }
 
-    .theme-toggle:hover {
-      transform: scale(1.1);
-    }
-
-    .theme-toggle.sending {
-      opacity: 0.7;
-    }
-
-    /* ===== 计算器容器 ===== */
+    /* ===== 布局容器 ===== */
     .calculators {
       max-width: 800px;
       margin: 60px auto 0;
     }
 
     .calculator-module {
-      background: var(--message-background);
+      background: var(--module-bg);
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      transition: all var(--transition-speed) ease;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      transition: background-color var(--transition) ease;
     }
 
     .module-title {
       color: var(--primary-color);
-      margin-bottom: 1rem;
+      margin: 0 0 1.5rem 0;
       border-bottom: 2px solid var(--primary-color);
       padding-bottom: 0.5rem;
+      font-size: 1.25rem;
     }
 
-    /* ===== 输入组样式 ===== */
+    /* ===== 输入区域 ===== */
     .input-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
+      margin-bottom: 20px;
     }
 
     .input-group input {
-      flex: 1 1 30%;
-      min-width: 200px;
-      padding: 12px;
-      border: 1px solid var(--primary-color);
+      flex: 1 1 200px; /* 最小宽度200px，自动伸缩 */
+      padding: 12px 16px;
+      border: 1px solid #ccc;
+      border-color: var(--primary-color);
       border-radius: 8px;
-      background: var(--input-background);
-      color: var(--input-text);
+      background: var(--input-bg);
+      color: var(--text-color);
       font-size: 1rem;
-      transition: border-color var(--transition-speed) ease;
+      transition: all 0.2s;
     }
 
     .input-group input:focus {
-      outline: 2px solid var(--primary-color);
-      outline-offset: 2px;
+      outline: none;
+      box-shadow: 0 0 0 2px var(--primary-color);
     }
 
-    /* ===== 结果展示区 ===== */
+    /* ===== 结果区域 ===== */
     .result-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 16px;
-      margin-top: 20px;
     }
 
     .result-item {
       padding: 16px;
-      background: var(--background-color);
+      background: var(--bg-color);
       border-radius: 8px;
       border: 2px solid var(--primary-color);
       text-align: center;
-      font-weight: bold;
-      transition: transform 0.2s ease;
+      font-weight: 600;
+      line-height: 1.5;
+      transition: transform 0.2s;
     }
-
+    
     .result-item:hover {
       transform: translateY(-2px);
     }
 
     .result-value {
       color: var(--primary-color);
-      font-size: 1.3em;
+      font-size: 1.4em;
       margin-left: 8px;
       font-family: monospace;
+      font-weight: 700;
     }
 
-    /* ===== 主题切换按钮 ===== */
-    #theme-toggle-btn:active {
-      background-color: #0056b3;
-      transform: scale(0.9);
+    /* ===== 提示语样式 ===== */
+    .result-hint {
+      margin-top: 15px;
+      font-size: 0.85rem;
+      color: #888; /* 在暗色模式下可能需要调整，下方已处理 */
+      text-align: center;
+      font-style: italic;
+      opacity: 0.8;
+    }
+    
+    [data-theme="dark"] .result-hint {
+      color: #bbb;
     }
 
-    /* ===== 主题切换按钮 ===== */
-    #theme-toggle-btn {
-      width: 40px;
-      height: 40px;
-      background: var(--primary-color);
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 18px;
-    }
+    /* ===== 找到这段响应式适配代码 ===== */
+@media (max-width: 768px) {
+  body { 
+    padding: 20px; /* 这里原来是 10px，改回 20px 边距就宽了 */
+  }
+  .calculators { 
+    margin-top: 20px; /* 如果觉得离顶部太阳按钮太近，可以把这个 60 改成 80 */
+  }
+  .calculator-module { 
+    padding: 20px; /* 这里原来是 16px，改回 20px 模块内部会更透气 */
+  }
+  .input-group input { 
+    flex-basis: 100%; 
+  }
+  .result-grid { 
+    grid-template-columns: 1fr; 
+  }
 
-    /* ===== 数学公式 ===== */
-    /* 优化样式 */
-    .calculator-module {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 20px;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .formula-main {
-      margin: 15px 0;
-      padding: 10px;
-      border-left: 4px;
-    }
-
-    .formula-steps {
-      color: #6c757d;
-      margin: 15px 0;
-      line-height: 1.8;
-    }
-
-    .formula-example {
-      padding: 15px;
-      border-radius: 6px;
-      margin-top: 20px;
-    }
-
-    .katex {
-      font-size: 1.1em;
-    }
-
-    .katex-formula {
-      display: block;
-      margin: 10px 0;
-      font-size: 1.05em !important;
-      padding: 2px 4px;
-    }
-
-    /* ===== 响应式设计 ===== */
-    @media (max-width: 768px) {
-      body {
-        padding: 10px;
-      }
-
-      .calculators {
-        margin-top: 40px;
-      }
-
-      .input-group input {
-        flex-basis: 100%;
-        min-width: auto;
-      }
-
-      .result-grid {
-        grid-template-columns: 1fr;
-      }
-    }
   </style>
 </head>
 
 <body>
-  <!-- 主题切换按钮 -->
-  <button class="theme-toggle">☀️</button>
+  <button class="theme-toggle" id="theme-toggle-btn" aria-label="切换主题">☀️</button>
 
   <main class="calculators">
-    <!-- 卷纸长度计算模块 -->
+    
     <section class="calculator-module">
       <h3 class="module-title">长度计算</h3>
       <div class="input-group">
@@ -254,99 +194,10 @@
         <div class="result-item">
           单卷长度：<span class="result-value" id="singleLengthResult">0</span> m
         </div>
-        <!--<div class="result-item">
-          推荐初始张力：<span class="result-value" id="tensionRecommendation">0</span> kg
-        </div>-->
       </div>
+      <div class="result-hint">计算公式与实际数据有偏差，仅供参考</div>
     </section>
 
-    <!--
-    ====================================
-    隐藏开始：分栋计算模块
-    ====================================
-    -->
-    <!--
-    <section class="calculator-module">
-      <h3 class="module-title">分栋计算</h3>
-      <div class="input-group">
-        <input type="text" id="widthFormula" placeholder="输入算式(mm)，如104*11 + 91">
-        <input type="number" id="splitCount2" placeholder="分切刀数" value="2" min="1" step="1">
-        <input type="number" id="maxHeight" placeholder="限制高度(mm)" value="1500" min="0" step="1">
-      </div>
-      <div class="result-grid">
-        <div class="result-item">
-          分栋建议：<span class="result-value" id="distributionAdvice"></span>
-        </div>
-      </div>
-    </section>
-    -->
-    <!--
-    ====================================
-    隐藏结束：分栋计算模块
-    ====================================
-    -->
-
-    <!-- 起点距离计算模块 -->
-    <!--
-    <section class="calculator-module">
-      <h3 class="module-title">起点距离计算</h3>
-      <div class="input-group">
-        <input type="number" id="shaftLength" placeholder="轴长度 (mm)" step="1" min="0" value="1800">
-        <input type="number" id="edgeMargin" placeholder="单边边距尺寸 (mm)" step="1" min="0" value="100">
-        <input type="number" id="rollWidth" placeholder="卷纸宽度 (mm)" step="1" min="0">
-      </div>
-      <div class="result-grid">
-        <div class="result-item">
-          起点距离：<span class="result-value" id="startPositionResult">0</span> mm
-        </div>
-      </div>
-    </section>
-    -->
-
-    <!-- 刀片分配计算模块
-    <section class="calculator-module">
-    <h3 class="module-title">分切刀片均分计算</h3>
-    <div class="input-group">
-    <input type="number" id="lowerBlades" placeholder="下圆刀片数" step="1" min="0" value="28">
-    <input type="number" id="cuttingBlades" placeholder="切割刀数" step="1" min="0">
-    <input type="number" id="flashEdges" placeholder="飞边数" step="1" min="0" max="2"
-    oninput="this.value = Math.min(2, Math.max(0, this.value))">
-    </div>
-    <div class="result-grid">
-    <div class="result-item">
-    分配方案：<span class="result-value" id="bladeDistributionResult"></span>
-    </div>
-    </div>
-    </section>
-    -->
-
-    <!--
-    ====================================
-    隐藏开始：分切重量计算模块
-    ====================================
-    -->
-    <!--
-    <section class="calculator-module">
-      <h3 class="module-title">分切重量计算</h3>
-      <div class="input-group">
-        <input type="number" id="cuttingNetWeight" placeholder="原纸净重 (kg)" step="0.01" min="0">
-        <input type="number" id="cuttingWidth" placeholder="原纸宽度 (mm)" step="0.01" min="0">
-        <input type="text" id="cuttingFormula" placeholder="分切宽度(mm)，如 104*11 + 91">
-      </div>
-      <div class="result-grid">
-        <div class="result-item">
-          分切重量：<span class="result-value" id="cuttingWeightResult"></span>
-        </div>
-      </div>
-    </section>
-    -->
-    <!--
-    ====================================
-    隐藏结束：分切重量计算模块
-    ====================================
-    -->
-
-    <!-- 直径分切计算模块 -->
     <section class="calculator-module">
       <h3 class="module-title">直径分切计算</h3>
       <div class="input-group">
@@ -356,13 +207,14 @@
         <input type="number" id="splitCountCore" placeholder="分切后 空纸芯直径(mm)" step="1" min="0" value="100">
       </div>
       <div class="result-grid">
-        <div class="result-item">
-          建议：<span class="result-value" id="splitDiameterResult">0</span>
+        <div class="result-item" id="splitDiameterResult">
+          分切后直径约：<span class="result-value">0</span> mm<br>
+          纯纸环宽度约：<span class="result-value">0</span> mm
         </div>
       </div>
+      <div class="result-hint">计算公式与实际数据有偏差，仅供参考</div>
     </section>
     
-    <!-- 直径合并计算模块 -->
     <section class="calculator-module">
       <h3 class="module-title">直径合并计算</h3>
       <div class="input-group">
@@ -378,608 +230,203 @@
           纯纸环宽度：<span class="result-value" id="paperRingWidthResult">0</span> mm
         </div>
       </div>
+      <div class="result-hint">计算公式与实际数据有偏差，仅供参考</div>
     </section>
-
-    <!--
-    <section class="calculator-module">
-      <h3 class="module-title">计算公式</h3>
-      <div class="result-grid">
-        <div class="result-item">
-          <!-- 长度公式 -->
-
-        <!-- \( \text{长度} = \frac{\text{净重}_{\text{kg}} \times 1000}{\text{克重}_{\text{g/m}^2} \times
-          \text{宽度}_{\text{mm}}} \)
-          <br><br>
-
-          <!-- 分切重量公式 -->
-
-          <!--\( \text{分切重量} = \text{净重} \times \frac{\text{分切后宽度}}{\text{原宽度}} \)
-          <br><br>
-
-          <!-- 起点距离公式 -->
-
-          <!--\( \text{起点距离} = \frac{\text{轴长度} - \text{卷纸宽度} + \text{两边总边距}}{2} \)
-          <br><br>
-
-          <!-- 初始张力公式 -->
-          <!--\( \text{初始张力} = \text{净重}_{\text{kg}} \times (0.02 \sim 0.045)\ \text{kg} \)
-          <br><br>
-          <small>（范围：最小值 \( 0.02 \times \text{净重} \) ~ 最大值 \( 0.045 \times \text{净重} \)）</small>
-        </div>
-      </div>
-    </section>
-    -->
-
-    <!--
-    <section class="calculator-module">
-    <h3 class="module-title">分切直径计算公式</h3>
-    <div class="result-grid">
-    <div class="result-item">
-    <!-- 主公式 -->
-    <!--<div class="formula-main">
-    分切后直径：
-    <span class="katex-formula">
-    $$ D_{\text{split}} = 2 \times \sqrt{ \frac{D_{\text{total}}^2 - D_{\text{core}}^2}{4N} +
-    \frac{D_{\text{splitCore}}^2}{4} } $$
-    </span>
-    </div>
-
-    <!-- 分步公式（KaTeX 行内模式） -->
-    <!--
-    <div class="formula-steps">
-    \( \text{总有效面积} = \pi \left( \frac{D_{\text{total}}}{2} \right)^2 - \pi \left(
-    \frac{D_{\text{core}}}{2} \right)^2 \)<br>
-    \( \text{单卷有效面积} = \frac{\text{总有效面积}}{N} \)<br>
-    \( \text{单卷总面积} = \text{单卷有效面积} + \pi \left( \frac{D_{\text{splitCore}}}{2} \right)^2 \)<br>
-    \( \text{最终直径} = 2 \times \sqrt{ \frac{\text{单卷总面积}}{\pi} } \)
-    </div>
-
-    <!-- 计算示例 -->
-    <!--
-    <div class="formula-example">
-    <strong>实际应用示例：</strong><br>
-    当原纸总直径=200mm，原纸芯直径=100mm，分切数量=2，分切后空纸芯直径=50mm时：<br>
-    \( D_{\text{total}}=200\text{mm},\ D_{\text{core}}=100\text{mm},\ N=2,\
-    D_{\text{splitCore}}=50\text{mm} \) <br>
-
-    \[
-    \begin{aligned}
-    D_{\text{split}} &= 2 \times \sqrt{ \frac{200^2 - 100^2}{4 \times 2} + \frac{50^2}{4} } \\
-    &= 2 \times \sqrt{ \frac{40000 - 10000}{8} + \frac{2500}{4} } \\
-    &= 2 \times \sqrt{3750 + 625} \\
-    &= 2 \times \sqrt{4375} \\
-    &\approx 2 \times 66.14 \\
-    &= 132.3\text{mm}
-    \end{aligned}
-    \]
-    </div>
-    </div>
-    </div>
-    </section>
-    -->
 
   </main>
 
   <script>
-    // 常量配置
-    const TENSION = {
-      MIN_RATIO: 0.02, // 张力下限系数
-      MAX_RATIO: 0.045 // 张力上限系数
-    };
-
-    // 主题管理模块
-    (function initThemeManager() {
-      const themeToggle = document.querySelector('.theme-toggle');
-      let isDarkMode = localStorage.getItem('theme') === 'dark';
-
-      function updateTheme() {
-        document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-        themeToggle.textContent = isDarkMode ? '☀️' : '🌙';
-        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-      }
-
-      themeToggle.addEventListener('click', () => {
-        isDarkMode = !isDarkMode;
-        updateTheme();
-      });
-
-      updateTheme(); // 初始化主题
-    })();
-
-    // 输入验证工具
-    const InputValidator = {
-      /**
-      * 数值验证与标准化
-      * @param {string|number} value - 输入值
-      * @param {number} [min=0] - 最小值
-      * @param {number} [defaultValue=0] - 默认返回值
-      * @returns {number} 验证后的数值
-      */
-      validate: (value, min = 0, defaultValue = 0) => {
-        const numericValue = parseFloat(value);
-        return !isNaN(numericValue) ? Math.max(numericValue, min) : defaultValue;
-      }
-    };
-
-    // 卷纸参数计算模块
-    (function initPaperCalculator() {
-      // DOM元素引用
-      const elements = {
-        netWeight: document.getElementById('paperNetWeight'),
-        grammage: document.getElementById('paperGrammage'),
-        width: document.getElementById('paperWidth'),
-        coreDiameter: document.getElementById('coreDiameter'),
-        splitCount: document.getElementById('splitCount'),
-        totalLength: document.getElementById('totalLengthResult'),
-        singleLength: document.getElementById('singleLengthResult'),
-        //tension: document.getElementById('tensionRecommendation')
-      };
-
-      // 核心计算逻辑
-      function calculateParameters() {
-        try {
-          // 输入值标准化
-          const netWeight = InputValidator.validate(elements.netWeight.value); // 净重
-          const grammage = InputValidator.validate(elements.grammage.value); // 克重
-          const width = InputValidator.validate(elements.width.value) / 1000; // 转米
-          const coreDiameter = InputValidator.validate(elements.coreDiameter.value) / 1000; // 转米
-          const splitCount = InputValidator.validate(elements.splitCount.value, 1); // 分割数
-
-          // 计算纸筒重量
-          const coreArea = Math.PI * coreDiameter * width; // 纸筒面积
-          const coreWeight = (coreArea * grammage) / 1000; // 纸筒重量
-
-          // 有效性检查
-          if (netWeight <= coreWeight) {
-            throw new Error('净重必须大于纸筒重量');
+    // === 通用工具函数 ===
+    const Utils = {
+      // 验证数值：将输入转换为数字，若无效或小于最小值则返回默认值
+      validate: (val, min = 0, def = 0) => {
+        const num = parseFloat(val);
+        return !isNaN(num) ? Math.max(num, min) : def;
+      },
+      // 批量绑定事件
+      bindEvents: (inputs, handler) => {
+        inputs.forEach(el => {
+          if (el) {
+            el.addEventListener('input', handler);
+            el.addEventListener('change', handler); // 兼容某些浏览器的自动填充
           }
-          if (grammage <= 0 || width <= 0) {
-            throw new Error('无效的克重或宽度值');
-          }
-
-          // 主计算逻辑
-          const paperWeight = netWeight - coreWeight; // 净重 - 纸筒重量
-          const totalLength = (paperWeight * 1000) / (grammage * width); // 总长度
-          const singleLength = totalLength / splitCount; // 单卷长度
-
-          // 张力计算
-          //const minTension = netWeight * TENSION.MIN_RATIO; // 最小张力
-          //const maxTension = netWeight * TENSION.MAX_RATIO; // 最大张力
-
-          // 更新显示
-          elements.totalLength.textContent = totalLength.toFixed(2);
-          elements.singleLength.textContent = singleLength.toFixed(2);
-          //elements.tension.textContent = `${minTension.toFixed(1)} - ${maxTension.toFixed(1)}`;
-
-        } catch (error) {
-          console.error('卷纸参数计算错误:', error);
-          elements.totalLength.textContent = '错误';
-          elements.singleLength.textContent = '错误';
-          //elements.tension.textContent = '错误';
-        }
-      }
-
-      // 事件监听
-      ['input', 'change'].forEach(event => {
-        [elements.netWeight, elements.grammage, elements.width,
-        elements.coreDiameter, elements.splitCount].forEach(input => {
-          input.addEventListener(event, calculateParameters);
         });
-      });
+      }
+    };
 
-      calculateParameters(); // 初始计算
+    // === 主题管理模块 ===
+    (function initTheme() {
+      const btn = document.getElementById('theme-toggle-btn');
+      // 读取本地存储，默认为浅色
+      let isDark = localStorage.getItem('theme') === 'dark';
+      
+      const update = () => {
+        document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        btn.textContent = isDark ? '☀️' : '🌙';
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      };
+      
+      btn.addEventListener('click', () => {
+        isDark = !isDark;
+        update();
+      });
+      
+      update(); // 初始化执行
     })();
 
-    /*
-    ====================================
-    隐藏开始：分栋计算模块
-    ====================================
-    */
-    /*
-    // 分栋建议计算模块
-    (function initDistributionCalculator() {
-      const elements = {
-        formula: document.getElementById('widthFormula'),
-        splitCount: document.getElementById('splitCount2'),
-        maxHeight: document.getElementById('maxHeight'),
-        result: document.getElementById('distributionAdvice')
+    // === 1. 长度计算逻辑 ===
+    (function initLengthCalc() {
+      const dom = {
+        net: document.getElementById('paperNetWeight'),
+        gram: document.getElementById('paperGrammage'),
+        width: document.getElementById('paperWidth'),
+        core: document.getElementById('coreDiameter'),
+        split: document.getElementById('splitCount'),
+        totalRes: document.getElementById('totalLengthResult'),
+        singleRes: document.getElementById('singleLengthResult')
       };
 
-      function calculateDistribution() {
+      const calc = () => {
         try {
-          const formula = elements.formula.value.trim(); // 分栋公式
-          const splitCount = InputValidator.validate(elements.splitCount.value, 1);// 分割数
-          const maxHeight = InputValidator.validate(elements.maxHeight.value, 1);// 最大高度
+          const netWeight = Utils.validate(dom.net.value);
+          const grammage = Utils.validate(dom.gram.value);
+          const widthM = Utils.validate(dom.width.value) / 1000; // mm -> m
+          const coreM = Utils.validate(dom.core.value) / 1000;   // mm -> m
+          const split = Utils.validate(dom.split.value, 1);
 
-          // 解析公式
-          const items = new Map();
-          formula.split('+').forEach(segment => {
-            const [sizePart, count = 1] = segment.replace(/\s/g, '').split('*');
-            const size = InputValidator.validate(sizePart);
-            if (size > 0) {
-              const total = InputValidator.validate(count) * splitCount;
-              items.set(size, (items.get(size) || 0) + total);
-            }
-          });
-
-          // 生成建议
-          let advice = [];
-          let totalRolls = 0;
-
-          items.forEach((quantity, size) => {
-            totalRolls += quantity;
-            const maxPerStack = Math.floor(maxHeight / size);
-
-            if (maxPerStack === 0) {
-              advice.push(`<strong>${size}mm</strong> 尺寸过大`);
-              return;
-            }
-
-            // 核心优化逻辑：寻找最优分配方案
-            const minStacks = Math.ceil(quantity / maxPerStack); //最少分栋数
-            let bestStacks = minStacks; // 最优分栋数
-            let bestPerStack = Math.floor(quantity / bestStacks);// 最优每栋数量
-            let remainder = quantity % bestStacks; // 剩余数量
-
-            // 尝试找到更优的均分方案
-            for (let stacks = minStacks; stacks <= minStacks + 2; stacks++) {
-              const perStack = Math.floor(quantity / stacks);
-              const currentRemainder = quantity % stacks;
-
-              if (perStack <= maxPerStack &&
-                (currentRemainder === 0 || (perStack + 1) <= maxPerStack)) {
-                bestStacks = stacks;
-                bestPerStack = perStack;
-                remainder = currentRemainder;
-                break;
-              }
-            }
-
-            // 生成分栋描述
-            let stackInfo = `${bestStacks}栋`;
-            if (remainder === 0) {
-              stackInfo += ` (每栋${bestPerStack}卷)`;
-            } else {
-              stackInfo += ` (前${remainder}栋${bestPerStack + 1}卷，其余${bestPerStack}卷)`;
-            }
-
-            advice.push(`<strong>${size}mm</strong>: ${stackInfo}，共${quantity}卷`);
-          });
-
-          elements.result.innerHTML = advice.join('<br>') +
-            `<br>总计：${totalRolls}卷`;
-
-        } catch (error) {
-          console.error('分栋计算错误:', error);
-          elements.result.textContent = '输入格式错误';
-        }
-      }
-
-      // 事件监听
-      [elements.formula, elements.splitCount, elements.maxHeight]
-        .forEach(input => input.addEventListener('input', calculateDistribution));
-
-      calculateDistribution(); // 初始计算
-    })();
-    */
-    /*
-    ====================================
-    隐藏结束：分栋计算模块
-    ====================================
-    */
-
-    // 起点距离计算模块
-    /* (function initPositionCalculator() {
-      const elements = {
-        shaftLength: document.getElementById('shaftLength'),
-        edgeMargin: document.getElementById('edgeMargin'),
-        rollWidth: document.getElementById('rollWidth'),
-        result: document.getElementById('startPositionResult')
-      };
-
-      function calculatePosition() {
-        try {
-          const shaftLength = InputValidator.validate(elements.shaftLength.value);
-          const edgeMargin = InputValidator.validate(elements.edgeMargin.value);
-          const rollWidth = InputValidator.validate(elements.rollWidth.value);
-
-          if (rollWidth > shaftLength) {
-            throw new Error('卷宽不能大于轴长');
+          // 基础校验
+          if (grammage <= 0 || widthM <= 0) {
+            throw new Error("参数不足");
           }
 
-          const position = (shaftLength - rollWidth) / 2 + edgeMargin;
-          elements.result.textContent = position.toFixed(0);
+          // 计算纸筒估重 (基于表面积逻辑，保留原逻辑)
+          const coreArea = Math.PI * coreM * widthM; 
+          const coreWeight = (coreArea * grammage) / 1000;
 
-        } catch (error) {
-          console.error('起点计算错误:', error);
-          elements.result.textContent = '无效输入';
-        }
-      }
-
-      // 事件监听
-      [elements.shaftLength, elements.edgeMargin, elements.rollWidth]
-        .forEach(input => input.addEventListener('input', calculatePosition));
-
-      calculatePosition(); // 初始计算
-    })(); */
-
-    /* 刀片分配计算模块
-    (function initBladeCalculator() {
-      const elements = {
-        lowerBlades: document.getElementById('lowerBlades'),
-        cuttingBlades: document.getElementById('cuttingBlades'),
-        flashEdges: document.getElementById('flashEdges'),
-        result: document.getElementById('bladeDistributionResult')
-      };
-    
-      function calculateBladeDistribution() {
-        try {
-          const lowerBlades = InputValidator.validate(elements.lowerBlades.value);
-          const cuttingBlades = InputValidator.validate(elements.cuttingBlades.value);
-          const flashEdges = Math.min(2, InputValidator.validate(elements.flashEdges.value));
-    
-          // 基础需求计算
-          const requiredForFlash = 4 * flashEdges;
-          let messages = [`飞边需求：${requiredForFlash}刀片`];
-    
-          // 可行性检查
-          if (lowerBlades < requiredForFlash) {
-            messages.push(`\n❌ 刀片不足！需要${requiredForFlash}，当前${lowerBlades}`);
-            elements.result.innerHTML = messages.join('<br>');
-            return;
-          }
-    
-          // 剩余刀片分配
-          const remainingBlades = lowerBlades - requiredForFlash;
-          messages.push(`剩余可用刀片：${remainingBlades}`);
-    
-          // 核心分配逻辑
-          if (remainingBlades < cuttingBlades) {
-            messages.push(`\n❌ 切割刀片不足！缺${cuttingBlades - remainingBlades}片`);
-            } else {
-            const surplus = remainingBlades - cuttingBlades;
-            const totalUsed = requiredForFlash + cuttingBlades;
-    
-            if (surplus > 0) {
-              messages.push(`\n✅ 充足！剩余${surplus}片可置于内侧`);
-              messages.push(`建议：将${surplus}片均匀分配在中间区域`);
-              } else {
-              messages.push(`\n✅ 精确匹配，无剩余刀片`);
-            }
-    
-            // 未使用刀片检查
-            if (totalUsed < lowerBlades) {
-              messages.push(`\n⚠️ 注意：尚有${lowerBlades - totalUsed}片未使用`);
-            }
-          }
-    
-          elements.result.innerHTML = messages.join('<br>');
-    
-          } catch (error) {
-          console.error('刀片计算错误:', error);
-          elements.result.textContent = '输入值异常';
-        }
-      }
-    
-      // 事件监听
-      [elements.lowerBlades, elements.cuttingBlades, elements.flashEdges]
-      .forEach(input => {
-        input.addEventListener('input', calculateBladeDistribution);
-      });
-    
-      calculateBladeDistribution(); // 初始计算
-    })(); */
-
-    /*
-    ====================================
-    隐藏开始：分切重量计算模块
-    ====================================
-    */
-    /*
-    // 分切重量计算模块
-    (function initCuttingCalculator() {
-      const elements = {
-        netWeight: document.getElementById('cuttingNetWeight'),
-        width: document.getElementById('cuttingWidth'),
-        formula: document.getElementById('cuttingFormula'),
-        result: document.getElementById('cuttingWeightResult')
-      };
-
-      function calculateCuttingWeight() {
-        try {
-          // 输入值标准化
-          const netWeight = InputValidator.validate(elements.netWeight.value);
-          const originalWidth = InputValidator.validate(elements.width.value);
-          const formula = elements.formula.value.replace(/\s/g, ''); // 去除空格
-
-          // 有效性检查
-          if (!formula || originalWidth <= 0) {
-            elements.result.textContent = '请输入完整参数';
+          if (netWeight <= coreWeight) {
+            dom.totalRes.textContent = "净重过小";
+            dom.singleRes.textContent = "-";
             return;
           }
 
-          // 解析分切公式
-          const segments = formula.split('+');
-          const splitSegments = [];
-          let totalSplitWidth = 0;
-
-          segments.forEach(seg => {
-            const parts = seg.split('*');
-            const width = InputValidator.validate(parts[0]);
-            const count = parts.length > 1 ? InputValidator.validate(parts[1], 1) : 1;
-            if (width <= 0 || count <= 0) throw new Error("无效的宽度或数量");
-            splitSegments.push({ width, count });
-            totalSplitWidth += width * count;
-          });
-
-          // 验证总宽度
-          /*if (Math.abs(totalSplitWidth - originalWidth) > 2) {//误差2mm
-            throw new Error(`分切总宽度${totalSplitWidth}mm与原宽度${originalWidth}mm不符`);
-          }*/
-
-          // 生成结果
-          /*
-          let results = [];
-          splitSegments.forEach(({ width, count }) => {
-            const totalSegmentWeight = netWeight * (width * count) / originalWidth;
-            const singleWeight = totalSegmentWeight / count;
-            results.push(
-              `${width}mm * ${count}卷，单卷：${singleWeight.toFixed(2)} kg ，共 ${totalSegmentWeight.toFixed(2)} kg `
-            );
-          });
-
-          elements.result.innerHTML = results.join('<br>');
-
-        } catch (error) {
-          console.error('分切计算错误:', error);
-          elements.result.textContent = error.message || '计算错误';
+          // 计算纯纸重量
+          const paperWeight = netWeight - coreWeight;
+          // 计算总长度
+          const totalLength = (paperWeight * 1000) / (grammage * widthM);
+          
+          dom.totalRes.textContent = totalLength.toFixed(2);
+          dom.singleRes.textContent = (totalLength / split).toFixed(2);
+        } catch (e) {
+          dom.totalRes.textContent = "0";
+          dom.singleRes.textContent = "0";
         }
-      }
-
-      // 事件监听
-      [elements.netWeight, elements.width, elements.formula]
-        .forEach(input => input.addEventListener('input', calculateCuttingWeight));
-
-      calculateCuttingWeight(); // 初始计算
-    })();
-    */
-    /*
-    ====================================
-    隐藏结束：分切重量计算模块
-    ====================================
-    */
-
-    // 分切芯径计算模块
-    (function initSplitCalculator() {
-      // 获取 DOM 元素
-      const elements = {
-        totalDia: document.getElementById('totalDiameter'), // 原总直径
-        coreDia: document.getElementById('coreDiameter2'), // 原纸芯径
-        splitNum: document.getElementById('splitCount3'), // 分切数量
-        result: document.getElementById('splitDiameterResult'), // 结果显示
-        splitCountCore: document.getElementById('splitCountCore') // 分切后空纸芯
       };
 
-      // 计算分切后直径和纯纸环宽度
-      function calculateSplitDiameter() {
-        try {
-          // 获取输入值并验证
-          const totalDiameter = InputValidator.validate(elements.totalDia.value, 1);
-          const coreDiameter = InputValidator.validate(elements.coreDia.value, 0);
-          const splitCount = InputValidator.validate(elements.splitNum.value, 1);
-          const splitCore = InputValidator.validate(elements.splitCountCore.value, 0);
-
-          // 工程逻辑校验
-          if (coreDiameter >= totalDiameter) {
-            throw new Error('原纸芯径不能≥总直径');
-          }
-          if (splitCore >= totalDiameter) {
-            throw new Error('分切芯径不能≥总直径');
-          }
-
-          // 计算总面积和核心面积
-          const totalArea = Math.PI * (totalDiameter / 2) ** 2;
-          const coreArea = Math.PI * (coreDiameter / 2) ** 2;
-
-          // 计算有效总面积（去除原核心部分）
-          const effectiveTotalArea = totalArea - coreArea;
-
-          // 计算每个分切部分的有效面积
-          const effectiveSplitArea = effectiveTotalArea / splitCount;
-
-          // 计算每个分切部分包含新核心的总面积
-          const splitTotalArea = effectiveSplitArea + Math.PI * (splitCore / 2) ** 2;
-
-          // 计算分切后直径
-          const splitDiameter = 2 * Math.sqrt(splitTotalArea / Math.PI);
-
-          // 计算纯纸环宽度
-          const pureRingRadius = (splitDiameter - splitCore) / 2;
-
-          // 输出结果
-          elements.result.innerHTML = `
-                分切后直径约：${splitDiameter.toFixed(1)}mm<br>
-                纯纸环宽度约：${pureRingRadius.toFixed(1)}mm<br>
-                计算公式与实际数据有偏差，仅供参考
-            `;
-        } catch (error) {
-          elements.result.textContent = error.message || '输入异常';
-        }
-      }
-
-      // 为所有输入元素添加输入事件监听器
-      [elements.totalDia, elements.coreDia, elements.splitNum, elements.splitCountCore]
-        .forEach(input => input.addEventListener('input', calculateSplitDiameter));
-
-      // 初始化计算
-      calculateSplitDiameter();
+      Utils.bindEvents([dom.net, dom.gram, dom.width, dom.core, dom.split], calc);
+      calc(); // 初始运行
     })();
-    
-    // 直径合并计算模块
-    (function initMergeCalculator() {
-      // DOM元素引用
-      const elements = {
+
+    // === 2. 直径分切计算逻辑 ===
+    (function initSplitCalc() {
+      const dom = {
+        total: document.getElementById('totalDiameter'),
+        core: document.getElementById('coreDiameter2'),
+        num: document.getElementById('splitCount3'),
+        newCore: document.getElementById('splitCountCore'),
+        res: document.getElementById('splitDiameterResult')
+      };
+
+      const calc = () => {
+        try {
+          const D_total = Utils.validate(dom.total.value);
+          const D_core = Utils.validate(dom.core.value);
+          const N = Utils.validate(dom.num.value, 1);
+          const D_newCore = Utils.validate(dom.newCore.value);
+
+          // 逻辑校验
+          if (D_core >= D_total) throw new Error('芯径过大');
+
+          // 面积法计算
+          const areaTotal = Math.PI * Math.pow(D_total / 2, 2);
+          const areaCore = Math.PI * Math.pow(D_core / 2, 2);
+          const areaEffective = areaTotal - areaCore; // 纯纸总面积
+          
+          const areaPerRoll = areaEffective / N; // 单卷纯纸面积
+          const areaNewTotal = areaPerRoll + Math.PI * Math.pow(D_newCore / 2, 2); // 单卷总面积（含新芯）
+          
+          const D_final = 2 * Math.sqrt(areaNewTotal / Math.PI);
+          const widthRing = (D_final - D_newCore) / 2;
+
+          dom.res.innerHTML = `
+            分切后直径约：<span class="result-value">${D_final.toFixed(1)}</span> mm<br>
+            纯纸环宽度约：<span class="result-value">${widthRing.toFixed(1)}</span> mm
+          `;
+        } catch (e) {
+          dom.res.innerHTML = `
+            分切后直径约：<span class="result-value">0</span> mm<br>
+            纯纸环宽度约：<span class="result-value">0</span> mm
+          `;
+        }
+      };
+
+      Utils.bindEvents([dom.total, dom.core, dom.num, dom.newCore], calc);
+      calc();
+    })();
+
+    // === 3. 直径合并计算逻辑 ===
+    (function initMergeCalc() {
+      const dom = {
         formula: document.getElementById('diameterFormula'),
-        originalCore: document.getElementById('originalCoreDiameter'),
+        oldCore: document.getElementById('originalCoreDiameter'),
         newCore: document.getElementById('newCoreDiameter'),
-        mergedDiameter: document.getElementById('mergedDiameterResult'),
-        paperRingWidth: document.getElementById('paperRingWidthResult')
+        resDia: document.getElementById('mergedDiameterResult'),
+        resWidth: document.getElementById('paperRingWidthResult')
       };
-      
-      // 核心计算逻辑
-      function calculateMergedDiameter() {
+
+      const calc = () => {
         try {
-          // 获取输入值
-          const formula = elements.formula.value.replace(/\s/g, ''); // 去除空格
-          const originalCore = InputValidator.validate(elements.originalCore.value, 0);
-          const newCore = InputValidator.validate(elements.newCore.value, 0);
-          
-          // 解析表达式
+          const formula = dom.formula.value.replace(/\s/g, ''); // 去空格
+          const D_oldCore = Utils.validate(dom.oldCore.value);
+          const D_newCore = Utils.validate(dom.newCore.value);
+
+          let totalPaperArea = 0;
           const segments = formula.split('+');
-          let totalEffectiveArea = 0; // 总有效面积
           
+          // 解析算式 "100*2 + 80"
           segments.forEach(seg => {
+            if (!seg) return;
             const parts = seg.split('*');
-            const diameter = InputValidator.validate(parts[0], 0);
-            const count = parts.length > 1 ? InputValidator.validate(parts[1], 1) : 1;
-            
-            if (diameter > 0 && count > 0) {
-              // 计算每个圆的完整面积
-              const fullArea = Math.PI * Math.pow(diameter / 2, 2);
-              // 减去原纸芯面积 [行业标准：原纸芯直径通常为100mm][1](@ref)
-              const coreArea = Math.PI * Math.pow(originalCore / 2, 2);
-              // 累加有效面积
-              totalEffectiveArea += (fullArea - coreArea) * count;
+            const dia = Utils.validate(parts[0]);
+            const count = parts.length > 1 ? Utils.validate(parts[1], 1) : 1;
+
+            if (dia > D_oldCore) {
+              const fullArea = Math.PI * Math.pow(dia / 2, 2);
+              const coreArea = Math.PI * Math.pow(D_oldCore / 2, 2);
+              totalPaperArea += (fullArea - coreArea) * count;
             }
           });
+
+          if (totalPaperArea <= 0) {
+            dom.resDia.textContent = "0";
+            dom.resWidth.textContent = "0";
+            return;
+          }
+
+          // 合并后的总面积 = 总纯纸面积 + 新管芯面积
+          const areaFinal = totalPaperArea + Math.PI * Math.pow(D_newCore / 2, 2);
+          const D_final = 2 * Math.sqrt(areaFinal / Math.PI);
           
-          // 添加新纸芯面积
-          const newCoreArea = Math.PI * Math.pow(newCore / 2, 2);
-          const newTotalArea = totalEffectiveArea + newCoreArea;
-          
-          // 计算新圆直径
-          const newDiameter = 2 * Math.sqrt(newTotalArea / Math.PI);
-          
-          // 计算纯纸环宽度
-          const paperRingWidth = (newDiameter - newCore) / 2;
-          
-          // 更新显示
-          elements.mergedDiameter.textContent = newDiameter.toFixed(1);
-          elements.paperRingWidth.textContent = paperRingWidth.toFixed(1);
-          
-        } catch (error) {
-          console.error('直径合并计算错误:', error);
-          elements.mergedDiameter.textContent = '输入错误';
-          elements.paperRingWidth.textContent = '输入错误';
+          dom.resDia.textContent = D_final.toFixed(1);
+          dom.resWidth.textContent = ((D_final - D_newCore) / 2).toFixed(1);
+
+        } catch (e) {
+          dom.resDia.textContent = "错误";
+          dom.resWidth.textContent = "错误";
         }
-      }
-      
-      // 事件监听
-      [elements.formula, elements.originalCore, elements.newCore].forEach(input => {
-        input.addEventListener('input', calculateMergedDiameter);
-      });
-      
-      calculateMergedDiameter(); // 初始计算
+      };
+
+      Utils.bindEvents([dom.formula, dom.oldCore, dom.newCore], calc);
+      calc();
     })();
   </script>
 </body>
