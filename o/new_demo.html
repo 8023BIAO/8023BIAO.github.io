@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新工具标题 - biao.chat</title>
+  <style>
+    /* ===== 1. 基础变量 (与主站完全统一) ===== */
+    :root {
+      /* 核心主色 */
+      --primary-color: #0d47a1; 
+      --accent-color: #2196f3;
+      
+      /* 背景色系 */
+      --bg-color: #f5f7fa;     /* 网页大背景 */
+      --module-bg: #ffffff;    /* 模块背景 */
+      --input-bg: #f8f9fa;     /* 输入框背景 */
+      
+      /* 文字色系 */
+      --text-color: #2c3e50;
+      --desc-color: #607d8b;
+      --border-color: rgba(0,0,0,0.1);
+      
+      /* 质感 */
+      --radius: 16px;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+      --transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    /* ===== 2. 暗色主题 ===== */
+    [data-theme="dark"] {
+      --primary-color: #64b5f6;
+      --bg-color: #0a0a0a;
+      --module-bg: #141414;
+      --input-bg: #1e1e1e;
+      --text-color: #e0e0e0;
+      --desc-color: #9e9e9e;
+      --border-color: rgba(255,255,255,0.1);
+      --shadow: none;
+    }
+
+    /* ===== 3. 全局布局 ===== */
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      margin: 0;
+      padding: 0 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 顶部开关 */
+    .theme-toggle {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: transparent;
+      border: 1px solid var(--desc-color);
+      color: var(--text-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: var(--transition);
+      z-index: 100;
+    }
+    .theme-toggle:hover { opacity: 1; background: var(--text-color); color: var(--bg-color); border-color: var(--text-color); }
+
+    /* 主容器 */
+    .container {
+      width: 100%;
+      max-width: 720px; /* 工具类页面通常不需要太宽 */
+      margin-top: 80px;
+      margin-bottom: 60px;
+    }
+
+    /* 头部 */
+    .header {
+      margin-bottom: 40px;
+      text-align: left;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 16px;
+      color: var(--desc-color);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--primary-color); }
+    
+    .tool-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+      color: var(--text-color);
+    }
+    .tool-desc {
+      font-size: 1rem;
+      color: var(--desc-color);
+      line-height: 1.5;
+    }
+
+    /* ===== 4. 通用样式库 (方便直接调用) ===== */
+    
+    /* 卡片模块 - 用来包裹你的功能 */
+    .module {
+      background: var(--module-bg);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    /* 通用按钮样式 */
+    .btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+
+    /* 通用输入框样式 (参考) */
+    .input-field {
+      width: 100%;
+      padding: 12px 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-color);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .input-field:focus { border-bottom-color: var(--primary-color); }
+
+    /* 底部 */
+    .footer {
+      margin-top: 60px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--desc-color);
+      opacity: 0.6;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 主题开关 -->
+  <button class="theme-toggle" id="theme-toggle-btn">暗色模式</button>
+
+  <main class="container">
+    <!-- 头部：包含返回链接和标题 -->
+    <header class="header">
+
+      <h1 class="tool-title">新工具名称</h1>
+      <p class="tool-desc">这里写一句话描述这个工具是做什么的。</p>
+    </header>
+
+    <!-- ===== 工具核心区域 (在这里开始写代码) ===== -->
+    <section class="module">
+      
+      <!-- 示例：占位内容 (开发时请删除) -->
+      <div style="text-align: center; padding: 40px 0; color: var(--desc-color);">
+        <p>🛠️ 工具内容区域</p>
+        <p style="font-size: 0.9rem; opacity: 0.7;">在此处添加 input, button 等元素</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    // === 核心主题管理 (包含所有同步修复) ===
+    const ThemeManager = {
+      btn: document.getElementById('theme-toggle-btn'),
+      
+      // 执行应用主题
+      apply() {
+        const isDark = localStorage.getItem('theme') === 'dark';
+        document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        if(this.btn) this.btn.textContent = isDark ? '浅色模式' : '暗色模式';
+      },
+
+      init() {
+        // 1. 立即执行一次
+        this.apply();
+
+        // 2. 点击切换
+        if (this.btn) {
+          this.btn.addEventListener('click', () => { 
+            const isCurrentDark = document.body.getAttribute('data-theme') === 'dark';
+            localStorage.setItem('theme', !isCurrentDark ? 'dark' : 'light');
+            this.apply(); 
+          });
+        }
+
+        // 3. 页面展示时 (解决后退缓存不刷新问题)
+        window.addEventListener('pageshow', (event) => {
+          // event.persisted 表示页面是从缓存中读取的
+          this.apply();
+        });
+
+        // 4. 跨标签页同步 (解决多开窗口问题)
+        window.addEventListener('storage', (event) => {
+          if (event.key === 'theme') {
+            this.apply();
+          }
+        });
+      }
+    };
+
+    // === 2. 初始化 ===
+    ThemeManager.init();
+
+    // === 3. 你的业务逻辑代码写在下面 ===
+    // ...
+    
+  </script>
+</body>
+</html>
