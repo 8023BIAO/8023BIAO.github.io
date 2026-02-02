@@ -234,10 +234,10 @@
     <div class="grid">
       
       <!-- 工具卡片 1 -->
-      <a href="https://biao.chat/o/lc" class="card">
+      <a href="o/lc" class="card">
         <div class="card-content">
-          <div class="card-title">卷纸计算器</div>
-          <div class="card-desc">工业纸卷 长度分切 计算工具。</div>
+          <div class="card-title">卷纸计算工具</div>
+          <div class="card-desc">工业纸卷 长度&分切 计算。</div>
         </div>
         <div class="card-meta">
           <span>工具</span>
@@ -258,31 +258,49 @@
   </main>
 
   <script>
-    // === 1. 主题管理 (通用逻辑) ===
+    // === 核心主题管理 (包含所有同步修复) ===
     const ThemeManager = {
       btn: document.getElementById('theme-toggle-btn'),
+      
+      // 执行应用主题
+      apply() {
+        const isDark = localStorage.getItem('theme') === 'dark';
+        document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        if(this.btn) this.btn.textContent = isDark ? '浅色模式' : '暗色模式';
+      },
+
       init() {
-        let isDark = localStorage.getItem('theme') === 'dark';
-        
-        const update = () => {
-          document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
-          this.btn.textContent = isDark ? '浅色模式' : '暗色模式';
-          localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        };
-        
-        this.btn.addEventListener('click', () => { 
-          isDark = !isDark; 
-          update(); 
+        // 1. 立即执行一次
+        this.apply();
+
+        // 2. 点击切换
+        if (this.btn) {
+          this.btn.addEventListener('click', () => { 
+            const isCurrentDark = document.body.getAttribute('data-theme') === 'dark';
+            localStorage.setItem('theme', !isCurrentDark ? 'dark' : 'light');
+            this.apply(); 
+          });
+        }
+
+        // 3. 页面展示时 (解决后退缓存不刷新问题)
+        window.addEventListener('pageshow', (event) => {
+          // event.persisted 表示页面是从缓存中读取的
+          this.apply();
         });
-        
-        update();
+
+        // 4. 跨标签页同步 (解决多开窗口问题)
+        window.addEventListener('storage', (event) => {
+          if (event.key === 'theme') {
+            this.apply();
+          }
+        });
       }
     };
 
-    // === 2. 自动年份 ===
+    // === 自动年份 ===
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // === 初始化 ===
+    // === 启动 ===
     ThemeManager.init();
   </script>
 </body>
