@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,22 +9,27 @@
     /* ===== 基础变量 (保持极简风格统一) ===== */
     :root {
       /* 核心主色 */
-      --primary-color: #0d47a1; 
+      --primary-color: #0d47a1;
       --accent-color: #2196f3;
-      
+
       /* 背景色系 */
-      --bg-color: #f5f7fa;     /* 网页大背景 */
-      --module-bg: #ffffff;    /* 卡片背景 */
-      --hover-bg: #f8f9fa;     /* 悬停背景 */
-      
+      --bg-color: #f5f7fa;
+      /* 网页大背景 */
+      --module-bg: #ffffff;
+      /* 卡片背景 */
+      --hover-bg: #f8f9fa;
+      /* 悬停背景 */
+
       /* 文字色系 */
       --text-color: #2c3e50;
       --desc-color: #607d8b;
       --meta-color: #90a4ae;
-      
+
       /* 质感 */
-      --radius: 16px;          /* 更大的圆角 */
-      --shadow: 0 4px 24px rgba(0, 0, 0, 0.04); /* 极轻柔的弥散阴影 */
+      --radius: 16px;
+      /* 更大的圆角 */
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+      /* 极轻柔的弥散阴影 */
       --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
       --transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
@@ -38,7 +44,8 @@
       --desc-color: #9e9e9e;
       --meta-color: #666;
       --shadow: none;
-      --hover-shadow: 0 0 0 1px rgba(255,255,255,0.1); /* 暗色模式用边框代替阴影 */
+      --hover-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+      /* 暗色模式用边框代替阴影 */
     }
 
     /* ===== 全局布局 ===== */
@@ -71,6 +78,7 @@
       transition: var(--transition);
       z-index: 100;
     }
+
     .theme-toggle:hover {
       opacity: 1;
       background: var(--text-color);
@@ -82,14 +90,16 @@
     .container {
       width: 100%;
       max-width: 800px;
-      margin-top: 120px; /* 留出顶部呼吸感 */
+      margin-top: 120px;
+      /* 留出顶部呼吸感 */
       margin-bottom: 60px;
     }
 
     /* ===== 头部介绍 ===== */
     .header {
       margin-bottom: 60px;
-      text-align: left; /* 左对齐更有叙事感 */
+      text-align: left;
+      /* 左对齐更有叙事感 */
     }
 
     .brand {
@@ -128,7 +138,8 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 160px; /* 固定高度让卡片整齐 */
+      height: 160px;
+      /* 固定高度让卡片整齐 */
       position: relative;
       overflow: hidden;
     }
@@ -192,7 +203,7 @@
       opacity: 0.3;
       cursor: default;
     }
-    
+
     .card-placeholder:hover {
       transform: none;
       background: transparent;
@@ -210,9 +221,18 @@
 
     /* 响应式 */
     @media (max-width: 600px) {
-      .container { margin-top: 80px; }
-      .brand { font-size: 2rem; }
-      .card { height: auto; min-height: 140px; }
+      .container {
+        margin-top: 80px;
+      }
+
+      .brand {
+        font-size: 2rem;
+      }
+
+      .card {
+        height: auto;
+        min-height: 140px;
+      }
     }
   </style>
 </head>
@@ -232,7 +252,7 @@
 
     <!-- 工具列表 -->
     <div class="grid">
-      
+
       <!-- 工具卡片 1 -->
       <a href="o/lc" class="card">
         <div class="card-content">
@@ -245,11 +265,23 @@
         </div>
       </a>
 
+      <!-- 工具卡片 1 -->
+      <a href="o/asa" class="card">
+        <div class="card-content">
+          <div class="card-title">Aetherion 控制台</div>
+          <div class="card-desc">TRPG 核心法则、熵值计算与状态生成。</div>
+        </div>
+        <div class="card-meta">
+          <span>工具</span>
+          <span class="card-arrow">&rarr;</span>
+        </div>
+      </a>
+
       <!-- 占位卡片 (未来位置) -->
       <div class="card card-placeholder">
         <span class="card-desc">Coming Soon...</span>
       </div>
-      
+
     </div>
 
     <footer class="footer">
@@ -261,12 +293,12 @@
     // === 核心主题管理 (包含所有同步修复) ===
     const ThemeManager = {
       btn: document.getElementById('theme-toggle-btn'),
-      
+
       // 执行应用主题
       apply() {
         const isDark = localStorage.getItem('theme') === 'dark';
         document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        if(this.btn) this.btn.textContent = isDark ? '浅色模式' : '暗色模式';
+        if (this.btn) this.btn.textContent = isDark ? '浅色模式' : '暗色模式';
       },
 
       init() {
@@ -275,10 +307,10 @@
 
         // 2. 点击切换
         if (this.btn) {
-          this.btn.addEventListener('click', () => { 
+          this.btn.addEventListener('click', () => {
             const isCurrentDark = document.body.getAttribute('data-theme') === 'dark';
             localStorage.setItem('theme', !isCurrentDark ? 'dark' : 'light');
-            this.apply(); 
+            this.apply();
           });
         }
 
@@ -304,4 +336,5 @@
     ThemeManager.init();
   </script>
 </body>
+
 </html>
