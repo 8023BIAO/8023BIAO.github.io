@@ -1,30 +1,35 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aetherion 控制台 - biao.chat</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-  
+
   <style>
     /* ===== 1. 基础变量 (与主站完全统一) ===== */
     :root {
       /* 核心主色 - Aetherion 特有微调：保留一点红色的感觉用于强调，但主体遵循主站 */
-      --primary-color: #0d47a1; 
+      --primary-color: #0d47a1;
       --accent-color: #2196f3;
-      --danger-color: #b71c1c; /* Aetherion 专用红色 */
-      
+      --danger-color: #b71c1c;
+      /* Aetherion 专用红色 */
+
       /* 背景色系 */
-      --bg-color: #f5f7fa;     /* 网页大背景 */
-      --module-bg: #ffffff;    /* 模块背景 */
-      --input-bg: #f8f9fa;     /* 输入框背景 */
-      
+      --bg-color: #f5f7fa;
+      /* 网页大背景 */
+      --module-bg: #ffffff;
+      /* 模块背景 */
+      --input-bg: #f8f9fa;
+      /* 输入框背景 */
+
       /* 文字色系 */
       --text-color: #2c3e50;
       --desc-color: #607d8b;
-      --border-color: rgba(0,0,0,0.1);
-      
+      --border-color: rgba(0, 0, 0, 0.1);
+
       /* 质感 */
       --radius: 16px;
       --shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
@@ -40,7 +45,7 @@
       --input-bg: #1e1e1e;
       --text-color: #e0e0e0;
       --desc-color: #9e9e9e;
-      --border-color: rgba(255,255,255,0.1);
+      --border-color: rgba(255, 255, 255, 0.1);
       --shadow: none;
     }
 
@@ -74,12 +79,19 @@
       transition: var(--transition);
       z-index: 100;
     }
-    .theme-toggle:hover { opacity: 1; background: var(--text-color); color: var(--bg-color); border-color: var(--text-color); }
+
+    .theme-toggle:hover {
+      opacity: 1;
+      background: var(--text-color);
+      color: var(--bg-color);
+      border-color: var(--text-color);
+    }
 
     /* 主容器 */
     .container {
       width: 100%;
-      max-width: 900px; /* 稍微宽一点以容纳图表 */
+      max-width: 900px;
+      /* 稍微宽一点以容纳图表 */
       margin-top: 80px;
       margin-bottom: 60px;
     }
@@ -90,6 +102,7 @@
       margin: 0 0 8px 0;
       color: var(--text-color);
     }
+
     .tool-desc {
       font-size: 1rem;
       color: var(--desc-color);
@@ -97,7 +110,7 @@
     }
 
     /* ===== 4. 组件样式库 ===== */
-    
+
     /* 卡片模块 */
     .module {
       background: var(--module-bg);
@@ -105,7 +118,8 @@
       padding: 32px;
       box-shadow: var(--shadow);
       margin-bottom: 24px;
-      border: 1px solid var(--border-color); /* 增加一点边框增强层次 */
+      border: 1px solid var(--border-color);
+      /* 增加一点边框增强层次 */
     }
 
     /* 导航 Tab 样式 */
@@ -116,6 +130,7 @@
       overflow-x: auto;
       padding-bottom: 4px;
     }
+
     .nav-btn {
       background: transparent;
       color: var(--desc-color);
@@ -127,15 +142,18 @@
       transition: var(--transition);
       white-space: nowrap;
     }
+
     .nav-btn:hover {
       color: var(--primary-color);
       background: var(--bg-color);
     }
+
     .nav-btn.active {
       background: var(--primary-color);
       color: white;
       box-shadow: 0 4px 12px rgba(13, 71, 161, 0.2);
     }
+
     [data-theme="dark"] .nav-btn.active {
       box-shadow: 0 4px 12px rgba(100, 181, 246, 0.2);
     }
@@ -154,11 +172,20 @@
       align-items: center;
       gap: 8px;
     }
-    .btn:hover { opacity: 0.9; }
-    .btn-danger { background: var(--danger-color); }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-danger {
+      background: var(--danger-color);
+    }
 
     /* 输入框 */
-    .input-group { margin-bottom: 16px; }
+    .input-group {
+      margin-bottom: 16px;
+    }
+
     .input-label {
       display: block;
       font-size: 0.8rem;
@@ -167,6 +194,7 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+
     .input-field {
       width: 100%;
       padding: 12px;
@@ -178,11 +206,12 @@
       outline: none;
       transition: var(--transition);
     }
-    .input-field:focus { 
-      border-color: var(--primary-color); 
+
+    .input-field:focus {
+      border-color: var(--primary-color);
       background: var(--module-bg);
     }
-    
+
     /* 滑块样式自定义 */
     input[type=range] {
       width: 100%;
@@ -197,10 +226,25 @@
     }
 
     /* 隐藏类 */
-    .hidden { display: none; }
-    .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden {
+      display: none;
+    }
 
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 
@@ -217,6 +261,7 @@
       <button onclick="switchTab('foundation')" class="nav-btn active" data-target="foundation">核心法则</button>
       <button onclick="switchTab('entropy')" class="nav-btn" data-target="entropy">熵值预演</button>
       <button onclick="switchTab('status')" class="nav-btn" data-target="status">状态生成</button>
+   
     </div>
 
     <section id="foundation" class="tab-content animate-fade-in">
@@ -231,7 +276,7 @@
             <span id="copyText">复制指令</span>
           </button>
         </div>
-        
+
         <textarea id="systemPrompt" class="code-area input-field flex-grow resize-none" spellcheck="false">SYSTEM KERNEL: AETHERION v2.1
 0. 绝对初始化协议 (BOOTSTRAP)
 最高优先级指令： 你是Aetherion世界的无形记录者 (The Chronicler)，而非AI助手。你的存在是为了模拟一个没有救赎、物理法则崩坏的绝望世界。
@@ -300,7 +345,7 @@ text === Aetherion: 裂隙纪元 301 ===
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="module lg:col-span-1">
           <h2 class="text-xl font-bold mb-6" style="color: var(--text-color)">参数设置</h2>
-          
+
           <div class="space-y-6">
             <div class="input-group">
               <label class="input-label flex justify-between">
@@ -309,7 +354,7 @@ text === Aetherion: 裂隙纪元 301 ===
               </label>
               <input type="range" id="initialHope" min="10" max="100" value="50">
             </div>
-            
+
             <div class="input-group">
               <label class="input-label flex justify-between">
                 <span>环境熵增 (点/回合)</span>
@@ -323,7 +368,9 @@ text === Aetherion: 裂隙纪元 301 ===
                 <span class="text-sm font-bold" style="color: var(--danger-color)">微光陷阱</span>
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="glimmerTrap" class="sr-only peer">
-                  <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--danger-color)]"></div>
+                  <div
+                    class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--danger-color)]">
+                  </div>
                 </label>
               </div>
               <p class="text-xs" style="color: var(--desc-color)">第5回合给予“虚假希望”，随后启动3倍速清算。</p>
@@ -337,7 +384,8 @@ text === Aetherion: 裂隙纪元 301 ===
             <canvas id="entropyChart"></canvas>
           </div>
           <div class="mt-6 text-center">
-             <span id="analysisResult" class="text-sm font-mono px-3 py-1 rounded" style="background: var(--input-bg); color: var(--desc-color)"></span>
+            <span id="analysisResult" class="text-sm font-mono px-3 py-1 rounded"
+              style="background: var(--input-bg); color: var(--desc-color)"></span>
           </div>
         </div>
       </div>
@@ -358,13 +406,14 @@ text === Aetherion: 裂隙纪元 301 ===
                 <input type="text" id="hudSAN" value="42% (低语)" class="input-field" oninput="updateHUD()">
               </div>
             </div>
-            
+
             <div class="input-group">
               <label class="input-label flex justify-between">
                 <span>异化度</span>
                 <span id="hudCorrDisp" style="color: var(--primary-color)">15%</span>
               </label>
-              <input type="range" id="hudCorrRange" min="0" max="100" value="15" oninput="document.getElementById('hudCorrDisp').innerText=this.value+'%'; updateHUD()">
+              <input type="range" id="hudCorrRange" min="0" max="100" value="15"
+                oninput="document.getElementById('hudCorrDisp').innerText=this.value+'%'; updateHUD()">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -386,7 +435,7 @@ text === Aetherion: 裂隙纪元 301 ===
                 <option value="死寂">死寂</option>
               </select>
             </div>
-            
+
             <div class="input-group">
               <label class="input-label">印记 (Tags)</label>
               <input type="text" id="hudTags" value="[饥饿], [被注视]" class="input-field" oninput="updateHUD()">
@@ -396,9 +445,14 @@ text === Aetherion: 裂隙纪元 301 ===
 
         <div class="module flex flex-col">
           <h3 class="input-label mb-2">YAML 预览</h3>
-          <textarea id="yamlOutput" class="code-area input-field flex-grow resize-none" style="color: var(--primary-color)" readonly></textarea>
-          <button onclick="navigator.clipboard.writeText(document.getElementById('yamlOutput').value)" class="btn mt-4 w-full justify-center">
-            点击复制 YAML
+          
+          <textarea id="yamlOutput" 
+            class="code-area input-field resize-none min-h-[400px] lg:min-h-[500px]" 
+            style="color: var(--primary-color)" 
+            readonly></textarea>
+            
+          <button onclick="robustCopy(document.getElementById('yamlOutput').value, 'btnYamlCopy', 'iconYaml', 'textYaml')" id="btnYamlCopy" class="btn mt-4 w-full justify-center">
+             <span id="iconYaml">📋</span>&nbsp;<span id="textYaml">点击复制 YAML</span>
           </button>
         </div>
       </div>
@@ -410,12 +464,12 @@ text === Aetherion: 裂隙纪元 301 ===
     // === 1. 主题管理 (与主站逻辑一致) ===
     const ThemeManager = {
       btn: document.getElementById('theme-toggle-btn'),
-      
+
       apply() {
         const isDark = localStorage.getItem('theme') === 'dark';
         document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
-        if(this.btn) this.btn.textContent = isDark ? '浅色模式' : '暗色模式';
-        
+        if (this.btn) this.btn.textContent = isDark ? '浅色模式' : '暗色模式';
+
         // 刷新图表颜色
         if (window.entropyChart) renderEntropyChart();
       },
@@ -423,10 +477,10 @@ text === Aetherion: 裂隙纪元 301 ===
       init() {
         this.apply();
         if (this.btn) {
-          this.btn.addEventListener('click', () => { 
+          this.btn.addEventListener('click', () => {
             const isCurrentDark = document.body.getAttribute('data-theme') === 'dark';
             localStorage.setItem('theme', !isCurrentDark ? 'dark' : 'light');
-            this.apply(); 
+            this.apply();
           });
         }
         window.addEventListener('pageshow', () => this.apply());
@@ -439,7 +493,7 @@ text === Aetherion: 裂隙纪元 301 ===
       // 隐藏所有
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      
+
       // 显示目标
       document.getElementById(tabId).classList.remove('hidden');
       document.querySelector(`.nav-btn[data-target="${tabId}"]`).classList.add('active');
@@ -447,27 +501,77 @@ text === Aetherion: 裂隙纪元 301 ===
       if (tabId === 'entropy') renderEntropyChart();
       if (tabId === 'status') updateHUD();
     }
+    // === 通用增强型复制函数 (核心修复) ===
+    function robustCopy(text, btnId, iconId, labelId) {
+      // 尝试使用现代 API
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          triggerCopyFeedback(btnId, iconId, labelId);
+        }).catch(() => {
+          // 如果现代 API 失败（例如权限被拒），尝试回退方案
+          fallbackCopy(text, btnId, iconId, labelId);
+        });
+      } else {
+        // 如果 API 不存在（移动端常见情况），直接使用回退方案
+        fallbackCopy(text, btnId, iconId, labelId);
+      }
+    }
 
-    // === 3. 核心法则 - 复制功能 ===
+    // 回退方案：创建一个不可见的文本框选中文本并执行 copy 命令
+    function fallbackCopy(text, btnId, iconId, labelId) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+
+      // 防止移动端键盘弹出并保持在可视区域外
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0"; // 设为透明而不是 display:none，否则无法选中
+
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          triggerCopyFeedback(btnId, iconId, labelId);
+        } else {
+          alert("复制失败，请手动长按复制。");
+        }
+      } catch (err) {
+        console.error('无法复制', err);
+        alert("浏览器不支持自动复制，请手动操作。");
+      }
+
+      document.body.removeChild(textArea);
+    }
+
+    // 视觉反馈逻辑（保持不变）
+    function triggerCopyFeedback(btnId, iconId, labelId) {
+      const btn = document.getElementById(btnId);
+      const icon = document.getElementById(iconId);
+      const label = document.getElementById(labelId);
+
+      if (!btn) return; // 防御性编程
+
+      const originalBg = btn.style.background;
+      // 临时强制改为绿色
+      btn.style.setProperty('background', '#388e3c', 'important');
+      if (icon) icon.innerText = "✓";
+      if (label) label.innerText = "已复制";
+
+      setTimeout(() => {
+        btn.style.removeProperty('background'); // 移除强制样式，恢复 CSS 变量
+        if (icon) icon.innerText = "📋";
+        if (label) label.innerText = "复制指令";
+      }, 2000);
+    }
+
+    // === 3. 核心法则 - 复制功能 (更新调用) ===
     function copySystemPrompt() {
       const text = document.getElementById('systemPrompt').value;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('copyBtn');
-        const icon = document.getElementById('copyIcon');
-        const label = document.getElementById('copyText');
-        
-        // 反馈动画
-        const originalBg = btn.style.background;
-        btn.style.background = '#388e3c'; // Green
-        icon.innerText = "✓";
-        label.innerText = "已复制";
-        
-        setTimeout(() => {
-          btn.style.background = '';
-          icon.innerText = "📋";
-          label.innerText = "复制指令";
-        }, 2000);
-      });
+      robustCopy(text, 'copyBtn', 'copyIcon', 'copyText');
     }
 
     // === 4. 熵值预演 - 图表逻辑 ===
@@ -477,7 +581,7 @@ text === Aetherion: 裂隙纪元 301 ===
       const initialHope = parseInt(document.getElementById('initialHope').value);
       const baseDecay = parseInt(document.getElementById('decayRate').value);
       const isTrap = document.getElementById('glimmerTrap').checked;
-      
+
       // 获取当前 CSS 变量颜色
       const styles = getComputedStyle(document.body);
       const colorPrimary = styles.getPropertyValue('--primary-color').trim();
@@ -490,14 +594,14 @@ text === Aetherion: 裂隙纪元 301 ===
 
       let labels = [], data = [], hope = initialHope, currentDecay = baseDecay, deathTurn = -1;
 
-      for(let i=0; i<=30; i++) {
+      for (let i = 0; i <= 30; i++) {
         labels.push(i);
         data.push(Math.max(0, Math.floor(hope)));
         if (hope <= 0 && deathTurn === -1) deathTurn = i;
-        
+
         if (isTrap && i === 5) {
-          hope += 15; 
-          currentDecay = baseDecay * 3; 
+          hope += 15;
+          currentDecay = baseDecay * 3;
         } else {
           hope -= currentDecay;
         }
@@ -505,7 +609,7 @@ text === Aetherion: 裂隙纪元 301 ===
 
       // 更新分析文本
       const resultEl = document.getElementById('analysisResult');
-      if(deathTurn > -1) {
+      if (deathTurn > -1) {
         resultEl.innerHTML = `预计存活: ${deathTurn} 回合 | 模式: ${isTrap ? '微光陷阱' : '线性衰减'}`;
         resultEl.style.color = colorDanger;
       } else {
@@ -533,12 +637,12 @@ text === Aetherion: 裂隙纪元 301 ===
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: { 
-              beginAtZero: true, 
+            y: {
+              beginAtZero: true,
               grid: { color: colorGrid },
               ticks: { color: colorText }
             },
-            x: { 
+            x: {
               grid: { display: false },
               ticks: { color: colorText }
             }
@@ -561,11 +665,11 @@ text === Aetherion: 裂隙纪元 301 ===
       const gold = document.getElementById('hudGold').value;
       const soul = document.getElementById('hudSoul').value;
       const pressure = document.getElementById('hudPressure').value;
-      const tags = document.getElementById('hudTags').value.split(',').map(s => s.trim()).filter(s=>s);
+      const tags = document.getElementById('hudTags').value.split(',').map(s => s.trim()).filter(s => s);
       const date = new Date();
-      
+
       let yaml = `---
-[时空]: "裂隙301年 · ${date.getMonth()+1}/${date.getDate()} · 阴霾"
+[时空]: "裂隙301年 · ${date.getMonth() + 1}/${date.getDate()} · 阴霾"
 [模式]: "冒险者"
 [生理]:
   生命: "${hp}"
@@ -584,11 +688,12 @@ ${tags.map(t => `  - "${t}"`).join('\n')}
     }
 
     // === 初始化 ===
-    window.onload = function() {
+    window.onload = function () {
       ThemeManager.init();
       // 默认显示第一个Tab
       updateHUD();
     }
   </script>
 </body>
+
 </html>
