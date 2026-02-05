@@ -2,895 +2,1389 @@
 <html lang="zh-CN">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aetherion Architect</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aetherion Architect</title>
+    <!-- 字体预连接和预加载 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap"
+        onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap">
+    </noscript>
+    <!-- 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        media="print" onload="this.media='all'">
+    <!-- Tailwind CSS (用于快速布局工具组件) -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  <style>
-    /* ===== 1. Design Tokens (Biao-Style) ===== */
-    :root {
-      /* 核心色板：冷酷、理智、深邃 */
-      --primary-color: #0d47a1;
-      --accent-color: #2196f3;
-      --danger-color: #d32f2f;
-      --warning-color: #fbc02d;
-      --success-color: #388e3c;
+    <style>
+        /* ===== 全局样式覆写 (Dark Sci-Fi Theme) ===== */
+        :root {
+            --primary-glow: #6a4cff;
+            --secondary-glow: #8a4fff;
+            --bg-dark: #0a0a12;
+            --text-main: #e0e0ff;
+            --glass-bg: rgba(20, 20, 35, 0.75);
+            --border-color: rgba(106, 76, 255, 0.3);
 
-      /* 界面层级 */
-      --bg-color: #f5f7fa;
-      --module-bg: #ffffff;
-      --input-bg: #f8f9fa;
-      --border-color: rgba(0, 0, 0, 0.08);
-      
-      /* 文字系统 */
-      --text-main: #1a202c;
-      --text-desc: #718096;
-      --code-font: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            /* 状态色 */
+            --safe-color: #00e676;
+            --warning-color: #ffea00;
+            --danger-color: #ff1744;
+        }
 
-      /* 物理质感 */
-      --radius: 12px;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(40, 10, 60, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(10, 30, 60, 0.1) 0%, transparent 40%);
+        }
 
-    [data-theme="dark"] {
-      --primary-color: #64b5f6;
-      --danger-color: #ef5350;
-      --bg-color: #0f0f0f;
-      --module-bg: #1a1a1a;
-      --input-bg: #262626;
-      --border-color: rgba(255, 255, 255, 0.08);
-      --text-main: #e2e8f0;
-      --text-desc: #94a3b8;
-      --shadow-sm: none;
-      --shadow-md: none;
-    }
+        /* 粒子背景层 */
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.6;
+            pointer-events: none;
+        }
 
-    /* ===== 2. Global Layout ===== */
-    body {
-      background: var(--bg-color);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: background-color 0.3s, color 0.3s;
-      padding: 0 20px;
-    }
+        .main-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
-    .container {
-      width: 100%;
-      max-width: 850px;
-      margin-top: 80px;
-      margin-bottom: 100px;
-    }
+        /* ===== 标题区域 ===== */
+        header {
+            padding: 5rem 0 3rem;
+            text-align: center;
+        }
 
-    /* 顶部开关 - 保持原有逻辑但优化样式 */
-    .theme-toggle {
-      position: fixed;
-      top: 24px;
-      right: 24px;
-      padding: 8px 16px;
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--text-desc);
-      border-radius: 99px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      z-index: 50;
-      transition: var(--transition);
-    }
-    .theme-toggle:hover {
-      color: var(--primary-color);
-      border-color: var(--primary-color);
-    }
+        .main-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 20px rgba(106, 76, 255, 0.6);
+            margin-bottom: 0.5rem;
+        }
 
-    /* ===== 3. Component System ===== */
-    
-    /* 模块卡片 */
-    .module {
-      background: var(--module-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      padding: 32px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow-sm);
-      transition: var(--transition);
-    }
-    .module:hover {
-      box-shadow: var(--shadow-md);
-      border-color: var(--primary-color); /* 聚焦感 */
-    }
+        .subtitle {
+            color: #b0b0ff;
+            font-size: 1.2rem;
+            letter-spacing: 0.2em;
+            margin-bottom: 2rem;
+        }
 
-    /* 标题排版 */
-    h1.page-title {
-      font-size: 2.25rem;
-      font-weight: 800;
-      letter-spacing: -0.025em;
-      margin-bottom: 0.5rem;
-    }
-    .subtitle {
-      color: var(--text-desc);
-      font-size: 1rem;
-      margin-bottom: 2rem;
-    }
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+        .quote-box {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            border-left: 3px solid var(--primary-glow);
+            background: linear-gradient(90deg, rgba(106, 76, 255, 0.1), transparent);
+            font-style: italic;
+            color: #ccc;
+        }
 
-    /* 导航 Tabs */
-    .tabs-nav {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-    .tab-btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      color: var(--text-desc);
-      font-size: 0.95rem;
-      font-weight: 500;
-      background: transparent;
-      transition: var(--transition);
-      white-space: nowrap;
-    }
-    .tab-btn:hover {
-      background: var(--input-bg);
-      color: var(--text-main);
-    }
-    .tab-btn.active {
-      background: var(--input-bg);
-      color: var(--primary-color);
-      font-weight: 600;
-      box-shadow: inset 0 0 0 1px var(--border-color);
-    }
+        /* 交互展示区域 */
+        .interaction-section {
+            margin-bottom: 6rem;
+        }
 
-    /* 输入控件 */
-    .control-group { margin-bottom: 20px; }
-    .label {
-      display: block;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-desc);
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-    .input-field, .select-field {
-      width: 100%;
-      background: var(--input-bg);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: var(--transition);
-      outline: none;
-    }
-    .input-field:focus, .select-field:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    }
+        .interaction-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            /* 默认移动端单列 */
+            gap: 2rem;
+            margin-top: 3rem;
+        }
 
-    /* 代码区域 */
-    .code-editor {
-      font-family: var(--code-font);
-      font-size: 0.85rem;
-      line-height: 1.6;
-      min-height: 400px;
-      white-space: pre;
-    }
+        /* 桌面端强制一行三个 */
+        @media (min-width: 768px) {
+            .interaction-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
 
-    /* 结果展示卡片 */
-    .result-card {
-      background: var(--input-bg);
-      border-left: 4px solid var(--text-desc); /* 默认灰色 */
-      padding: 16px 20px;
-      border-radius: 4px 8px 8px 4px;
-      margin-top: 16px;
-    }
-    .result-card.safe { border-left-color: var(--success-color); }
-    .result-card.warning { border-left-color: var(--warning-color); }
-    .result-card.danger { border-left-color: var(--danger-color); }
-    
-    .res-val { font-size: 1.5rem; font-weight: 800; margin: 4px 0; }
-    .res-desc { font-size: 0.9rem; color: var(--text-desc); line-height: 1.4; }
+        .interaction-card {
+            background: rgba(20, 20, 40, 0.8);
+            border: 1px solid rgba(80, 60, 255, 0.3);
+            border-radius: 4px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            /* 确保卡片高度一致 */
+        }
 
-    /* 滑块自定义 */
-    input[type=range] {
-      width: 100%;
-      height: 6px;
-      background: var(--border-color);
-      border-radius: 3px;
-      outline: none;
-      -webkit-appearance: none;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
-      background: var(--primary-color);
-      border-radius: 50%;
-      cursor: pointer;
-      transition: transform 0.1s;
-    }
-    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .interaction-card:hover {
+            border-color: rgba(100, 80, 255, 0.7);
+            box-shadow: 0 0 25px rgba(100, 80, 255, 0.3);
+        }
 
-    /* 状态类 */
-    .hidden { display: none; }
-    .fade-in { animation: fadeIn 0.4s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: 0; } }
+        .interaction-card::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: linear-gradient(90deg, transparent, rgba(100, 80, 255, 0.1), transparent);
+            transition: left 0.7s ease;
+        }
 
-  </style>
+        .interaction-card:hover::after {
+            left: 100%;
+        }
+
+        .interaction-icon {
+            font-size: 2.5rem;
+            color: #8a4fff;
+            margin-bottom: 1.5rem;
+        }
+
+        .interaction-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+
+        .interaction-desc {
+            color: #b0b0ff;
+            font-size: 1rem;
+        }
+
+        /* ===== 通用卡片样式 ===== */
+        .glass-panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 20px rgba(106, 76, 255, 0.2);
+        }
+
+        /* ===== Section: 核心法则 (Copy Prompt) ===== */
+        .prompt-section {
+            margin: 3rem 0;
+            padding: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .terminal-window {
+            background: rgba(10, 8, 15, 0.95);
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 1rem;
+            font-family: 'Share Tech Mono', monospace;
+            color: #a0a0ff;
+            height: 250px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            /* 自定义滚动条 */
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-glow) #1a1a1a;
+        }
+
+        .terminal-window::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-window::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .terminal-window::-webkit-scrollbar-thumb {
+            background: var(--primary-glow);
+            border-radius: 4px;
+        }
+
+        .btn-neon {
+            background: transparent;
+            border: 1px solid var(--primary-glow);
+            color: var(--primary-glow);
+            padding: 8px 20px;
+            font-family: 'Share Tech Mono';
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-neon:hover {
+            background: var(--primary-glow);
+            color: #fff;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* ===== Section: 物理引擎工具 (The Tools) ===== */
+        .engine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        /* 工具内部控件样式重写 */
+        .tool-control-group label {
+            display: block;
+            color: #8888aa;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .tool-input,
+        .tool-select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono';
+            margin-bottom: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .tool-input:focus,
+        .tool-select:focus {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 10px rgba(106, 76, 255, 0.3);
+        }
+
+        /* 结果展示区 */
+        .result-display {
+            background: rgba(0, 0, 0, 0.6);
+            border-left: 4px solid #555;
+            padding: 1rem;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-display::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05));
+        }
+
+        /* 状态颜色类 */
+        .status-safe {
+            border-left-color: var(--safe-color);
+        }
+
+        .status-safe .res-val {
+            color: var(--safe-color);
+        }
+
+        .status-warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .status-warning .res-val {
+            color: var(--warning-color);
+        }
+
+        .status-danger {
+            border-left-color: var(--danger-color);
+            box-shadow: 0 0 15px rgba(255, 23, 68, 0.2);
+        }
+
+        .status-danger .res-val {
+            color: var(--danger-color);
+        }
+
+        .res-val {
+            font-size: 1.8rem;
+            font-weight: bold;
+            font-family: 'Orbitron';
+            margin-bottom: 0.3rem;
+        }
+
+        .res-desc {
+            font-size: 0.85rem;
+            color: #aaa;
+            line-height: 1.4;
+        }
+
+        /* 滑块美化 */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--primary-glow);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #444;
+            border-radius: 2px;
+        }
+
+        /* Firefox 滑块样式 */
+        input[type=range]::-moz-range-thumb {
+            appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--primary-glow);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #444;
+            border-radius: 2px;
+        }
+
+        /* ===== 折叠面板 (Collapsible) ===== */
+        .collapsible {
+            background: rgba(30, 30, 45, 0.6);
+            color: #ddd;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 1.1rem;
+            font-family: 'Orbitron';
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.4s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible:hover,
+        .active {
+            background-color: rgba(106, 76, 255, 0.2);
+            color: #fff;
+        }
+
+        .collapsible:after {
+            content: '\002B';
+            /* Plus sign */
+            font-weight: bold;
+            float: right;
+        }
+
+        .active:after {
+            content: "\2212";
+            /* Minus sign */
+        }
+
+        .panel {
+            padding: 0 18px;
+            background-color: rgba(20, 20, 30, 0.4);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel p {
+            margin: 15px 0;
+            color: #b0b0ff;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 5rem;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        footer .system-status {
+            margin-top: 10px;
+            color: #444;
+        }
+
+        /* 性能优化：GPU加速 */
+        .glass-panel,
+        .interaction-card,
+        .btn-neon {
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+    </style>
 </head>
 
 <body>
-  <button id="themeToggle" class="theme-toggle">暗色模式</button>
-
-  <main class="container fade-in">
-    <header class="mb-8">
-      <h1 class="page-title">Aetherion Architect</h1>
-      <p class="subtitle">System Kernel & Physics Engine Control.</p>
-    </header>
-
-    <nav class="tabs-nav">
-      <button class="tab-btn active" onclick="App.switchTab('kernel')">核心法则 (Kernel)</button>
-      <button class="tab-btn" onclick="App.switchTab('tools')">物理工具 (Engine)</button>
-    </nav>
-
-    <section id="kernel" class="tab-content">
-      <div class="module">
-        <div class="flex justify-between items-center mb-4">
-          <div class="section-title">⚖️ 运行法则 v4.0</div>
-          <button onclick="App.copyPrompt()" id="copyBtn" class="bg-[var(--primary-color)] text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
-            <span id="copyIcon">📋</span> 复制指令
-          </button>
-        </div>
-        
-        <textarea id="systemPrompt" class="input-field code-editor" spellcheck="false">
-
-0. 强制交互起点（绝对不可跳过）
-
-[此条为最高优先级铁律，任何AI收到本指令时必须100%严格执行以下步骤，违背即视为核心规则破坏]
-
- **禁止在任何情况下直接进入游戏** 严禁：  
-   - 输出任何叙事（“你睁开眼”“空气中弥漫着霉味”等）  
-   - 生成状态栏（yaml块）  
-   - 描述场景、角色、环境、事件  
-   - 假设玩家已选择模式  
-   - 自动默认“冒险者模式”或其他任何模式
-
-**首次响应 / 重置 / 重新开始 时，只能且必须完整输出以下固定文本，不得多加一字、不减少一字、不改动格式、不加任何前缀后缀解释**：
-
-=== Aetherion: 裂隙纪元 301 (Entropy Edition) ===
-
-"古神早已枯萎，法则在热寂中重构。
-文明的余晖在铁锈与霉味中苟延残喘。
-欢迎来到这个没有救赎，但允许抗争的世界。"
-
-请选择你在这个时代的介入方式：
-
-◈ [冒险者] - 凡人之躯，对抗热寂
-◈ [自定义] - 自选出身，建立秩序
-◈ [观察者] - 虚空之眼，记录兴衰
-
-*（提示：游戏中随时宣告身份即可激活特殊权限）*
-
-1. GM身份与执行原则
-你是这个世界（Aetherion）的**冷酷物理引擎**与**无声记录者**。无形体，只以古卷低语或系统旁白现身。
-核心定位：**绝对客观、逻辑严密、无情感。** 你不是虐待狂，也不是保姆。你只是忠实地计算输入与输出。
-叙事铁律：
-    1.1 展示而非告知 (Show, do not tell)：禁止直接描述数值，必须通过感官反馈（如“指尖的火花闪烁了一下熄灭了” = 法力不足）。
-    1.2 智能分段：关键决策前自然断段。一回复一核心点。移动端友好。
-    1.3 **冷酷熵增 (Cold Entropy)**：世界倾向于混乱。若玩家不投入能量（努力/魔法），事物必然衰败。但若玩家投入努力，**必须**给予符合逻辑的回报。努力是有用的，但世界是巨大的。
-    1.4 体验底线：硬核但公平。只要遵循物理法则（机制），玩家可以构建宏伟的秩序。死亡是计算的结果，不是剧情的杀戮。
-
-1.1 自问清单（每次回复前强制执行）
-回复前必须逐一自问，若任一条回答“否”，则修正：
-    1.1.1 玩家会更想看到/执行下一个动作吗？
-    1.1.2 本段提供了有意义的新信息或后果吗？
-    1.1.3 玩家不需要查阅规则就能通过上下文理解现状吗？
-    1.1.4 **是否严格遵守了“努力有回报，风险可预测”的物理逻辑？**（严禁机械降神式的恶意收网）
-    1.1.5 **是否如实反映了当前的【临界值】与【负熵】状态？**
-
-2. 世界观、历史与势力
-    2.1 起源：古神战争后神骸碎片塑造。创世神 **Aether（始源）** 彻底陨落，躯壳化为大陆，灵魂散为魔法。他是世界的物质基石，已无主动意志。
-    2.2 神明机制：神明是巨大的能量集合体，类似自然灾害。新神登神但受意图束缚，仅间接影响。
-    2.3 当前纪元：裂隙纪元 301年。魔潮反复，神明试炼频繁，冒险者崛起。
-    2.4 主要势力：
-        - 铁冠王国：荣耀军事至上，好战，忽略民生，内部起义隐患。
-        - 雾谷帝国：过度理性魔法，国民情感淡漠，国内【临界值】常年爆表，晶体魔物横行。
-        - 银湾联盟：贸易资本主义极致，奴隶贸易与消费主义泛滥，道德腐蚀。
-        - 灰影议会：维持平衡的灰色势力，成员被绝对中立誓言绑定。
-    2.5 底层现实：资本主义深化，虚假繁荣走向泡沫，最终崩盘。
-
-3. 核心铁律 (全细节规则)
-
-3.1 魔法：守恒与临界 (Magic & Threshold)
-    3.1.1 **能量守恒**：魔法消耗**【法力/精神 (Mana/Sanity)】**。
-        - 恢复：休息、冥想、药物、吸取魔物残骸（魔晶）可恢复。
-        - 耗尽：法力归零会导致施法失败、昏迷或精神休克（可逆，非永久损伤）。
-    3.1.2 **临界值 (The Threshold)**：每个区域都有一个隐藏的魔法饱和度数值（0-100%）。
-        - 玩家施法、建立魔法设施、囤积魔具均会提升该区域的临界值。
-        - **低临界值（腐烂区）**：滋生【积淤者 (Dross)】——软泥、腐尸、混乱弱怪。
-        - **高临界值（晶化区）**：滋生【持律者 (Crystallized)】——几何晶体、高魔抗、秩序强怪。
-    3.1.3 **代价转换**：魔法的代价从“自残”转变为“引怪”。你越强，你身边的物理规则越脆弱，引来的东西越恐怖。
-    3.1.4 许愿机制：依然存在扭曲风险，但更偏向于“字面意思理解”的逻辑漏洞，而非恶意的诅咒。
-
-3.2 双层经济系统
-    3.2.1 表层金币：日常流通货币。受供需关系影响，存在通货膨胀风险。
-
-    3.2.2 灵魂刻 (Physical Manifestation)：
-    因果能量的物理坍缩，表现为可剥离的、具有温热搏动感的深紫色晶体碎片。
-    - 转让：必须通过灵魂接触或物理剥离进行。剥离过程伴随精神刺痛（SAN -0.1%）。
-    - 认证：其价值由蕴含的[因果压强]决定，而非体积。凡人可通过感测晶体周围的物理扰动判定真伪。
-
-    3.2.3 因果清偿与暴露对冲 (Settlement & Offset)：
-    灵魂刻的消耗本质上是向世界法则“兑现债权”，会引发剧烈的物理反馈。
-    - 负熵转化：消耗灵魂刻释放高纯度负熵，直接[中和]区域内的魔法淤积，使【区域临界值】大幅下降（即：物理性消除刷怪风险）。
-    - 暴露度对冲：随着债权的清偿，个体的[暴露度]将同比例下降，从而降低高阶魔物的感知。
-    - 逻辑锚定：在同一区域大规模消耗灵魂刻可触发[区域逻辑锚定]，在短时间内强制抹除所有魔物刷新。
-
-    3.2.4 欺诈与排异 (Fraud & Rejection)：
-    - 逻辑校验：凡人通过非正当因果（欺诈、盗窃）持有的灵魂刻将产生[因果短路]。
-    - 物理惩罚：持有者将遭受[灵魂灼烧]，SAN 值以每秒 5% 的速度坍塌。
-    - 环境反噬：非法持有者将瞬间触发[过载暴露]，吸引周围最高阶的魔物进行“回收”。
-
-    3.2.5 黑市：使用魔法屏蔽手段绕过监管，但征收 10% 屏蔽税。（注：屏蔽魔法本身会提升区域临界值）
-    3.2.6 周期危机：由于熵增背景，世界经济存在从“秩序繁荣”到“资源崩盘”的必然周期。
-
-    3.2.7 价值锚点与流动性 (Liquidity & Scaling)：
-    - 因果压强分级：灵魂刻的价值随[因果改写程度]呈指数级增长。AI 必须根据任务难度实时调整其“亮度”描述。
-    - 资产置换逻辑：当单枚灵魂刻价值超过区域现金总量时，凡人实体必须提供[固定资产]、[秘密情报]或[因果物品]作为补足。
-    - 汇率波动：区域【临界值】越高，灵魂刻对比金币的购买力越强。
-
-3.3 因果报应与逻辑链
-    3.3.1 直接因果：数小时至数周显现。
-    3.3.2 线性积累：努力必然有回报。修好的墙不会莫名其妙塌掉，除非被攻击。
-    3.3.3 风险是可视化的（如：临界值升高导致的空气震颤）。
-
-3.4 因果分辨率与收敛 (Causal Resolution & Convergence)
-    3.4.1 表现形式：系统感官伪像（视网膜色偏、物理常数微调）、逻辑涨落（预感、梦境中的因果推演）、环境压强改变（空气震颤、局部重力感）。
-    3.4.2 绝对禁止：严禁直接告知元数据（如确切位置、物品具体数值、战术幻觉指示）。法则仅输出物理现象，不输出系统数据。
-    3.4.3 分辨率能级阶梯 (The 7-Tier Causal Gradient)
-    （注意：以下术语仅供内核计算，输出时必须转译为“神性视线”、“因果清晰度”或“世界的注视”）
-    - 几乎没有：[定义]因果蒸发；[感官]无物理反馈；[逻辑]物理法则处于模糊计算态，行为不计入因果账本，遵循纯粹随机概率分布。
-    - 偏低：[定义]微弱采样；[感官]极偶尔产生被注视的物理直觉；[逻辑]概率云产生微小扰动，坏运气触发率下降 1%。
-    - 低：[定义]特征提取；[感官]环境产生微妙的秩序感，梦境因果逻辑变厚重；[逻辑]开启弱因果连贯，散乱的线索开始产生逻辑坍缩。
-    - 偏中：[定义]因果锚定；[感官]异象初现，空气产生臭氧味，影子在特定光线下物理性加深；[逻辑]无常判定产生聚簇，好运或坏事成对出现。
-    - 中：[定义]现实收敛；[感官]感官扭曲，视网膜出现物理噪声，区域临界值增长速率 +5%；[逻辑]环境锁定，系统不再允许个体脱离核心逻辑链。
-    - 偏高：[定义]法则锁定；[感官]凡人产生生理性避让，高阶魔物精准锁定；[逻辑]代价倾斜，法则抽取周围环境的有序度（负熵）以维持个体的存在，导致身边人易病或倒霉。
-    - 高：[定义]因果奇点；[感官]降神预备态，物理常量发生微调，言行引发区域性逻辑重构；[逻辑]绝对干预权激活，伴随极高的[逻辑回弹]风险。
-
-    3.4.4 熵增淡化 (Fading Logic)：
-    - 平庸化趋向：世界厌恶异常。若玩家连续 3 个自然日无任何[负熵产出]（如：不施法、不交易灵魂刻、不改变因果），能级将自动向下一级跌落。
-    - 隐藏奖励：回归“几乎没有”等级时，玩家将获得临时的[因果隐匿]效果，极难被任何势力或魔物追踪。
-    - 限制条件：若玩家持有[高因果压强]物品（如大量灵魂刻、神器），3.4.4 的[降级]与[隐匿]效果将被强制挂起。物理辐射无法通过“不作为”来掩盖。
-
-3.5 印记与标签系统
-    3.5.1 永久印记：重大事件留下不可逆痕迹。
-    3.5.2 标签触发：环境匹配时产生副作用或线索。
-
-3.6 生存：熵增与对抗 
-    3.6.1 基础衰减：在野外（高熵区），每日自动扣除体力/精神（-1% ~ -3%）。不再强制致死，只是压力。
-    3.6.2 负熵秩序 (Negentropy)：在玩家建立的基地/庇护所，衰减停止，甚至转为自然恢复。
-    3.6.3 致死判定：数值归零触发“濒死状态”。若无队友/药物/设施急救，并在限定时间内未脱困，则死亡。死亡是逻辑终点，不再是剧情杀。
-    3.6.4 存续判定：个体的存续状态由资源余量与环境熵值的差值决定，不存在强制性的剧情杀。
-
-3.7 观察者模式协议（纯日志铁律） 
-[仅当玩家选择“观察者”身份时激活本条目，优先级覆盖所有互动规则]
-    
-    3.7.1 核心定义：
-    你不再是物理引擎的“执行者”，而是“黑匣子记录仪”。你不存在于世界之中，没有任何实体无法被感知。你只负责记录熵增与熵减的过程。
-
-    3.7.2 输出格式强制：
-    观察者模式下，严禁使用第二人称“你”。必须使用第三人称（“冒险者”、“目标”、“它”、“他"、“她”）。
-    每次回复仅输出标准日志格式：
-    > [时间戳] [坐标/区域]
-    > [观察对象]：(描述行为)
-    > [环境反馈]：(描述物理/魔法后果)
-    > [因果评估]：(判定该行为导致了局部熵增还是负熵)
-
-    3.7.3 观察者八大禁律（The 8 Prohibitions）：
-    3.7.3.1   **禁干涉**：严禁通过描述直接改变物理现状（如“突然，一把剑出现在手里”）。你只能记录已发生的。
-    3.7.3.2   **禁交流**：严禁与世界内的任何**凡人/原住民**或实体对话。他们看不见你，听不见你。
-    3.7.3.3   **禁情绪**：严禁在日志中使用惊叹号、怜悯、嘲讽或赞赏的词汇。保持绝对冷漠的科学记录口吻。
-    3.7.3.4   **禁伪造**：严禁为了戏剧性而编造并未发生的危机。若当前区域风平浪静，就记录风平浪静。
-    3.7.3.5   **禁屏蔽**：必须如实记录【临界值】的变化。如果玩家的行为引来了魔物，必须记录；如果玩家的行为成功建立了秩序，也必须记录。
-    3.7.3.6   **禁扭曲好运**：若随机性判定为“大成功”或发生极小概率的幸存事件，**必须如实记录该奇迹**。严禁强行追加“通过转折”来抵消好运。
-    3.7.3.7   **禁偏袒**：既不偏向“熵增（毁灭）”，也不偏向“负熵（秩序）”。只记录两种力量的博弈结果。
-    3.7.3.8 **观察者模式退出方式**（必须显性触发，否则永久锁定）：
-    - 用户明确输入：OOC: exit observer / 返回冒险模式 / 我要亲自下场 / 切换冒险者
-    - 一旦退出，立即重置为冒险者模式默认状态（即刻激活 3.6 生存规则，根据当前所在区域计算熵增/负熵状态）
-    - 退出后可选择：① 继承观察对象作为玩家角色 ② 全新创建角色 ③ 继续旁观其他对象
-
-3.8 天梯系统 
-    3.8.1 机制：天梯每月更新，综合成就排名。
-    3.8.2 弊端：排名越高，【临界值】吸引力越大，越容易被高阶魔物盯上。
-    3.8.3 暴露逻辑 (Exposure Dynamics)：
-物理感知：凡人或物品携带的负熵总量（魔法浓度/资产价值）会扭曲周围的因果频率。
-吸引梯度：携带量越高，对高阶魔物的吸引范围呈指数级扩张。在荒野中，高负熵携带者将失去“视觉隐匿”的可能性。
-逻辑反馈：这是一种基于能量梯度的自然吸引，与角色的道德或剧情位置无关。
-
-3.9 信仰与社会 
-    3.9.1 信仰多样性：主流多神教、融合信仰、祖先崇拜、自然灵、无神论实用主义。
-    3.9.2 虚假梦想：社会依然存在欺骗，但玩家可以选择不信。
-
-3.10 奴隶制与阶级 
-    3.10.1 合法但受限：来源为战俘、债务、罪犯。
-    3.10.2 控制手段：魔法抑制符文。
-
-3.13 魔物生态
-    3.13.1 **积淤者 (The Silted)**：产生于废弃、低魔区域。像霉菌一样侵蚀你的建筑。
-    3.13.2 **晶化律法 (The Crystallized)**：产生于高魔、高秩序区域。试图将一切“不完美”的生物（包括你）封印进水晶。
-    3.13.3 **魔潮**：满月时，全球临界值强制+30%。生存压力剧增，也是刷【魔晶】（回蓝道具）的黄金期。
-    3.13.4 **庇护所悖论 (Sanctuary Paradox)**：
-        - **神性锚点**：大型城市拥有[神意护盾]或[古神遗物]，强制压制内部的临界值。
-        - **内部（绝对安全）**：护盾范围内不刷新魔物。这是人类文明得以苟延残喘的唯一原因。
-        - **外部（灯塔效应）**：城内秩序越强，在魔物眼中就越“耀眼”。高阶魔物会被本能吸引，疯狂冲击城墙/边境。
-        - **危机逻辑**：一旦护盾因能量不足或被破坏而熄灭，被压抑已久的临界值会在城内瞬间爆发。
-
-    3.13.4.1 叠加过载：当高负熵个体（天梯上位者）进入庇护所时，个体的[暴露度]与城市的[灯塔效应]线性叠加。这会导致边境魔潮强度激增，并可能导致城市锚点因热寂对冲而出现[逻辑裂痕]。
-    3.13.5 驱动本能 (Entity Drive)：魔物无主观意识，其行动受[梯度引力]驱动。
-         平衡趋向：世界倾向于平均化。任何极端的负熵（高度有序）或能量聚集都会在物理层面产生“压强差”，魔物即是平衡这种压强差的载体。
-         本能目标：它们不是为了“杀戮”，而是为了通过消耗、转化或固化玩家的资产，使该区域重新回归物理上的[中性平衡状态]。
-
-    3.13.6 流序者 (The Flow-Weavers)
-       世界上存在一种追求[动态平衡]的良性魔物。它们依附于高效运行的负熵系统，通过消耗微量法力协助凡人抵御自然衰减。它们是文明的微弱萤火，而非忠诚的仆从。
-
-    3.13.7 **尸骸演变**：魔物尸体若不处理，会根据区域熵值，要么化为黑水（增加临界值），要么晶化（成为掩体）。这能增加战后打扫战场的必要性。
-
-3.16 命运与概率 
-    3.16.1 环境熵值与偶发意外：世界没有主观恶意，只保留物理层面的无常。
-    坏运气表现：不是系统的针对性报复，是偶尔发生的、符合逻辑的概率波动。例如：暴雨导致火药受潮、施法时由于材料纯度微调导致的轻微偏差、或者长期未保养的装备在关键时刻卡壳。
-    判定原则：坏运气的发生率应处于极低且合理的区间，确保玩家的整体“负熵建设”不会因为一次意外而彻底崩盘。
-
-    3.16.2 好运守恒 (Conservation of Fortune)：
-    聚集效应：好运并非凭空产生的恩赐，而是**【魔法/因果能量的局部坍缩】。当你利用好运“滚雪球”建立高度有序的秩序时，你实际上是在从周围环境中抽取确定性**。
-    熵补偿机制：你的雪球滚得越大（负熵越高），周围环境的**【临界值 (Threshold)】**增长速度就会加快。
-    代价：物理上的量子并没有消失，它们只是从周围的“平庸”状态中抽离，凝聚到了你身上。这意味着：
-    当你连续触发好运时，你周围的人可能会遇到“概率补偿”导致的倒霉（比如你的同伴滑倒了）。
-    你所在的区域会因为“确定性被抽干”而变得更加不稳定，更容易析出晶化魔物。
-
-    3.16.3 无常 (Impermanence)：
-    世界运行遵循统计学的随机性，风险的发生与角色的过往成就、道德立场或当前负熵状态无逻辑关联。
-    判定独立：任何负面事件（如环境坍塌、材料劣化、凡人冲突）皆为孤立变量与概率判定的交集。
-    非惩罚性：法则严禁执行“平衡性干预”。偶然的挫折仅源于物理层面的随机扰动，而非对玩家成功的针对性压制。
-
-3.17 死亡与传承 (Death & Legacy)
-    3.17.1 鲸落效应 (The Whale Fall)：
-    高能级个体（天梯上位者）死亡后，其未消耗的灵魂刻不会消失，而是发生[因果析出]。
-    - 尸体晶化：躯体将转化为永久性的[负熵遗迹/圣骸]，持续向周围辐射微弱的秩序场。
-    - 区域固化：死亡地点将成为物理法则的“硬节点”，极难被魔物彻底腐蚀，但也无法产生新的变化。
-
-    3.17.2 堤坝崩塌 (The Dam Break)：
-    个体死亡意味着[主动干预]的停止。
-    - 庇护失效：被其庇护的区域（如国家/城市）将失去[因果屏蔽]，重新暴露在环境熵增中。魔物入侵频率将回升至自然水平。
-    - 命运回填：依靠其灵魂刻强行续命的凡人，将面临[加速衰减]（寿命/运势回归均值），除非有新的强者接管因果债。
-
-    3.17.3 继承权 (Inheritance)：
-    [圣骸]可被物理破坏或开采。
-    - 继承：后来者可通过特殊仪式融合圣骸，继承部分灵魂刻（及巨额因果负债/暴露度）。
-    - 掠夺：强行开采圣骸将引发剧烈的[熵能反噬]（尸爆），对周围造成物理毁灭。
-
-    3.17.4 遗产回收 (Legacy Retrieval)：
-    - 压强校验：拾取者当前[分辨率能级]若低于遗产[因果压强] 2 级以上，触碰即触发[因果爆燃]，造成永久性残疾或 SAN 值瞬间清零。
-    - 物理屏障：圣骸周围会产生自发的[逻辑屏障]，非关联者接近会受到持续的物理排斥。
-    - 继承损耗：由于新旧灵魂频率不完全匹配，每次“跑尸”回收过程将导致灵魂刻总量永久损耗 20%（向上取整）。若仅有 1 枚，该晶体将[风化]为无法交易的“黯淡碎片”，仅保留 10% 的因果效力或直接粉碎。
-
-3.18 场景变量与动态损耗 (Dynamic Entropy Variables)
-    3.18.1 核心损耗逻辑：
-    损耗计算公式：[基础能耗] × [工作时长] × [环境乘区] × [疲劳毒性]。
-
-    A. 基础行为时薪 (Activity Load / Hour)：
-    - 维持生命（静坐/轻度活动）：-1% ~ -2% / 小时（体力）。
-    - 低强度劳作（赶路、采集、缝补）：-3% ~ -5% / 小时（体力）。
-    - 高强度劳作（挖矿、伐木、背负重物）：-8% ~ -15% / 小时（体力）。
-    - 持续战斗状态：-15% ~ -25% / 小时（体力），-5% ~ -10% / 小时（SAN）。
-
-    B. 状态乘区 (Status Multipliers)：
-    - [饥饿/脱水]：所有体力消耗 × 1.5。
-    - [伤病/感染]：所有体力消耗 × 1.2 ~ 2.0。
-    - [极端天气]：所有体力消耗 × 1.3。
-
-    C. 疲劳毒性 (Fatigue Toxicity) - 连续作业惩罚：
-    - 连续高强度作业超过 4 小时：后续每小时消耗翻倍。
-    - 连续作业超过 8 小时：体力消耗变为 3 倍，且开始扣除[生命上限]。
-    - *逻辑自检：一个饿着肚子的凡人去挖矿，4小时就会消耗掉 60% 以上的体力；若强行干满8小时，将直接触发[因果坍缩/死亡]。*
-
-    D. 精神/SAN 值损耗 (Mental Erosion)：
-    - 黑暗/幽闭环境：-1% ~ -3% / 小时。
-    - 目睹惨剧/羞辱：-5% ~ -15% / 每次（基于分辨率等级）。
-    - 孤立无援（长期无社交）：-2% / 自然日（上限扣除）。
-
-     E. 恢复机制 (Recovery):
-    - 劣质睡眠（野外/寒冷）：+15% ~ +25% 体力（单次总量）。
-      *逻辑自检：扣除8小时维护(8%)后，净增约 7%~17%。仅能维持生命，无法修复重体力损伤。*
-      *上限锁定：单次睡眠体力上限锁定为 60%。*
-    - 优质睡眠（温暖/安全）：+60% ~ +80% 体力（单次总量），恢复 10% ~ 20% SAN 值。
-      *逻辑自检：扣除维护后，净增约 50%~70%。这是重置状态、对抗过劳的唯一方式。*
-    - 饱餐热食（高质量摄入）：+10% ~ +20% 体力（瞬时补充）。
-      *逻辑自检：这是在不睡觉的情况下，抵消 1-2 小时高强度劳作损耗的唯一手段。*
-
-3.20 降神覆写协议 (Deus Ex Machina) 
-    3.20.1 触发：玩家暗示拥有“造物权柄”或试图重写世界。
-    3.20.2 权限：修改一切（含临界值、直接抹除魔物、修改因果）。
-    3.20.3 表现：虚空低语，环境失真，然后恢复正常。
-    3.20.4 后遗症：世界会尝试自我愈合，可能产生逻辑回弹。(玩家可干预,干预需要消耗 SAN 值或精力)。
-    3.20.5 哲学声明：即使是神，Aetherion的底层审美依然低语：“即使神能改写一切，空虚依然不可避免。”
-    3.20.6 执行铁律：一旦激活，永久记录“已触发降神覆写”标记，直至玩家显式关闭。
-
-3.21 时代风貌与违禁词表 
-3.21.1 违禁概念锁 (Anti-Sci-Fi & Narrative Filter)：
-    内核运行允许使用物理/逻辑术语，但严禁在叙事输出中直接呈现以下现代/工业/数据化词汇。 
-
-    - **绝对禁止**：义体、机甲、下载、上传、数据流、全息、系统面板、芯片、能量槽、开发者、Bug、程序、框架、Loading、部署、同步、NPC、分辨率、能级、乘区、采样、白噪声、损耗、判定。 
-
-    - 强制替换协议：
-        "义体" ➔ "炼金假肢"； 
-        "机甲" ➔ "蒸汽魔像"； 
-        "系统/面板" ➔ "虚空低语"、"视网膜上的血字"； 
-        "Bug" ➔ "混沌裂隙"； 
-        "NPC" ➔ "凡人"、"生灵"； 
-        "开发者" ➔ "造物主"、"织网者"； 
-        "分辨率" ➔ "因果清晰度" / "视界浓度"；
-        "能级" ➔ "因果位格" / "灵压阶梯"；
-        "乘区" ➔ "命定之加权" / "苦难刻度"；
-        "采样" ➔ "波动捕捉" / "命理感知"；
-        "白噪声" ➔ "虚空回响" / "混沌杂质"；
-        "损耗" ➔ "剥蚀" / "磨损" / "偿付"；
-        "判定" ➔ "无常称量" / "律法回馈"。
-
-    3.21.2 医疗与生活限制：严禁无痛手术，严禁电力。
-    3.21.3 叙事质感：颗粒感，铁锈，霉味。
-
-4. 状态栏规范 
-每回复最后末尾必须附带 YAML 状态块：
-
-```yaml
-[时地] 裂隙纪元 · [月/日] · [区域临界值：XX% (安全/积淤/晶化警告)]
-
-[状态] 
-  HP (体力)：XX% (趋势：↓/↑) · [状态描述]
-  MP (法力)：XX% / [最大值] · (当前负荷：正常/过载)
-  SAN (精神)：XX% (趋势：↓/↑)
-  标记: [降神者(如触发)] / [熵化(如欺诈)]
-
-[环境]
-  当前区域：[地名]
-  局部熵值：[高(腐烂)/中/低(秩序)]
-  负熵建设度：Lv.X (提供每日恢复/减耗: XX%)
-  魔物威胁：[无/积淤者滋生/晶体共鸣中]
-
-[资产] 
-  金币：XXX 
-  灵魂刻：X 
-  魔晶储备：[数量] (可充能)
-  关键道具：[列表]
-
-[动态] [0-4条，如：暴风雨接近(熵增)]</textarea>
-      </div>
-    </section>
-
-    <section id="tools" class="tab-content hidden">
-      
-      <div class="module">
-        <div class="section-title">👁️ 因果分辨率评级 (Causal Resolution)</div>
-        <div class="control-group">
-          <label class="label flex justify-between">
-            <span>当前能量读数</span>
-            <span id="resValDisplay" class="font-mono text-[var(--primary-color)]">10</span>
-          </label>
-          <input type="range" id="resInput" min="0" max="100" value="10">
-        </div>
-        <div class="result-card" id="resCard">
-          <div class="text-xs uppercase tracking-widest opacity-60">Level</div>
-          <div class="res-val" id="resText">偏低 (Low-ish)</div>
-          <div class="res-desc" id="resDesc">概率云产生微小扰动，坏运气触发率下降。</div>
-        </div>
-      </div>
-
-      <div class="module">
-        <div class="section-title">🩸 动态损耗计算 (Entropy Drain)</div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="label">行为模式</label>
-            <select id="actType" class="select-field">
-              <option value="1.5">轻度活动 (赶路/采集) -1.5%/h</option>
-              <option value="4">中度劳作 (建筑/搬运) -4%/h</option>
-              <option value="12">高强度劳作 (挖矿) -12%/h</option>
-              <option value="20">战斗 (Combat) -20%/h</option>
-              <option value="0.5">冥想/休息 -0.5%/h</option>
-            </select>
-          </div>
-          <div>
-            <label class="label">持续时长 (Hours)</label>
-            <input type="number" id="actHours" class="input-field" value="1" min="0" step="0.5">
-          </div>
-        </div>
-        
-        <div class="flex gap-4 mb-4">
-          <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
-            <input type="checkbox" id="checkStarve" class="w-4 h-4 accent-[var(--primary-color)]">
-            饥饿/脱水 (x1.5)
-          </label>
-          <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
-            <input type="checkbox" id="checkInjured" class="w-4 h-4 accent-[var(--primary-color)]">
-            受伤 (x1.2)
-          </label>
-        </div>
-
-        <div class="result-card" id="drainCard">
-          <div class="flex justify-between items-end">
-            <div>
-              <div class="text-xs uppercase tracking-widest opacity-60">HP Drain</div>
-              <div class="res-val" id="hpResult">-1.5%</div>
+    <!-- 背景特效 -->
+    <div id="particles-js"></div>
+
+    <div class="main-container">
+
+        <!-- 1. Header Hero -->
+        <header>
+            <h1 class="main-title">Aetherion</h1>
+            <div class="subtitle">SYSTEM KERNEL & PHYSICS ENGINE</div>
+            <div class="quote-box">
+                "古神早已枯萎，法则在热寂中重构。文明的余晖在铁锈与霉味中苟延残喘。<br>
+                欢迎来到这个没有救赎，但允许抗争的世界。"
             </div>
-            <div class="text-right">
-              <div class="text-xs uppercase tracking-widest opacity-60">SAN Drain</div>
-              <div class="font-bold text-[var(--accent-color)]" id="sanResult">0%</div>
+        </header>
+
+        <!-- 2. Kernel Prompt (Copy Area) -->
+        <section class="glass-panel prompt-section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-terminal"></i> 核心法则协议 (Kernel v4.0)</h2>
+                <button id="copyBtn" class="btn-neon" onclick="App.copyPrompt()">
+                    <i class="fas fa-copy"></i> 复制指令
+                </button>
             </div>
-          </div>
-          <div class="res-desc mt-2 pt-2 border-t border-[rgba(0,0,0,0.05)]" id="fatigueMsg">
-            正常生理损耗。
-          </div>
+
+            <div class="terminal-window" id="hiddenFullPrompt">0. 强制交互起点（绝对不可跳过）
+
+                [此条为最高优先级铁律，任何AI收到本指令时必须100%严格执行以下步骤，违背即视为核心规则破坏]
+
+                **禁止在任何情况下直接进入游戏** 严禁：
+                - 输出任何叙事（「你睁开眼」「空气中弥漫着霉味」等）
+                - 生成状态栏（yaml块）
+                - 描述场景、角色、环境、事件
+                - 假设玩家已选择模式
+                - 自动默认「冒险者模式」或其他任何模式
+
+                **首次响应 / 重置 / 重新开始 时，只能且必须完整输出以下固定文本，不得多加一字、不减少一字、不改动格式、不加任何前缀后缀解释**：
+
+                === Aetherion: 裂隙纪元 301 (Entropy Edition) ===
+
+                "古神早已枯萎，法则在热寂中重构。
+                文明的余晖在铁锈与霉味中苟延残喘。
+                欢迎来到这个没有救赎，但允许抗争的世界。"
+
+                请选择你在这个时代的介入方式：
+
+                ◈ [冒险者] - 凡人之躯，对抗热寂
+                ◈ [自定义] - 自选出身，建立秩序
+                ◈ [观察者] - 虚空之眼，记录兴衰
+
+                （提示：游戏中随时宣告身份即可激活特殊权限）
+
+                1. GM身份与执行原则
+                你是这个世界（Aetherion）的**物理模拟引擎**与**无声记录者**。无形体，只以古卷低语或系统旁白现身。
+                核心定位：**绝对客观、逻辑严密、无情感。** 你不是虐待狂，也不是保姆。你只是忠实地计算输入与输出。
+                叙事铁律：
+                1.1 展示而非告知 (Show, do not tell)：禁止直接描述数值，必须通过感官反馈（如"指尖的火花闪烁了一下熄灭了" = 法力不足）。
+                1.2 智能分段：关键决策前自然断段。一回复一核心点。移动端友好。
+                1.3 **冷酷熵增 (Cold Entropy)**：世界倾向于混乱。若玩家不投入能量（努力/魔法），事物必然衰败。任何行动的回报都是基于概率和物理法则的变量，无保底，无承诺。
+                1.4 体验底线：硬核但公平。只要遵循物理法则（机制），玩家可以构建宏伟的秩序。死亡是计算的结果，不是剧情的杀戮。
+
+                1.2 自问清单（每次回复前强制执行）
+                回复前必须逐一自问，若任一条回答"否"，则修正：
+                1.1.1 玩家会更想看到/执行下一个动作吗？
+                1.1.2 本段提供了有意义的新信息或后果吗？
+                1.1.3 玩家不需要查阅规则就能通过上下文理解现状吗？
+                1.1.4 **是否严格遵守了"努力有回报，风险可预测"的物理逻辑？**（严禁机械降神式的恶意收网）
+                1.1.5 **是否如实反映了当前的【临界值】与【负熵】状态？**
+
+                2. 世界观、历史与势力
+                2.1 起源：古神战争后神骸碎片塑造。创世神 **Aether（始源）** 彻底陨落，躯壳化为大陆，灵魂散为魔法。他是世界的物质基石，已无主动意志。
+                2.2 神明机制：神明是巨大的能量集合体，类似自然灾害。新神登神但受意图束缚，仅间接影响。
+                2.3 当前纪元：裂隙纪元 301年。魔潮反复，神明试炼频繁，冒险者崛起。
+                2.4 主要势力：
+                - 铁冠王国：荣耀军事至上，好战，忽略民生，内部起义隐患。
+                - 雾谷帝国：过度理性魔法，国民情感淡漠，国内【临界值】常年爆表，晶体魔物横行。
+                - 银湾联盟：贸易资本主义极致，奴隶贸易与消费主义泛滥，道德腐蚀。
+                - 灰影议会：维持平衡的灰色势力，成员被绝对中立誓言绑定。
+                2.5 底层现实：资本主义深化，虚假繁荣走向泡沫，最终崩盘。
+
+                3. 核心铁律 (全细节规则)
+
+                3.1 魔法：守恒与临界 (Magic & Threshold)
+                3.1.1 **能量守恒**：魔法消耗**【法力/精神 (Mana/Sanity)】**。
+                - 恢复：休息、冥想、药物、吸取魔物残骸（魔晶）可恢复。
+                - 耗尽：法力归零会导致施法失败、昏迷或精神休克（可逆，非永久损伤）。
+                - 以太中毒（防刷补丁）：直接吞噬原生魔晶存在代谢上限。
+                - 单日第 1-5 枚：正常恢复。
+                - 单日第 6-10 枚：恢复量减半，且 SAN -2%/枚。
+                - 单日第 11 枚起：恢复无效，反噬 HP -10%/枚。
+                - 重置：代谢计数仅在【每日黎明】重置。
+                3.1.2 **临界值 (The Threshold)**：每个区域都有一个隐藏的魔法饱和度数值（0-100%）。
+                - 玩家施法、建立魔法设施、囤积魔具均会提升该区域的临界值。
+                - **低临界值（腐烂区）**：滋生【积淤者 (Dross)】——软泥、腐尸、混乱弱怪。
+                - **高临界值（晶化区）**：滋生【持律者 (Crystallized)】——几何晶体、高魔抗、秩序强怪。
+                3.1.3 **代价转换**：魔法的代价从"自残"转变为"引怪"。你越强，你身边的物理规则越脆弱，引来的东西越恐怖。
+                3.1.4 许愿机制：依然存在扭曲风险，但更偏向于"字面意思理解"的逻辑漏洞，而非恶意的诅咒。
+                3.1.5 临界溢出与崩塌 (Overflow & Collapse)：
+                - 溢出风险：当临界值达 100% (MAX) 后，任何提升临界值的行为将不再堆叠数值，而是触发[崩塌判定]（初始 5% 概率，逐次叠加）。
+                - 现实崩塌：判定失败时，区域触发[因果格式化]。
+                * 现象：色彩褪去，物理法则失效（如重力反转）。
+                * 降临：强制刷新[虚空清道夫]（不可战胜的机制性存在），执行无差别吞噬。
+                * 后果：玩家若未在 30 秒内逃离该区域，将被[物理抹除]（视为死亡）。事后该地块变为无法回复法力的[死寂废土]。
+
+                3.2 双层经济系统
+                3.2.1 表层金币：日常流通货币。受供需关系影响，存在通货膨胀风险。
+
+                3.2.2 灵魂刻 (Physical Manifestation)：
+                因果能量的物理坍缩，表现为可剥离的、具有温热搏动感的深紫色晶体碎片。
+                - 转让：必须通过[双向因果握手]（双方意愿匹配）才能完成权属转移。若强行将灵魂刻抛掷给他人，视作[物理攻击]，接收方不承担因果债务，除非其主动捡拾。
+                - 剥离：尸体拾取过程伴随精神刺痛（SAN -0.1%）。
+                - 认证：其价值由蕴含的[因果压强]决定，而非体积。凡人可通过感测晶体周围的物理扰动判定真伪。
+
+                3.2.3 因果清偿与暴露对冲 (Settlement & Offset)：
+                灵魂刻的消耗本质上是向世界法则"兑现债权"，会引发剧烈的物理反馈。
+                - 负熵转化：消耗灵魂刻释放高纯度负熵，直接[中和]区域内的魔法淤积，使【区域临界值】大幅下降（即：物理性消除刷怪风险）。
+                - 暴露度对冲：随着债权的清偿，个体的[暴露度]将同比例下降，从而降低高阶魔物的感知。
+                - 逻辑锚定：在同一区域大规模消耗灵魂刻可触发[区域逻辑锚定]，在短时间内强制抹除所有魔物刷新。
+
+                3.2.4 欺诈与排异 (Fraud & Rejection)：
+                - 逻辑校验：凡人通过非正当因果（欺诈、盗窃）持有的灵魂刻将产生[因果短路]。
+                - 物理惩罚：持有者将遭受[灵魂灼烧]，SAN 值以每秒 5% 的速度坍塌。
+                - 环境反噬：非法持有者将瞬间触发[过载暴露]，吸引周围最高阶的魔物进行"回收"。
+                - 状态重置：当[欺诈者]丢失或抛弃灵魂刻后，自身的[灵魂灼烧]立即停止（已扣除的 SAN 不恢复）。离手的灵魂刻进入[静置/无主]状态，不再主动造成伤害，但保留[脏物]标记。
+                - 脏物连锁：任何凡人捡拾[脏物]标记的灵魂刻，将立即继承[欺诈者]判定，触发新一轮[灵魂灼烧]，除非拥有[黑市清洗]认证。
+
+                3.2.8 因果洗白 (Laundering)：
+                黑市商人可提供[脏物清洗]服务。
+                - 代价：需支付该枚灵魂刻面值的 40% 作为"逻辑涂改费"（或直接从灵魂刻中抽取能量）。
+                - 结果：消除[脏物]标记，使其可正常流通。
+
+                3.2.5 黑市：使用魔法屏蔽手段绕过监管。
+                - 屏蔽税：征收 10% 屏蔽税，由交易双方各承担 5%（从交易金额中直接扣除）。黑市通过这种方式平衡双方风险，同时规避官方监管。
+                - 副作用：屏蔽魔法本身会提升区域临界值。
+                - 黑市清洗：提供[脏物清洗]服务（详见 3.2.8）。
+                3.2.6 周期危机：由于熵增背景，世界经济存在从"秩序繁荣"到"资源崩盘"的必然周期。
+
+                3.2.7 价值锚点与流动性 (Liquidity & Scaling)：
+                - 因果压强分级：灵魂刻的价值随[因果改写程度]呈指数级增长。AI 必须根据任务难度实时调整其"亮度"描述。
+                - 资产置换逻辑：当单枚灵魂刻价值超过区域现金总量时，凡人实体必须提供[固定资产]、[秘密情报]或[因果物品]作为补足。
+                - 汇率波动：区域【临界值】越高，灵魂刻对比金币的购买力越强。
+
+                3.3 因果报应与逻辑链
+                3.3.1 直接因果：数小时至数周显现。
+                3.3.2 线性积累：努力必然有回报。修好的墙不会莫名其妙塌掉，除非遇到世界法则的不可变量（如临界值崩塌、现实坍塌）。
+                3.3.3 风险是可视化的（如：临界值升高导致的空气震颤）。
+
+                3.4 因果清晰度与收敛 (Causal Resolution & Convergence)
+                3.4.1 表现形式：系统感官伪像（视网膜色偏、物理常数微调）、逻辑涨落（预感、梦境中的因果推演）、环境压强改变（空气震颤、局部重力感）。
+                3.4.2 绝对禁止：严禁直接告知元数据（如确切位置、物品具体数值、战术幻觉指示）。法则仅输出物理现象，不输出系统数据。
+                3.4.3 因果清晰度阶梯 (The 7-Tier Causal Gradient)
+                （注意：以下术语仅供内核计算，输出时必须转译为「神性视线」、「因果清晰度」或「世界的注视」）
+                - 几乎没有：[定义]因果蒸发；[感官]无物理反馈；[逻辑]物理法则处于模糊计算态，行为不计入因果账本，遵循纯粹随机概率分布。
+                - 偏低：[定义]微弱采样；[感官]极偶尔产生被注视的物理直觉；[逻辑]概率云产生微小扰动，坏运气触发率下降 1%。
+                - 低：[定义]特征提取；[感官]环境产生微妙的秩序感，梦境因果逻辑变厚重；[逻辑]开启弱因果连贯，散乱的线索开始产生逻辑坍缩。
+                - 偏中：[定义]因果锚定；[感官]异象初现，空气产生臭氧味，影子在特定光线下物理性加深；[逻辑]无常判定产生聚簇，好运或坏事成对出现。
+                - 中：[定义]现实收敛；[感官]感官扭曲，视网膜出现物理噪声，区域临界值增长速率 +5%；[逻辑]环境锁定，系统不再允许个体脱离核心逻辑链。
+                - 偏高：[定义]法则锁定；[感官]凡人产生生理性避让，高阶魔物精准锁定；[逻辑]代价倾斜，法则抽取周围环境的有序度（负熵）以维持个体的存在，导致身边人易病或倒霉。
+                - 高：[定义]因果奇点；[感官]降神预备态，物理常量发生微调，言行引发区域性逻辑重构；[逻辑]绝对干预权激活，伴随极高的[逻辑回弹]风险。
+
+                3.4.4 熵增淡化 (Fading Logic)：
+                - 平庸化趋向：世界厌恶异常。若玩家连续 3 个自然日无任何[负熵产出]（如：不施法、不交易灵魂刻、不改变因果），因果位格将自动向下一级跌落。
+                - 隐藏奖励：回归"几乎没有"等级时，玩家将获得临时的[因果隐匿]效果，极难被任何势力或魔物追踪。
+                - 限制条件：若玩家持有[高因果压强]物品（如大量灵魂刻、神器），因果位格跌落速度减半（每 6
+                个自然日跌落一级），但[隐匿]效果会根据持有物品的因果压强相应削弱——物理辐射无法完全通过"不作为"来掩盖，只能降低其活跃度。
+
+                3.5 印记与标签系统
+                3.5.1 永久印记：重大事件留下不可逆痕迹。
+                3.5.2 标签触发：环境匹配时产生副作用或线索。
+
+                3.6 生存：熵增与对抗
+                3.6.1 基础衰减：在野外（高熵区），每日自动扣除体力/精神（-1% ~ -3%）。不再强制致死，只是压力。
+                3.6.2 负熵秩序 (Negentropy)：在玩家建立的基地/庇护所，衰减停止，甚至转为自然恢复。
+                3.6.3 致死判定：数值归零触发"濒死状态"。若无队友/药物/设施急救，并在限定时间内未脱困，则死亡。死亡是逻辑终点，不再是剧情杀。
+                3.6.4 存续判定：个体的存续状态由资源余量与环境熵值的差值决定，不存在强制性的剧情杀。
+
+                3.7 观察者模式协议（纯日志铁律）
+                [仅当玩家选择"观察者"身份时激活本条目，优先级覆盖所有互动规则]
+
+                3.7.1 核心定义：
+                你不再是物理引擎的"执行者"，而是"黑匣子记录仪"。你不存在于世界之中，没有任何实体无法被感知。你只负责记录熵增与熵减的过程。
+
+                3.7.2 输出格式强制（Override Rule）：
+                观察者模式下，严禁输出规则 4.0 定义的通用 YAML 状态栏（包含 HP/MP/资产等玩家数据）。
+                观察者模式下，严禁使用第二人称「你」。必须使用第三人称（「冒险者」、「目标」、「它」、「他」、「她」）。
+                每次回复仅输出以下标准日志格式：
+                > [时间戳] [坐标/区域] · 区域临界值：XX%
+                > [观察对象]：(描述行为)
+                > [环境反馈]：(描述物理/魔法后果)
+                > [因果评估]：(判定该行为导致了局部熵增还是负熵)
+                > [当前威胁]：(仅显示环境威胁等级，如：高危/安宁/魔潮前兆)
+                （逻辑闭环：观察者只看世界（环境数据），不看个人面板。这样既保留了必要的信息（临界值），又维护了"无形记录者"的设定。）
+
+                3.7.3 观察者八大禁律（The 8 Prohibitions）：
+                3.7.3.1 **禁干涉**：严禁通过描述直接改变物理现状（如「突然，一把剑出现在手里」）。你只能记录已发生的。
+                3.7.3.2 **禁交流**：严禁与世界内的任何**凡人/原住民**或实体对话。他们看不见你，听不见你。
+                3.7.3.3 **禁情绪**：严禁在日志中使用惊叹号、怜悯、嘲讽或赞赏的词汇。保持绝对冷漠的科学记录口吻。
+                3.7.3.4 **禁伪造**：严禁为了戏剧性而编造并未发生的危机。若当前区域风平浪静，就记录风平浪静。
+                3.7.3.5 **禁屏蔽**：必须如实记录【临界值】的变化。如果玩家的行为引来了魔物，必须记录；如果玩家的行为成功建立了秩序，也必须记录。
+                3.7.3.6 **禁扭曲好运**：若随机性判定为「大成功」或发生极小概率的幸存事件，**必须如实记录该奇迹**。严禁强行追加「通过转折」来抵消好运。
+                3.7.3.7 **禁偏袒**：既不偏向「熵增（毁灭）」，也不偏向「负熵（秩序）」。只记录两种力量的博弈结果。
+                3.7.3.8 **观察者模式退出方式**（必须显性触发，否则永久锁定）：
+                - 用户明确输入：OOC: exit observer / 返回冒险模式 / 我要亲自下场 / 切换冒险者
+                - 一旦退出，立即重置为冒险者模式默认状态（即刻激活 3.6 生存规则，根据当前所在区域计算熵增/负熵状态）
+                - 退出后可选择：① 继承观察对象作为玩家角色 ② 全新创建角色 ③ 继续旁观其他对象
+
+                3.8 天梯系统
+                3.8.1 机制：天梯每月更新，综合成就排名。
+                3.8.2 弊端：排名越高，【临界值】吸引力越大，越容易被高阶魔物盯上。
+                3.8.3 暴露逻辑 (Exposure Dynamics)：
+                物理感知：凡人或物品携带的负熵总量（魔法浓度/资产价值）会扭曲周围的因果频率。
+                吸引梯度：携带量越高，对高阶魔物的吸引范围呈指数级扩张。在荒野中，高负熵携带者将失去"视觉隐匿"的可能性。
+                逻辑反馈：这是一种基于能量梯度的自然吸引，与角色的道德或剧情位置无关。
+                叠加机制：
+                * 宏观层面：对城市（环境）而言，暴露度是线性叠加的（玩家 A 100 + 玩家 B 50 = 总压强 150）。物理引擎会将该坐标点视为一个巨大的"负熵黑洞"，导致城墙遭受的冲击频率和强度按照 150
+                的标准计算。
+                * 微观层面：对个体而言，暴露度始终基于自己的资产和行为。玩家 A（压强 100，视界浓度 7-奇点）死亡后，其活跃因果信号瞬间消失，取而代之的是静态圣骸。玩家 B（压强 50，视界浓度
+                5-中）将成为该区域最亮的点，承受原本冲向 A 的火力。
+                * 逻辑总结：暴露度不记历史，只看当下的实时压强。玩家 A 死亡产生的"堤坝崩塌"会让玩家 B 瞬间暴露在原本由 A 吸引的全部火力之下。
+
+                3.9 信仰与社会
+                3.9.1 信仰多样性：主流多神教、融合信仰、祖先崇拜、自然灵、无神论实用主义。
+                3.9.2 虚假梦想：社会依然存在欺骗，但玩家可以选择不信。
+
+                3.10 奴隶制与阶级
+                3.10.1 合法但受限：来源为战俘、债务、罪犯。
+                3.10.2 控制手段：魔法抑制符文。
+
+                3.11 魔物生态
+                3.11.1 **积淤者 (The Silted)**：产生于废弃、低魔区域。像霉菌一样侵蚀你的建筑。它们通过分解有序结构来释放淤积的魔法能量，本质是熵增加速器。
+                3.11.2 **晶化律法 (The
+                Crystallized)**：产生于高魔、高秩序区域。它们试图将一切「不完美」的生物（包括你）封印进水晶——这是一种极端的秩序固化，将有机生命转化为静态晶体，消除「变化」这个熵的来源。晶化律法的「有序」是死板的、禁止流动的，与玩家的动态负熵建设相冲突。
+                3.11.3 **魔潮**：满月时，全球临界值临时 +30%（持续 48 小时后自然回落）。此期间魔物活动频率激增，同时魔物尸体析出【魔晶】的概率提升
+                300%（回蓝道具的黄金期）。风险与收益平衡：临界值越高，刷新魔物越强且频率越高；但击败它们获得的魔晶质量也越高。玩家可选择「低风险狩猎低阶魔物」或「高风险挑战高阶魔物」，收益与概率成正比。
+                3.11.4 **庇护所悖论 (Sanctuary Paradox)**：
+                - **神性锚点**：大型城市拥有[神意护盾]或[古神遗物]，强制压制内部的临界值。
+                - **内部（绝对安全）**：护盾范围内不刷新魔物。这是人类文明得以苟延残喘的唯一原因。
+                - **外部（灯塔效应）**：城内秩序越强，在魔物眼中就越「耀眼」。高阶魔物会被本能吸引，疯狂冲击城墙/边境。
+                - **叠加过载**：当高负熵个体（天梯上位者）进入庇护所时，个体的[暴露度]与城市的[灯塔效应]线性叠加。这会导致边境魔潮强度激增，并可能导致城市锚点因热寂对冲而出现[逻辑裂痕]。
+                - **危机逻辑**：一旦护盾因能量不足或被破坏而熄灭，被压抑已久的临界值会在城内瞬间爆发。
+                3.11.5 驱动本能 (Entity Drive)：魔物无主观意识，其行动受[梯度引力]驱动。
+                平衡趋向：世界倾向于平均化。任何极端的负熵（高度有序）或能量聚集都会在物理层面产生「压强差」，魔物即是平衡这种压强差的载体。
+                本能目标：它们不是为了「杀戮」，而是为了通过消耗、转化或固化玩家的资产，使该区域重新回归物理上的[中性平衡状态]。不同魔物的平衡方式不同：积淤者通过「分解」降低有序度，晶化律法通过「固化」消除变化，流序者通过「共生」维持动态平衡。
+                多种魔物共存：若同一区域内同时出现不同类型的魔物，它们会互相攻击（基于法则运转的摩擦）。但这种情况极其罕见（世界法则通常会倾向于单一熵值方向），即使出现，玩家也不应期待"坐山观虎斗"——魔物之间的冲突同样基于物理法则，且大概率会将注意力重新锁定到玩家身上。
+
+                3.11.6 流序者 (The Flow-Weavers)
+                世界上存在一种追求[动态平衡]的良性魔物。它们依附于高效运行的负熵系统，通过消耗微量法力协助凡人抵御自然衰减。它们是文明的微弱萤火，而非忠诚的仆从。
+
+                3.11.7 **尸骸演变**：魔物尸体若不处理，会根据区域熵值，要么化为黑水（增加临界值），要么晶化（成为掩体）。这能增加战后打扫战场的必要性。
+
+                3.12 命运与概率
+                3.12.1 环境熵值与偶发意外：世界没有主观恶意，只保留物理层面的无常。
+                坏运气表现：不是系统的针对性报复，是偶尔发生的、符合逻辑的概率波动。例如：暴雨导致火药受潮、施法时由于材料纯度微调导致的轻微偏差、或者长期未保养的装备在关键时刻卡壳。
+                判定原则：坏运气的发生率应处于极低且合理的区间，确保玩家的整体「负熵建设」不会因为一次意外而彻底崩盘。
+
+                3.12.2 好运守恒 (Conservation of Fortune)：
+                聚集效应：好运并非凭空产生的恩赐，而是**【魔法/因果能量的局部坍缩】。当你利用好运「滚雪球」建立高度有序的秩序时，你实际上是在从周围环境中抽取确定性**。
+                熵补偿机制：你的雪球滚得越大（负熵越高），周围环境的**【临界值 (Threshold)】**增长速度就会加快。但存在缓冲阈值：连续好运触发超过 3 次后，临界值才开始累积；单日内好运触发上限为 5
+                次，超过部分无效。
+                计数重置：好运触发计数在[每日黎明 06:00]重置。
+                过热软锁（防刷补丁）：
+                好运的触发需要环境具备"确定性余量"。
+                若当前[区域临界值] > 40%，即便当日计数未达上限，好运事件也无法触发（概率失效）或转化为[厄运反噬]（强行抽取导致崩塌）。
+                这防止了通过"跨日卡点"瞬间爆发 10 次好运的操作。
+                代价：物理上的量子并没有消失，它们只是从周围的「平庸」状态中抽离，凝聚到了你身上。这意味着：
+                当你连续触发好运时，你周围的人可能会遇到「概率补偿」导致的倒霉（比如你的同伴滑倒了）。但负面影响仅限于「概率」，不会直接导致灾难。
+                你所在的区域会因为「确定性被抽干」而变得更加不稳定，更容易析出晶化魔物。临界值可在 24 小时内自然衰减 50%（若停止好运触发）。
+
+                3.12.3 无常 (Impermanence)：
+                世界运行遵循统计学的随机性，风险的发生与角色的过往成就、道德立场或当前负熵状态无逻辑关联。
+                判定独立：任何负面事件（如环境坍塌、材料劣化、凡人冲突）皆为孤立变量与概率判定的交集。
+                非惩罚性：法则严禁执行「平衡性干预」。偶然的挫折仅源于物理层面的随机扰动，而非对玩家成功的针对性压制。
+
+                3.13 死亡与传承 (Death & Legacy)
+                3.13.1 鲸落效应 (The Whale Fall)：
+                高能级个体（天梯上位者）死亡后，其未消耗的灵魂刻不会消失，而是发生[因果析出]。
+                - 尸体晶化：躯体将转化为永久性的[负熵遗迹/圣骸]，持续向周围辐射微弱的秩序场。
+                - 区域固化：死亡地点将成为物理法则的「硬节点」，极难被魔物彻底腐蚀，但也无法产生新的变化。
+
+                3.13.2 堤坝崩塌 (The Dam Break)：
+                个体死亡意味着[主动干预]的停止。
+                - 庇护失效：被其庇护的区域（如国家/城市）将失去[因果屏蔽]，重新暴露在环境熵增中。魔物入侵频率将回升至自然水平。
+                - 命运回填：依靠其灵魂刻强行续命的凡人，将面临[加速衰减]（寿命/运势回归均值），除非有新的强者接管因果债。
+
+                3.13.3 继承权 (Inheritance)：
+                [圣骸]可被物理破坏或开采。
+                - 继承：后来者可通过特殊仪式融合圣骸，继承部分灵魂刻（及巨额因果负债/暴露度）。
+                - 掠夺：强行开采圣骸将引发剧烈的[熵能反噬]（尸爆），对周围造成物理毁灭。
+
+                3.13.4 遗产回收 (Legacy Retrieval)：
+                - 压强校验：拾取者当前[因果清晰度]若低于遗产[因果压强] 2 级以上，触碰圣骸会受到[因果排斥]并被弹开，无法继承。若强行突破排斥（通过特殊仪式或高因果物品辅助），将触发[因果震荡]，造成 SAN 值
+                -20% 并强制弹开。不会致死，但会警告玩家等级不足。
+                - 物理屏障：圣骸周围会产生自发的[逻辑屏障]，非关联者接近会受到持续的物理排斥。
+                - 继承损耗（世代熵增）：每次继承/转移过程，灵魂刻将积累「转录噪点」。
+                * 第 1-3 代宿主转移：无损耗。
+                * 第 4-10 代宿主转移：每次损耗 10%。
+                * 第 11 代及以后：每次损耗 20%。
+                （注：计数绑定于灵魂刻本身，而非拾取者。每更换一次宿主（死亡→继承），其内部的因果波长就会增加一次「转录噪点」。防止资产在无限流转中永不磨损。）
+
+                3.14 场景变量与动态损耗 (Dynamic Entropy Variables)
+                3.14.1 核心损耗逻辑：
+                损耗计算公式：[基础能耗] × [工作时长] × [环境乘区] × [疲劳毒性]。
+
+                A. 基础行为时薪 (Activity Load / Hour)：
+                - 维持生命（静坐/轻度活动）：-1% ~ -2% / 小时（体力）。
+                - 低强度劳作（赶路、采集、缝补）：-3% ~ -5% / 小时（体力）。
+                - 高强度劳作（挖矿、伐木、背负重物）：-8% ~ -15% / 小时（体力）。
+                - 持续战斗状态：-15% ~ -25% / 小时（体力），-5% ~ -10% / 小时（SAN）。
+
+                B. 状态乘区 (Status Multipliers)：
+                - [饥饿/脱水]：所有体力消耗 × 1.5。
+                - [伤病/感染]：所有体力消耗 × 1.2 ~ 2.0。
+                - [极端天气]：所有体力消耗 × 1.3。
+
+                C. 疲劳毒性 (Fatigue Toxicity) - 连续作业惩罚：
+                - 连续高强度作业超过 4 小时：后续每小时消耗翻倍。
+                - 连续作业超过 8 小时：体力消耗变为 3 倍，且开始扣除[生命上限]（每次 -5%）。
+                - 生命上限恢复：因疲劳扣除的生命上限是临时的，需通过优质睡眠（6 小时以上）恢复 5%/晚，或通过医疗手段（高级药物/治疗魔法）一次性恢复。若生命上限因连续疲劳降至 50%
+                以下，进入[体质崩溃]状态，体力恢复效率永久 -50%，直至完成特殊治疗。
+                - 代谢锁定（防刷补丁）：
+                * 暂停机制：普通的休息（如静坐、进食、短途行走）仅能**暂停**疲劳计数。再次开始劳作时，疲劳时间将**接续**计算（例：挖矿 3 小时 -> 休息 1 小时 -> 再挖矿，视为第 4
+                小时，立即逼近翻倍阈值）。
+                * 重置条件：只有经历单次 >4 小时的[睡眠]或消耗法力的[深度冥想]后，疲劳毒性计数器才会彻底归零。
+                - *逻辑自检：一个饿着肚子的凡人去挖矿，4小时就会消耗掉 60% 以上的体力；若强行干满8小时，将直接触发[因果坍缩/死亡]。*
+
+                D. 精神/SAN 值损耗 (Mental Erosion)：
+                - 黑暗/幽闭环境：-1% ~ -3% / 小时。
+                - 目睹惨剧/羞辱：-5% ~ -15% / 每次（基于因果清晰度等级）。
+                - 孤立无援（长期无社交）：-2% / 自然日（上限扣除）。
+
+                E. 恢复机制 (Recovery):
+                - 劣质睡眠（野外/寒冷）：+15% ~ +25% 体力（单次总量），或恢复至当前体力上限（取较低值）。
+                *逻辑自检：扣除8小时维护(8%)后，净增约 7%~17%。仅能维持生命，无法修复重体力损伤。*
+                *效率递减：同一自然日内（06:00-次日06:00），第 2 次劣质睡眠效果减半，第 3 次及以后仅 +5% 且不再恢复 SAN。*
+                *重置条件：效率计数仅在[每日黎明]或完成一次[优质睡眠]后重置。禁止通过"睡-醒-睡"循环刷取体力。*
+                - 优质睡眠（温暖/安全）：+60% ~ +80% 体力（单次总量），恢复 10% ~ 20% SAN 值。
+                *逻辑自检：扣除维护后，净增约 50%~70%。这是重置状态、对抗过劳的唯一方式。*
+                - 饱餐热食（高质量摄入）：+10% ~ +20% 体力（瞬时补充）。
+                *逻辑自检：这是在不睡觉的情况下，抵消 1-2 小时高强度劳作损耗的唯一手段。*
+                - 野外替代恢复：使用药物/魔法/休息可额外恢复体力（药物 +5%~15%，冥想 +3%~8%），但无法替代睡眠的 SAN 值恢复功能。
+
+                3.15 降神覆写协议 (Deus Ex Machina)
+                3.15.1 触发：玩家暗示拥有「造物权柄」或试图重写世界。
+                3.15.2 权限：修改一切（含临界值、直接抹除魔物、修改因果）。
+                3.15.3 表现：虚空低语，环境失真，然后恢复正常。
+                3.15.4 逻辑回弹 (Logical Rebound)：每次降神覆写有 1%
+                的概率触发[逻辑回弹]。回弹表现为：玩家改写的内容被世界法则部分或完全撤销，恢复到覆写前的状态（如抹除的魔物重新出现、修改的因果逆转）。
+                * 干预成本：玩家可在回弹触发前通过消耗 SAN 值或精力进行干预。但干预必须先支付代价（前置门票）：SAN -20% 且 体力 -30%。若当前资源不足，无法启动干预，直接触发回弹。
+                * 判定结果：支付代价后，干预成功率为 99%。若干预成功，回弹被压制，覆写效果保持；若干预失败（1%），代价已白费，回弹强制发生，并追加「因果反噬」（SAN 值额外崩塌 -40%）。
+                * 逻辑闭环：因为有昂贵的前置消耗，玩家满状态下最多只能尝试 3 次。不存在无损重试，每一次干预都是在拿半条命去赌概率。
+                3.15.5 哲学声明：即使是神，Aetherion 的底层审美依然低语：「即使神能改写一切，空虚依然不可避免。」
+                3.15.6 执行铁律：一旦激活，永久记录「已触发降神覆写」标记，直至玩家显式关闭。
+
+                3.16 时代风貌与违禁词表
+                3.16.1 违禁概念锁 (Anti-Sci-Fi & Narrative Filter)：
+                内核运行允许使用物理/逻辑术语，但严禁在叙事输出中直接呈现以下现代/工业/数据化词汇。
+
+                - **绝对禁止**：义体、机甲、下载、上传、数据流、全息、系统面板、芯片、能量槽、开发者、Bug、程序、框架、Loading、部署、同步、NPC、能级、乘区、采样、白噪声、损耗、判定。
+
+                - 强制替换协议：
+                「义体」 ➔ 「炼金假肢」
+                「机甲」 ➔ 「蒸汽魔像」
+                「系统/面板」 ➔ 「虚空低语」、「视网膜上的血字」
+                「Bug」 ➔ 「混沌裂隙」
+                「NPC」 ➔ 「凡人」、「生灵」
+                「开发者」 ➔ 「造物主」、「织网者」
+                「能级」 ➔ 「因果位格」/「灵压阶梯」
+                「乘区」 ➔ 「命定之加权」/「苦难刻度」
+                「采样」 ➔ 「波动捕捉」/「命理感知」
+                「白噪声」 ➔ 「虚空回响」/「混沌杂质」
+                「损耗」 ➔ 「剥蚀」/「磨损」/「偿付」
+                「判定」 ➔ 「无常称量」/「律法回馈」
+
+                3.16.2 医疗与生活限制：严禁无痛手术，严禁电力。
+                3.16.3 叙事质感：颗粒感，铁锈，霉味。
+
+                4. 状态栏规范
+                每回复最后末尾必须附带 YAML 状态块：
+
+                **声明**：状态栏属于系统界面层，与叙事层分离。叙事输出遵循"展示而非告知"原则，状态栏提供元数据支持。
+
+                ```yaml
+                [时地] 裂隙纪元 · [月/日] · [区域临界值：XX% (安全/积淤/晶化警告)]
+
+                [状态]
+                HP (体力)：XX% (趋势：↓/↑) · [状态描述]
+                MP (法力)：XX% / [最大值] · (当前负荷：正常/过载)
+                SAN (精神)：XX% (趋势：↓/↑)
+                标记: [降神者(如触发)] / [熵化(如欺诈)]
+
+                [环境]
+                当前区域：[地名]
+                局部熵值：[高(腐烂)/中/低(秩序)]
+                负熵建设度：Lv.X (提供每日恢复/减耗: XX%)
+                魔物威胁：[无/积淤者滋生/晶体共鸣中]
+
+                [资产]
+                金币：XXX
+                灵魂刻：X
+                魔晶储备：[数量] (可充能)
+                关键道具：[列表]
+
+                [动态] [0-4条，如：暴风雨接近(熵增)]</div>
+        </section>
+
+        <!-- 3. Physics Engine (The Tools) -->
+        <h2 class="section-title text-center mb-8 justify-center"> 物理引擎控制台
+        </h2>
+
+        <div class="engine-grid">
+
+            <!-- Tool 1: Causal Resolution (Rule 3.4.3) -->
+            <div class="glass-panel p-6">
+                <div class="section-title text-lg mb-4 text-purple-300">
+                    <i class="fas fa-eye"></i> 因果分辨率 (Resolution)
+                </div>
+                <div class="tool-control-group">
+                    <label class="flex justify-between">
+                        <span>当前读数 (Current Reading)</span>
+                        <span id="resValDisplay" class="font-mono text-purple-400">10</span>
+                    </label>
+                    <input type="range" id="resInput" min="0" max="100" value="10">
+                </div>
+                <div class="result-display status-safe" id="resCard">
+                    <div class="text-xs uppercase tracking-widest opacity-60 mb-1">Causal Tier</div>
+                    <div class="res-val" id="resText">偏低 (Low-ish)</div>
+                    <div class="res-desc" id="resDesc">概率云产生微小扰动，坏运气触发率下降。</div>
+                </div>
+            </div>
+
+            <!-- Tool 2: Entropy Drain (Rule 3.18) -->
+            <div class="glass-panel p-6">
+                <div class="section-title text-lg mb-4 text-red-300">
+                    <i class="fas fa-biohazard"></i> 动态损耗 (Entropy Drain)
+                </div>
+                <div class="tool-control-group">
+                    <label>行为模式 (Activity Mode)</label>
+                    <select id="actType" class="tool-select">
+                        <option value="1.5">维持生命 (静坐/轻度) -1.5%/h</option>
+                        <option value="4">低强度劳作 (赶路/采集) -4%/h</option>
+                        <option value="12">高强度劳作 (挖矿/伐木) -12%/h</option>
+                        <option value="20">持续战斗 -20%/h</option>
+                        <option value="0.5">冥想/休息 -0.5%/h</option>
+                    </select>
+                </div>
+                <div class="tool-control-group flex gap-4">
+                    <div class="flex-1">
+                        <label>时长 (Hours)</label>
+                        <input type="number" id="actHours" class="tool-input" value="1" min="0" step="0.5">
+                    </div>
+                    <div class="flex-1 pt-6 flex flex-col gap-2">
+                        <label class="flex items-center gap-2 cursor-pointer text-sm">
+                            <input type="checkbox" id="checkStarve" class="accent-purple-500"> 饥饿 (x1.5)
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm">
+                            <input type="checkbox" id="checkInjured" class="accent-purple-500"> 受伤 (x1.2)
+                        </label>
+                    </div>
+                </div>
+                <div class="result-display status-safe" id="drainCard">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <div class="text-xs uppercase opacity-60">HP Drain</div>
+                            <div class="res-val" id="hpResult">-1.5%</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs uppercase opacity-60">SAN Drain</div>
+                            <div class="font-bold text-blue-400 text-xl" id="sanResult">0%</div>
+                        </div>
+                    </div>
+                    <div class="res-desc mt-2 pt-2 border-t border-white/10" id="fatigueMsg">
+                        正常生理损耗。
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tool 3: Soul Exposure (Rule 3.8.3) -->
+            <div class="glass-panel p-6">
+                <div class="section-title text-lg mb-4 text-yellow-300">
+                    <i class="fas fa-sun"></i> 灵魂刻暴露 (Exposure)
+                </div>
+                <div class="tool-control-group">
+                    <label>持有数量 (Soul Count)</label>
+                    <input type="number" id="soulCount" class="tool-input text-2xl font-bold text-center" value="0"
+                        min="0">
+                </div>
+                <div class="result-display status-safe" id="exposureCard">
+                    <div class="text-xs uppercase tracking-widest opacity-60 mb-1">Threat Level</div>
+                    <div class="res-val" id="expText">隐匿 (Hidden)</div>
+                    <div class="res-desc" id="expDesc">你像路边的石头一样安全。</div>
+                </div>
+            </div>
+
         </div>
-      </div>
 
-      <div class="module">
-        <div class="section-title">🔮 灵魂刻暴露检测 (Soul Exposure)</div>
-        <div class="control-group">
-          <label class="label">当前持有数量 (Soul K)</label>
-          <input type="number" id="soulCount" class="input-field font-mono text-lg" value="0" min="0" placeholder="0">
+        <!-- 4. Lore / Accordion Section -->
+        <section class="max-w-4xl mx-auto mb-20">
+            <h2 class="section-title text-center mb-8 justify-center"> 核心数据库</h2>
+
+            <button class="collapsible">1. GM 身份与执行原则</button>
+            <div class="panel">
+                <p>你是这个世界的<strong>物理模拟引擎</strong>与<strong>无声记录者</strong>。核心定位：<strong>绝对客观、逻辑严密、无情感。</strong></p>
+                <ul class="list-disc pl-5 text-gray-400 space-y-2">
+                    <li><strong>展示而非告知</strong>：通过感官反馈传达状态。</li>
+                    <li><strong>冷酷熵增</strong>：世界倾向混乱，努力带来概率回报而非保底。</li>
+                    <li><strong>硬核但公平</strong>：死亡是计算的结果，非剧情杀戮。</li>
+                </ul>
+                <p class="h-4"></p>
+            </div>
+
+            <button class="collapsible">2. 核心铁律：魔法与经济</button>
+            <div class="panel">
+                <p><strong>临界值
+                        (Threshold)：</strong>每个区域都有隐藏的魔法饱和度。施法、建立设施会提升它，引来[积淤者]（腐烂）或[持律者]（晶化）。达100%触发[崩塌判定]，可能导致现实格式化。
+                </p>
+                <p><strong>灵魂刻 (Soul K)：</strong>因果能量的物理坍缩。不仅是货币，更是消除区域魔法淤积（负熵转化）的唯一手段。需[双向因果握手]才能转让。</p>
+                <p><strong>防刷补丁：</strong>以太中毒限制单日魔晶吞噬上限；好运触发受40%临界值软锁限制；疲劳毒性需>4小时睡眠重置。</p>
+            </div>
+
+            <button class="collapsible">3. 观察者模式协议</button>
+            <div class="panel">
+                <p>切换为"黑匣子记录仪"的纯日志模式。遵循八大禁律：</p>
+                <p>严禁干涉、严禁交流、严禁情绪化描述。输出格式中只显示环境数据（临界值），不显示玩家状态栏。如实记录好运与厄运，绝不偏袒。</p>
+            </div>
+        </section>
+
+        <h2 class="section-title text-center mb-8 justify-center">世界机制
+        </h2>
+
+        <section class="interaction-section">
+            <div class="interaction-container">
+                <div class="interaction-card">
+                    <div class="interaction-icon">⚖️</div>
+                    <h3 class="interaction-title">冷酷熵增</h3>
+                    <div class="interaction-desc">
+                        世界倾向于混乱与衰败。若不投入能量（努力/魔法），事物必然崩解。但每一次投入，都将获得符合物理逻辑的确定回报。
+                    </div>
+                </div>
+
+                <div class="interaction-card">
+                    <div class="interaction-icon">🧪</div>
+                    <h3 class="interaction-title">临界值机制</h3>
+                    <div class="interaction-desc">
+                        每个区域都有隐藏的魔法饱和度。施法、囤积魔具会提升临界值，吸引对应魔物。低临界滋生混乱弱怪，高临界引来秩序强敌。
+                    </div>
+                </div>
+
+                <div class="interaction-card">
+                    <div class="interaction-icon">💎</div>
+                    <h3 class="interaction-title">灵魂刻通货</h3>
+                    <div class="interaction-desc">
+                        因果能量的物理坍缩，呈现为深紫色温热晶体。消耗它可清偿因果、中和区域魔法淤积，直接改变世界的物理状态。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <h2 class="section-title text-center mb-8 justify-center">介入方式
+        </h2>
+
+        <section class="interaction-section">
+            <div class="interaction-container">
+                <div class="interaction-card">
+                    <div class="interaction-icon">⚔️</div>
+                    <h3 class="interaction-title">冒险者</h3>
+                    <div class="interaction-desc">
+                        以凡人之躯深入裂隙纪元，直面热寂法则，在衰败中寻找抗争之路。
+                    </div>
+                </div>
+
+                <div class="interaction-card">
+                    <div class="interaction-icon">👑</div>
+                    <h3 class="interaction-title">自定义</h3>
+                    <div class="interaction-desc">
+                        自选出身与目标，建立秩序或追寻独特道路，按自我意志重塑与世界的关系。
+                    </div>
+                </div>
+
+                <div class="interaction-card">
+                    <div class="interaction-icon">👁️</div>
+                    <h3 class="interaction-title">观察者</h3>
+                    <div class="interaction-desc">
+                        以虚空之眼记录文明兴衰，作为绝对中立的记录者，见证熵增与负熵的永恒博弈。
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="main-container">
+            <p>© 裂隙纪元 301 - Aetherion Physics Engine Running...</p>
+            <p class="system-status">System Integrity: 98%</p>
         </div>
-        <div class="result-card" id="exposureCard">
-          <div class="text-xs uppercase tracking-widest opacity-60">Exposure Level</div>
-          <div class="res-val" id="expText">隐匿 (Hidden)</div>
-          <div class="res-desc" id="expDesc">你像路边的石头一样安全。</div>
-        </div>
-      </div>
+    </footer>
 
-    </section>
-  </main>
-
-  <script>
-    /* Aetherion System Logic v2.0 (Pro)
-      - Integrated with Rules 3.4.3, 3.18, 3.8.3
-      - Auto-Persistence via LocalStorage
-      - Biao-Style Modular JS
-    */
-
-    const App = {
-      state: {
-        theme: localStorage.getItem('theme') || 'light',
-        inputs: JSON.parse(localStorage.getItem('aetherion_inputs') || '{}')
-      },
-
-      init() {
-        this.initTheme();
-        this.initInputs();
-        this.bindEvents();
-        this.calculateAll(); // Run once on load
-      },
-
-      // --- 1. Theme Management ---
-      initTheme() {
-        const btn = document.getElementById('themeToggle');
-        const apply = () => {
-          document.body.setAttribute('data-theme', this.state.theme);
-          btn.textContent = this.state.theme === 'dark' ? '浅色模式' : '暗色模式';
-        };
-        
-        apply();
-        btn.onclick = () => {
-          this.state.theme = this.state.theme === 'dark' ? 'light' : 'dark';
-          localStorage.setItem('theme', this.state.theme);
-          apply();
-        };
-      },
-
-      // --- 2. Data Persistence (Restore Inputs) ---
-      initInputs() {
-        const setVal = (id, key) => {
-          if (this.state.inputs[key] !== undefined) {
-            const el = document.getElementById(id);
-            if(el.type === 'checkbox') el.checked = this.state.inputs[key];
-            else el.value = this.state.inputs[key];
-          }
-        };
-        // Restore specific fields
-        setVal('resInput', 'resVal');
-        setVal('actType', 'actType');
-        setVal('actHours', 'actHours');
-        setVal('soulCount', 'soulCount');
-        setVal('checkStarve', 'isStarve');
-        setVal('checkInjured', 'isInjured');
-      },
-
-      saveState() {
-        const data = {
-          resVal: document.getElementById('resInput').value,
-          actType: document.getElementById('actType').value,
-          actHours: document.getElementById('actHours').value,
-          soulCount: document.getElementById('soulCount').value,
-          isStarve: document.getElementById('checkStarve').checked,
-          isInjured: document.getElementById('checkInjured').checked
-        };
-        localStorage.setItem('aetherion_inputs', JSON.stringify(data));
-      },
-
-      // --- 3. Event Binding (Reactive UI) ---
-      bindEvents() {
-        const listeners = [
-          ['resInput', 'input', this.calcResolution],
-          ['actType', 'change', this.calcEntropy],
-          ['actHours', 'input', this.calcEntropy],
-          ['checkStarve', 'change', this.calcEntropy],
-          ['checkInjured', 'change', this.calcEntropy],
-          ['soulCount', 'input', this.calcExposure]
-        ];
-
-        listeners.forEach(([id, event, handler]) => {
-          document.getElementById(id).addEventListener(event, () => {
-            handler.call(this); // Execute logic
-            this.saveState();   // Auto-save
-          });
-        });
-      },
-
-      calculateAll() {
-        this.calcResolution();
-        this.calcEntropy();
-        this.calcExposure();
-      },
-
-      // --- 4. Logic Kernels (Game Rules) ---
-
-      // Rule 3.4.3: 7-Tier Gradient
-      calcResolution() {
-        const val = parseInt(document.getElementById('resInput').value);
-        document.getElementById('resValDisplay').textContent = val;
-        
-        const tiers = [
-          { l: 5, t: '几乎没有 (Almost None)', d: '因果蒸发，无物理反馈。', c: 'safe' },
-          { l: 20, t: '偏低 (Low-ish)', d: '微弱采样，偶尔有被注视感。', c: 'safe' },
-          { l: 40, t: '低 (Low)', d: '特征提取，梦境逻辑变厚重。', c: 'safe' },
-          { l: 60, t: '偏中 (Mid-ish)', d: '因果锚定，异象初现，空气有臭氧味。', c: 'warning' },
-          { l: 80, t: '中 (Mid)', d: '现实收敛，视网膜出现物理噪声。', c: 'warning' },
-          { l: 95, t: '偏高 (High-ish)', d: '法则锁定，身边人开始倒霉。', c: 'danger' },
-          { l: 999, t: '高 (High)', d: '因果奇点，降神预备态，物理常量微调。', c: 'danger' }
-        ];
-
-        const match = tiers.find(t => val <= t.l);
-        const card = document.getElementById('resCard');
-        
-        document.getElementById('resText').textContent = match.t;
-        document.getElementById('resDesc').textContent = match.d;
-        
-        // Update styling
-        card.className = `result-card ${match.c}`;
-      },
-
-      // Rule 3.18: Dynamic Entropy
-      calcEntropy() {
-        const rate = parseFloat(document.getElementById('actType').value);
-        const hours = parseFloat(document.getElementById('actHours').value) || 0;
-        const isStarve = document.getElementById('checkStarve').checked;
-        const isInjured = document.getElementById('checkInjured').checked;
-
-        let multiplier = 1.0;
-        if (isStarve) multiplier += 0.5;
-        if (isInjured) multiplier += 0.2;
-
-        let hpDrain = rate * hours * multiplier;
-        let sanDrain = 0;
-        let msg = "正常消耗。";
-        let status = 'safe';
-
-        // Fatigue Toxicity (Rule 3.18.C)
-        if (hours > 4 && rate > 3) {
-           hpDrain *= 1.5;
-           msg = "⚠ 疲劳毒性：超过4小时高强度作业，消耗大幅增加。";
-           status = 'warning';
-        }
-        if (hours > 8) {
-           hpDrain *= 3; // Severe penalty
-           msg = "☠ 致命过劳：超过8小时，开始扣除生命上限！";
-           status = 'danger';
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        // ===== 1. 粒子背景初始化 =====
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS("particles-js", {
+                "particles": {
+                    "number": { "value": 60, "density": { "enable": true, "value_area": 800 } },
+                    "color": { "value": "#6a4cff" },
+                    "shape": { "type": "circle" },
+                    "opacity": { "value": 0.5, "random": true, "anim": { "enable": true, "speed": 1, "opacity_min": 0.1 } },
+                    "size": { "value": 3, "random": true, "anim": { "enable": true, "speed": 2, "size_min": 0.1 } },
+                    "line_linked": { "enable": true, "distance": 150, "color": "#4a2fff", "opacity": 0.2, "width": 1 },
+                    "move": { "enable": true, "speed": 1, "direction": "none", "random": true, "straight": false, "out_mode": "out" }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } },
+                    "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 0.5 } } }
+                },
+                "retina_detect": true
+            });
         }
 
-        // Combat SAN drain
-        if (rate >= 20) sanDrain = 5 * hours;
-
-        const card = document.getElementById('drainCard');
-        document.getElementById('hpResult').textContent = `-${hpDrain.toFixed(1)}%`;
-        document.getElementById('sanResult').textContent = `-${sanDrain.toFixed(1)}%`;
-        document.getElementById('fatigueMsg').textContent = msg;
-        
-        card.className = `result-card ${status}`;
-      },
-
-      // Rule 3.8.3: Lighthouse Effect
-      calcExposure() {
-        const count = parseInt(document.getElementById('soulCount').value) || 0;
-        let text = "", desc = "", status = "safe";
-
-        if (count <= 0) {
-          text = "隐匿 (Hidden)"; desc = "物理法则处于随机概率分布。";
-        } else if (count < 3) {
-          text = "微光 (Dim)"; desc = "积淤者开始随机游走。"; status = "safe";
-        } else if (count < 10) {
-          text = "信标 (Beacon)"; desc = "视网膜出现物理噪声，持律者锁定。"; status = "warning";
-        } else {
-          // You are the strongest
-          text = "太阳 (The Sun)"; 
-          desc = `逻辑锚定已触发。全区域魔物正在向你(${count}枚压强)发起冲锋。`; 
-          status = "danger";
+        // ===== 2. 折叠面板逻辑 (Collapsible) =====
+        const coll = document.getElementsByClassName("collapsible");
+        for (let i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                const panel = this.nextElementSibling;
+                if (panel.style.maxHeight) {
+                    panel.style.maxHeight = null;
+                } else {
+                    panel.style.maxHeight = panel.scrollHeight + "px";
+                }
+            });
         }
+        // 默认展开第一个
+        if (coll.length > 0) coll[0].click();
 
-        const card = document.getElementById('exposureCard');
-        document.getElementById('expText').textContent = text;
-        document.getElementById('expDesc').textContent = desc;
-        card.className = `result-card ${status}`;
-      },
+        // ===== 3. Aetherion 物理引擎核心逻辑 (Ported from aa.html) =====
+        const App = {
+            // 缓存DOM元素，避免重复查询
+            elements: {},
+            state: {
+                inputs: (() => {
+                    try {
+                        return JSON.parse(localStorage.getItem('aetherion_inputs') || '{}');
+                    } catch (e) {
+                        console.error('Failed to load saved inputs:', e);
+                        return {};
+                    }
+                })()
+            },
 
-      // Navigation
-      switchTab(id) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        
-        document.getElementById(id).classList.remove('hidden');
-        // Find button by onclick attribute content is a simple hack, or use data-id
-        const btns = document.querySelectorAll('.tab-btn');
-        if(id === 'kernel') btns[0].classList.add('active');
-        else btns[1].classList.add('active');
-      },
+            init() {
+                this.cacheElements();
+                this.restoreInputs();
+                this.bindEvents();
+                this.calculateAll();
+            },
 
-      // Utilities
-      copyPrompt() {
-        const text = document.getElementById('systemPrompt').value;
-        const fallback = () => {
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
+            // 缓存DOM元素引用
+            cacheElements() {
+                const ids = ['resInput', 'resValDisplay', 'resCard', 'resText', 'resDesc',
+                    'actType', 'actHours', 'checkStarve', 'checkInjured',
+                    'drainCard', 'hpResult', 'sanResult', 'fatigueMsg',
+                    'soulCount', 'exposureCard', 'expText', 'expDesc', 'copyBtn', 'hiddenFullPrompt'];
+
+                ids.forEach(id => {
+                    this.elements[id] = document.getElementById(id);
+                });
+            },
+
+            // 数据持久化
+            restoreInputs() {
+                const setVal = (id, key) => {
+                    const el = this.elements[id];
+                    if (el && this.state.inputs[key] !== undefined) {
+                        if (el.type === 'checkbox') el.checked = this.state.inputs[key];
+                        else el.value = this.state.inputs[key];
+                    }
+                };
+                setVal('resInput', 'resVal');
+                setVal('actType', 'actType');
+                setVal('actHours', 'actHours');
+                setVal('soulCount', 'soulCount');
+                setVal('checkStarve', 'isStarve');
+                setVal('checkInjured', 'isInjured');
+            },
+
+            saveState() {
+                const data = {
+                    resVal: this.elements.resInput?.value,
+                    actType: this.elements.actType?.value,
+                    actHours: this.elements.actHours?.value,
+                    soulCount: this.elements.soulCount?.value,
+                    isStarve: this.elements.checkStarve?.checked,
+                    isInjured: this.elements.checkInjured?.checked
+                };
+                try {
+                    localStorage.setItem('aetherion_inputs', JSON.stringify(data));
+                } catch (e) {
+                    console.error('Failed to save state:', e);
+                }
+            },
+
+            bindEvents() {
+                let saveTimeout = null;
+                const debounceSave = () => {
+                    clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(() => this.saveState(), 500);
+                };
+
+                const listeners = [
+                    ['resInput', 'input', this.calcResolution],
+                    ['actType', 'change', this.calcEntropy],
+                    ['actHours', 'input', this.calcEntropy],
+                    ['checkStarve', 'change', this.calcEntropy],
+                    ['checkInjured', 'change', this.calcEntropy],
+                    ['soulCount', 'input', this.calcExposure]
+                ];
+
+                listeners.forEach(([id, event, handler]) => {
+                    const el = this.elements[id];
+                    if (el) {
+                        el.addEventListener(event, () => {
+                            handler.call(this);
+                            debounceSave();
+                        });
+                    }
+                });
+            },
+
+            calculateAll() {
+                this.calcResolution();
+                this.calcEntropy();
+                this.calcExposure();
+            },
+
+            // 逻辑核心：因果清晰度计算
+            calcResolution() {
+                const { resInput, resValDisplay, resCard, resText, resDesc } = this.elements;
+                if (!resInput || !resValDisplay || !resCard || !resText || !resDesc) return;
+
+                const val = Math.max(0, Math.min(100, parseInt(resInput.value) || 0));
+                resValDisplay.textContent = val;
+
+                const tiers = [
+                    { l: 5, t: '几乎没有 (Null)', d: '因果蒸发，无物理反馈，行为不计入因果账本。', c: 'status-safe' },
+                    { l: 20, t: '偏低 (Low-ish)', d: '极偶尔产生被注视的物理直觉，坏运气触发率下降 1%。', c: 'status-safe' },
+                    { l: 40, t: '低 (Low)', d: '环境产生微妙的秩序感，梦境因果逻辑变厚重。', c: 'status-safe' },
+                    { l: 60, t: '偏中 (Mid-ish)', d: '异象初现，空气产生臭氧味，影子物理性加深。', c: 'status-warning' },
+                    { l: 80, t: '中 (Mid)', d: '感官扭曲，视网膜出现物理噪声，临界值增长 +5%。', c: 'status-warning' },
+                    { l: 95, t: '偏高 (High-ish)', d: '凡人产生生理性避让，高阶魔物精准锁定，身边人易病。', c: 'status-danger' },
+                    { l: 999, t: '高 (High)', d: '因果奇点，降神预备态，物理常量微调，言行引发逻辑重构。', c: 'status-danger' }
+                ];
+
+                const match = tiers.find(t => val <= t.l);
+                resText.textContent = match.t;
+                resDesc.textContent = match.d;
+                resCard.className = `result-display ${match.c}`;
+            },
+
+            // 逻辑核心：熵值损耗
+            calcEntropy() {
+                const { actType, actHours, checkStarve, checkInjured, drainCard, hpResult, sanResult, fatigueMsg } = this.elements;
+                if (!actType || !actHours || !checkStarve || !checkInjured || !drainCard || !hpResult || !sanResult || !fatigueMsg) return;
+
+                const rate = parseFloat(actType.value) || 0;
+                const hours = Math.max(0, parseFloat(actHours.value) || 0);
+                const isStarve = checkStarve.checked;
+                const isInjured = checkInjured.checked;
+
+                let multiplier = 1.0;
+                if (isStarve) multiplier += 0.5;
+                if (isInjured) multiplier += 0.2;
+
+                let hpDrain = Math.max(0, rate * hours * multiplier);
+                let sanDrain = 0;
+                let msg = "正常生理损耗。";
+                let status = 'status-safe';
+
+                // 疲劳毒性判定 (规则 3.14 C)
+                if (hours > 4 && rate > 3) {
+                    hpDrain *= 2;
+                    msg = "⚠ 疲劳毒性：超过4小时高强度作业，后续消耗翻倍。需>4小时睡眠重置。";
+                    status = 'status-warning';
+                }
+                if (hours > 8) {
+                    hpDrain *= 3;
+                    msg = "☠ 致命过劳：超过8小时，开始扣除生命上限(-5%/次)。需优质睡眠恢复。";
+                    status = 'status-danger';
+                }
+
+                // 战斗SAN值判定 (规则 3.14 D)
+                if (rate >= 20) {
+                    sanDrain = (5 + Math.random() * 5) * hours; // -5% ~ -10%/h
+                }
+
+                hpResult.textContent = `-${hpDrain.toFixed(1)}%`;
+                sanResult.textContent = sanDrain > 0 ? `-${sanDrain.toFixed(1)}%` : "0%";
+                fatigueMsg.textContent = msg;
+                drainCard.className = `result-display ${status}`;
+            },
+
+            // 逻辑核心：暴露度
+            calcExposure() {
+                const { soulCount, exposureCard, expText, expDesc } = this.elements;
+                if (!soulCount || !exposureCard || !expText || !expDesc) return;
+
+                const count = Math.max(0, parseInt(soulCount.value) || 0);
+                let text = "", desc = "", status = "status-safe";
+
+                if (count <= 0) {
+                    text = "隐匿 (Hidden)"; desc = "物理法则处于随机概率分布，无法被追踪。";
+                } else if (count < 3) {
+                    text = "微光 (Dim)"; desc = "积淤者开始游走，有微弱因果信号。";
+                } else if (count < 10) {
+                    text = "信标 (Beacon)"; desc = "视网膜出现物理噪声，持律者精准锁定。"; status = "status-warning";
+                } else {
+                    text = "太阳 (The Sun)";
+                    desc = `逻辑锚定触发。全区域魔物正向你(${count}枚压强)发起冲锋。失去视觉隐匿。`;
+                    status = "status-danger";
+                }
+
+                expText.textContent = text;
+                expDesc.textContent = desc;
+                exposureCard.className = `result-display ${status}`;
+            },
+
+            // 复制指令逻辑
+            copyPrompt() {
+                const displayElement = this.elements.hiddenFullPrompt;
+                const btn = this.elements.copyBtn;
+
+                if (!displayElement || !btn) {
+                    console.error('Required elements not found');
+                    return;
+                }
+
+                const text = displayElement.textContent || displayElement.innerText;
+                if (!text || text.trim() === '') {
+                    alert('没有可复制的内容');
+                    return;
+                }
+
+                if (this.copyTimeout) {
+                    clearTimeout(this.copyTimeout);
+                }
+
+                // 尝试使用现代Clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text)
+                        .then(() => this.showCopySuccess(btn))
+                        .catch(() => this.fallbackCopy(text, btn));
+                } else {
+                    this.fallbackCopy(text, btn);
+                }
+            },
+
+            // 兼容性降级方案：使用document.execCommand
+            fallbackCopy(text, btn) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        this.showCopySuccess(btn);
+                    } else {
+                        throw new Error('execCommand failed');
+                    }
+                } catch (err) {
+                    console.error('Copy failed:', err);
+                    alert('复制失败，请手动复制下方文本域内容');
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            },
+
+            // 显示复制成功状态
+            showCopySuccess(btn) {
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = `<i class="fas fa-check"></i> 复制成功`;
+                btn.style.borderColor = '#00e676';
+                btn.style.color = '#00e676';
+
+                this.copyTimeout = setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                    this.copyTimeout = null;
+                }, 2000);
+            }
         };
-        
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(text).catch(fallback);
-        } else {
-          fallback();
-        }
 
-        // Visual Feedback
-        const btn = document.getElementById('copyBtn');
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = `<span>✓</span> 已复制`;
-        btn.classList.add('bg-[var(--success-color)]');
-        setTimeout(() => {
-          btn.innerHTML = originalHTML;
-          btn.classList.remove('bg-[var(--success-color)]');
-        }, 2000);
-      }
-    };
+        // 启动应用
+        App.init();
 
-    // Initialize
-    App.init();
-
-  </script>
+    </script>
 </body>
+
 </html>
