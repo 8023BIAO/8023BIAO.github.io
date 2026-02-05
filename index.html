@@ -79,6 +79,19 @@
       z-index: 100;
     }
 
+    /* 找到你 lc.html 中控制主题按钮的那个 class */
+    .theme-toggle {
+      /* 1. 背景必须是半透明的 (关键！不能是纯白或纯黑) */
+      background: rgba(255, 255, 255, 0.2);
+
+      /* 2. 核心毛玻璃滤镜 */
+      backdrop-filter: blur(10px);
+
+      /* 3. 针对 Safari 浏览器的兼容性写法 */
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+
     .theme-toggle:hover {
       opacity: 1;
       background: var(--text-color);
@@ -265,7 +278,7 @@
         </div>
       </a>
 
-          <!-- 工具卡片 2 -->
+      <!-- 工具卡片 2 -->
       <a href="o/aa" class="card">
         <div class="card-content">
           <div class="card-title">Aetherion Architect</div>
