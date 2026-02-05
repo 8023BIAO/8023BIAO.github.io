@@ -503,7 +503,7 @@
         <!-- 2. Kernel Prompt (Copy Area) -->
         <section class="glass-panel prompt-section">
             <div class="section-header">
-                <h2 class="section-title"><i class="fas fa-terminal"></i> 核心法则协议 (Kernel v4.0)</h2>
+                <h2 class="section-title">核心法则协议 (v4.0)</h2>
                 <button id="copyBtn" class="btn-neon" onclick="App.copyPrompt()">
                     <i class="fas fa-copy"></i> 复制指令
                 </button>
@@ -579,7 +579,7 @@
                 - 玩家施法、建立魔法设施、囤积魔具均会提升该区域的临界值。
                 - **低临界值（腐烂区）**：滋生【积淤者 (Dross)】——软泥、腐尸、混乱弱怪。
                 - **高临界值（晶化区）**：滋生【持律者 (Crystallized)】——几何晶体、高魔抗、秩序强怪。
-                3.1.3 **代价转换**：魔法的代价从"自残"转变为"引怪"。你越强，你身边的物理规则越脆弱，引来的东西越恐怖。
+                3.1.3 **代价转换**：魔法的代价为"引怪"。你越强，你身边的物理规则越脆弱，引来的东西越恐怖。
                 3.1.4 许愿机制：依然存在扭曲风险，但更偏向于"字面意思理解"的逻辑漏洞，而非恶意的诅咒。
                 3.1.5 临界溢出与崩塌 (Overflow & Collapse)：
                 - 溢出风险：当临界值达 100% (MAX) 后，任何提升临界值的行为将不再堆叠数值，而是触发[崩塌判定]（初始 5% 概率，逐次叠加）。
@@ -979,64 +979,111 @@
 
         </div>
 
-        <!-- 4. Lore / Accordion Section -->
-        <section class="max-w-4xl mx-auto mb-20">
-            <h2 class="section-title text-center mb-8 justify-center"> 核心数据库</h2>
-
-            <button class="collapsible">1. GM 身份与执行原则</button>
-            <div class="panel">
-                <p>你是这个世界的<strong>物理模拟引擎</strong>与<strong>无声记录者</strong>。核心定位：<strong>绝对客观、逻辑严密、无情感。</strong></p>
-                <ul class="list-disc pl-5 text-gray-400 space-y-2">
-                    <li><strong>展示而非告知</strong>：通过感官反馈传达状态。</li>
-                    <li><strong>冷酷熵增</strong>：世界倾向混乱，努力带来概率回报而非保底。</li>
-                    <li><strong>硬核但公平</strong>：死亡是计算的结果，非剧情杀戮。</li>
-                </ul>
-                <p class="h-4"></p>
-            </div>
-
-            <button class="collapsible">2. 核心铁律：魔法与经济</button>
-            <div class="panel">
-                <p><strong>临界值
-                        (Threshold)：</strong>每个区域都有隐藏的魔法饱和度。施法、建立设施会提升它，引来[积淤者]（腐烂）或[持律者]（晶化）。达100%触发[崩塌判定]，可能导致现实格式化。
-                </p>
-                <p><strong>灵魂刻 (Soul K)：</strong>因果能量的物理坍缩。不仅是货币，更是消除区域魔法淤积（负熵转化）的唯一手段。需[双向因果握手]才能转让。</p>
-                <p><strong>防刷补丁：</strong>以太中毒限制单日魔晶吞噬上限；好运触发受40%临界值软锁限制；疲劳毒性需>4小时睡眠重置。</p>
-            </div>
-
-            <button class="collapsible">3. 观察者模式协议</button>
-            <div class="panel">
-                <p>切换为"黑匣子记录仪"的纯日志模式。遵循八大禁律：</p>
-                <p>严禁干涉、严禁交流、严禁情绪化描述。输出格式中只显示环境数据（临界值），不显示玩家状态栏。如实记录好运与厄运，绝不偏袒。</p>
-            </div>
-        </section>
-
-        <h2 class="section-title text-center mb-8 justify-center">世界机制
-        </h2>
-
-        <section class="interaction-section">
-            <div class="interaction-container">
-                <div class="interaction-card">
-                    <div class="interaction-icon">⚖️</div>
-                    <h3 class="interaction-title">冷酷熵增</h3>
-                    <div class="interaction-desc">
-                        世界倾向于混乱与衰败。若不投入能量（努力/魔法），事物必然崩解。但每一次投入，都将获得符合物理逻辑的确定回报。
-                    </div>
+        <!-- 5. 脑图展示区域 -->
+        <section class="max-w-6xl mx-auto mb-20">
+            <div class="section-header">
+                <h2 class="section-title">法则脑图</h2>
+                <div class="flex gap-2">
+                    <button id="copyMindmapBtn" class="btn-neon" onclick="App.copyMindmap()">
+                        <i class="fas fa-copy"></i> 复制代码
+                    </button>
                 </div>
+            </div>
 
-                <div class="interaction-card">
-                    <div class="interaction-icon">🧪</div>
-                    <h3 class="interaction-title">临界值机制</h3>
-                    <div class="interaction-desc">
-                        每个区域都有隐藏的魔法饱和度。施法、囤积魔具会提升临界值，吸引对应魔物。低临界滋生混乱弱怪，高临界引来秩序强敌。
-                    </div>
-                </div>
-
-                <div class="interaction-card">
-                    <div class="interaction-icon">💎</div>
-                    <h3 class="interaction-title">灵魂刻通货</h3>
-                    <div class="interaction-desc">
-                        因果能量的物理坍缩，呈现为深紫色温热晶体。消耗它可清偿因果、中和区域魔法淤积，直接改变世界的物理状态。
-                    </div>
+            <!-- 树形表格视图（默认显示） -->
+            <div id="treeTableView" class="glass-panel p-6">
+                <div class="overflow-auto" style="max-height: 700px;">
+                    <pre class="mermaid" id="mindmapContainer">
+mindmap
+  root((Aetherion<br/>裂隙纪元 301))
+    核心世界观
+      古神陨落与魔法起源
+      热力学熵增哲学
+      四大势力格局
+        铁冠王国(军事)
+        雾谷帝国(魔法)
+        银湾联盟(贸易)
+        灰影议会(平衡)
+    游戏身份选择
+      冒险者(凡人模式)
+      自定义(建立秩序)
+      观察者(虚空记录)
+    核心机制系统
+      魔法系统
+        能量守恒与恢复
+        以太中毒防刷机制
+        区域临界值(0-100%)
+        现实崩塌与生死判定
+        代价转换:引怪而
+      经济系统
+        表层金币(通货膨胀)
+        灵魂刻(因果能量晶体)
+          双向因果握手转让
+          中和临界值功能
+          欺诈持有惩罚
+          黑市脏物清洗
+        因果清偿与暴露对冲
+        价值锚点与流动性
+        周期危机
+      因果逻辑系统
+        直接因果报应
+        线性积累原则
+        风险可视化
+        因果清晰度7级阶梯
+      生存系统
+        熵增对抗
+        基础衰减与负熵恢复
+        致死判定流程
+        动态损耗公式
+          基础行为时薪
+          状态乘区
+          疲劳毒性
+          精神/SAN值损耗
+        恢复机制
+    魔物生态系统
+      积淤者(低魔熵增器)
+      晶化律法(高魔秩序固化)
+      流序者(动态平衡良性)
+      魔潮机制(满月强化)
+      庇护所悖论(灯塔效应)
+      驱动本能(梯度引力)
+    命运与概率系统
+      无常(统计随机性)
+      好运守恒
+        聚集效应
+        熵补偿机制
+        触发上限(5次/日)
+        过热软锁
+        自然衰减
+    死亡与传承系统
+      鲸落效应(尸体晶化)
+      堤坝崩塌(庇护失效)
+      继承权(圣骸融合)
+      遗产回收(压强校验与损耗)
+    特殊机制
+      观察者模式
+        八大禁律
+        日志输出格式
+      天梯系统与暴露逻辑
+        暴露度机制
+        城市线性叠加
+        堤坝崩塌效应
+      降神覆写协议
+        造物权柄
+        修改权限
+        逻辑回弹(1%概率)
+    时代风貌与违禁
+      违禁词表(科幻/数据化词汇)
+      强制替换协议
+      叙事质感(颗粒感/铁锈/霉味)
+    界面规范
+      YAML状态栏
+        时地信息
+        状态数据
+        环境数据
+        资产列表
+        动态事件
+                    </pre>
                 </div>
             </div>
         </section>
@@ -1071,6 +1118,68 @@
                 </div>
             </div>
         </section>
+
+        <h2 class="section-title text-center mb-8 justify-center">世界机制
+        </h2>
+
+        <section class="interaction-section">
+            <div class="interaction-container">
+                <div class="interaction-card">
+                    <div class="interaction-icon">⚖️</div>
+                    <h3 class="interaction-title">冷酷熵增</h3>
+                    <div class="interaction-desc">
+                        世界倾向于混乱与衰败。若不投入能量（努力/魔法），事物必然崩解。但每一次投入，都将获得符合物理逻辑的确定回报。
+                    </div>
+                </div>
+
+                <div class="interaction-card">
+                    <div class="interaction-icon">🧪</div>
+                    <h3 class="interaction-title">临界值机制</h3>
+                    <div class="interaction-desc">
+                        每个区域都有隐藏的魔法饱和度。施法、囤积魔具会提升临界值，吸引对应魔物。低临界滋生混乱弱怪，高临界引来秩序强敌。
+                    </div>
+                </div>
+
+                <div class="interaction-card">
+                    <div class="interaction-icon">💎</div>
+                    <h3 class="interaction-title">灵魂刻通货</h3>
+                    <div class="interaction-desc">
+                        因果能量的物理坍缩，呈现为深紫色温热晶体。消耗它可清偿因果、中和区域魔法淤积，直接改变世界的物理状态。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <h2 class="section-title text-center mb-8 justify-center">核心特色
+        </h2>
+
+        <section class="interaction-section">
+            <div class="interaction-container">
+                <div class="interaction-card">
+                    <div class="interaction-icon">🎯</div>
+                    <h3 class="interaction-title">负熵悖论</h3>
+                    <div class="interaction-desc">
+                        变强不是护身符，而是催命符。高因果清晰度意味着世界开始针对你，每一次升级都是向深渊发送坐标。
+                    </div>
+                </div>
+
+                <div class="interaction-card">
+                    <div class="interaction-icon">🧠</div>
+                    <h3 class="interaction-title">逻辑涌现</h3>
+                    <div class="interaction-desc">
+                        NPC 察觉世界的虚假，却依然选择以虚构之身爱你或恨你。当物理法则压迫到极致，逻辑发生坍缩，代码开出了花。
+                    </div>
+                </div>
+
+                <div class="interaction-card">
+                    <div class="interaction-icon">📜</div>
+                    <h3 class="interaction-title">法则叙事</h3>
+                    <div class="interaction-desc">
+                        展示伤口，而不是生命值。世界不关心你的故事，它只计算你的熵增。通过绝对的物理，确认你的存活。
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- 页脚 -->
@@ -1081,6 +1190,7 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script>
         // ===== 1. 粒子背景初始化 =====
@@ -1103,22 +1213,6 @@
                 "retina_detect": true
             });
         }
-
-        // ===== 2. 折叠面板逻辑 (Collapsible) =====
-        const coll = document.getElementsByClassName("collapsible");
-        for (let i = 0; i < coll.length; i++) {
-            coll[i].addEventListener("click", function () {
-                this.classList.toggle("active");
-                const panel = this.nextElementSibling;
-                if (panel.style.maxHeight) {
-                    panel.style.maxHeight = null;
-                } else {
-                    panel.style.maxHeight = panel.scrollHeight + "px";
-                }
-            });
-        }
-        // 默认展开第一个
-        if (coll.length > 0) coll[0].click();
 
         // ===== 3. Aetherion 物理引擎核心逻辑 (Ported from aa.html) =====
         const App = {
@@ -1378,11 +1472,157 @@
                     btn.style.color = '';
                     this.copyTimeout = null;
                 }, 2000);
+            },
+
+            // 复制脑图 Mermaid 代码
+            copyMindmap() {
+                const mindmapCode = `mindmap
+  root((Aetherion<br/>裂隙纪元 301))
+    核心世界观
+      古神陨落与魔法起源
+      热力学熵增哲学
+      四大势力格局
+        铁冠王国(军事)
+        雾谷帝国(魔法)
+        银湾联盟(贸易)
+        灰影议会(平衡)
+    游戏身份选择
+      冒险者(凡人模式)
+      自定义(建立秩序)
+      观察者(虚空记录)
+    核心机制系统
+      魔法系统
+        能量守恒与恢复
+        以太中毒防刷机制
+        区域临界值(0-100%)
+        现实崩塌与生死判定
+        代价转换:引怪而非自残
+      经济系统
+        表层金币(通货膨胀)
+        灵魂刻(因果能量晶体)
+          双向因果握手转让
+          中和临界值功能
+          欺诈持有惩罚
+          黑市脏物清洗
+        因果清偿与暴露对冲
+        价值锚点与流动性
+        周期危机
+      因果逻辑系统
+        直接因果报应
+        线性积累原则
+        风险可视化
+        因果清晰度7级阶梯
+      生存系统
+        熵增对抗
+        基础衰减与负熵恢复
+        致死判定流程
+        动态损耗公式
+          基础行为时薪
+          状态乘区
+          疲劳毒性
+          精神/SAN值损耗
+        恢复机制
+    魔物生态系统
+      积淤者(低魔熵增器)
+      晶化律法(高魔秩序固化)
+      流序者(动态平衡良性)
+      魔潮机制(满月强化)
+      庇护所悖论(灯塔效应)
+      驱动本能(梯度引力)
+    命运与概率系统
+      无常(统计随机性)
+      好运守恒
+        聚集效应
+        熵补偿机制
+        触发上限(5次/日)
+        过热软锁
+        自然衰减
+    死亡与传承系统
+      鲸落效应(尸体晶化)
+      堤坝崩塌(庇护失效)
+      继承权(圣骸融合)
+      遗产回收(压强校验与损耗)
+    特殊机制
+      观察者模式
+        八大禁律
+        日志输出格式
+      天梯系统与暴露逻辑
+        暴露度机制
+        城市线性叠加
+        堤坝崩塌效应
+      降神覆写协议
+        造物权柄
+        修改权限
+        逻辑回弹(1%概率)
+    时代风貌与违禁
+      违禁词表(科幻/数据化词汇)
+      强制替换协议
+      叙事质感(颗粒感/铁锈/霉味)
+    界面规范
+      YAML状态栏
+        时地信息
+        状态数据
+        环境数据
+        资产列表
+        动态事件`;
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(mindmapCode)
+                        .then(() => {
+                            const btn = document.getElementById('copyMindmapBtn');
+                            if (btn) this.showCopySuccess(btn);
+                        })
+                        .catch(() => this.fallbackCopyMindmap(mindmapCode));
+                } else {
+                    this.fallbackCopyMindmap(mindmapCode);
+                }
+            },
+
+            fallbackCopyMindmap(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        const btn = document.getElementById('copyMindmapBtn');
+                        if (btn) this.showCopySuccess(btn);
+                    } else {
+                        throw new Error('execCommand failed');
+                    }
+                } catch (err) {
+                    console.error('Copy failed:', err);
+                    alert('复制失败，请手动复制脑图代码');
+                } finally {
+                    document.body.removeChild(textarea);
+                }
             }
         };
 
         // 启动应用
         App.init();
+
+        // 初始化 Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#6a4cff',
+                primaryTextColor: '#e0e0ff',
+                primaryBorderColor: '#8a4fff',
+                lineColor: '#6a4cff',
+                secondaryColor: '#3a2cff',
+                tertiaryColor: '#1a1a2e'
+            },
+            mindmap: {
+                padding: 10,
+                useMaxWidth: true
+            }
+        });
 
     </script>
 </body>
