@@ -42,35 +42,24 @@
       position: fixed;
       top: 24px;
       right: 24px;
+      padding: 6px 14px;
       background: transparent;
       border: 1px solid var(--label-color);
       color: var(--text-color);
-      padding: 6px 14px;
       border-radius: 20px;
       font-size: 0.85rem;
       cursor: pointer;
       opacity: 0.6;
       transition: all 0.3s;
       z-index: 100;
+      /* 毛玻璃效果 */
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
-    /* 找到你 lc.html 中控制主题按钮的那个 class */
     .theme-toggle {
-      /* 1. 背景必须是半透明的 (关键！不能是纯白或纯黑) */
-      background: rgba(255, 255, 255, 0.2);
-
-      /* 2. 核心毛玻璃滤镜 */
-      backdrop-filter: blur(10px);
-
-      /* 3. 针对 Safari 浏览器的兼容性写法 */
-      -webkit-backdrop-filter: blur(10px);
-    }
-
-    .theme-toggle:hover {
-      opacity: 1;
-      background: var(--text-color);
-      color: var(--bg-color);
-      border-color: var(--text-color);
+      opacity: 0.8;
+      cursor: pointer;
     }
 
     .calculators {
