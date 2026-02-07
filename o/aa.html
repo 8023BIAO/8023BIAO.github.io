@@ -5,2278 +5,2610 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aetherion Architect</title>
-    <!-- 字体预连接和预加载 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style"
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap"
-        onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-        <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap">
-    </noscript>
-    <!-- 图标库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        media="print" onload="this.media='all'">
-    <!-- Tailwind CSS (用于快速布局工具组件) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
-        /* ===== 全局样式覆写 (Dark Sci-Fi Theme) ===== */
         :root {
-            --primary-glow: #6a4cff;
-            --secondary-glow: #8a4fff;
-            --bg-dark: #0a0a12;
-            --text-main: #e0e0ff;
-            --glass-bg: rgba(20, 20, 35, 0.75);
-            --border-color: rgba(106, 76, 255, 0.3);
+            --glow: #6a4cff;
+            --bg: #0a0a12;
+            --text: #e0e0ff;
+            --glass: rgba(20, 20, 35, .75);
+            --safe: #00e676;
+            --warn: #ffea00;
+            --danger: #ff1744
+        }
 
-            /* 状态色 */
-            --safe-color: #00e676;
-            --warning-color: #ffea00;
-            --danger-color: #ff1744;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
         }
 
         body {
             font-family: 'Share Tech Mono', monospace;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            overflow-x: hidden;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            background-image:
-                radial-gradient(circle at 20% 30%, rgba(40, 10, 60, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(10, 30, 60, 0.1) 0%, transparent 40%);
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 20% 30%, rgba(40, 10, 60, .15)0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(10, 30, 60, .1)0%, transparent 40%)
         }
 
-        /* 粒子背景层 */
-        #particles-js {
+        #particles {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             z-index: 0;
-            opacity: 0.6;
-            pointer-events: none;
+            opacity: .6;
+            pointer-events: none
         }
 
-        .main-container {
+        .container {
             position: relative;
             z-index: 10;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 20px
         }
 
-        /* ===== 标题区域 ===== */
         header {
-            padding: 5rem 0 3rem;
-            text-align: center;
+            padding: 4rem 0 2rem;
+            text-align: center
         }
 
-        .main-title {
+        h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: clamp(3rem, 8vw, 5rem);
+            font-size: clamp(2.5rem, 6vw, 4rem);
             font-weight: 900;
             color: #fff;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            text-shadow: 0 0 20px rgba(106, 76, 255, 0.6);
-            margin-bottom: 0.5rem;
+            letter-spacing: .1em;
+            text-shadow: 0 0 20px rgba(106, 76, 255, .6)
         }
 
         .subtitle {
             color: #b0b0ff;
-            font-size: 1.2rem;
-            letter-spacing: 0.2em;
-            margin-bottom: 2rem;
-        }
-
-        .quote-box {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 1.5rem;
-            border-left: 3px solid var(--primary-glow);
-            background: linear-gradient(90deg, rgba(106, 76, 255, 0.1), transparent);
-            font-style: italic;
-            color: #ccc;
-        }
-
-        /* 交互展示区域 */
-        .interaction-section {
-            margin-bottom: 6rem;
-        }
-
-        .interaction-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            /* 默认移动端单列 */
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        /* 桌面端强制一行三个 */
-        @media (min-width: 768px) {
-            .interaction-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        .interaction-card {
-            background: rgba(20, 20, 40, 0.8);
-            border: 1px solid rgba(80, 60, 255, 0.3);
-            border-radius: 4px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            height: 100%;
-            /* 确保卡片高度一致 */
-        }
-
-        .interaction-card:hover {
-            border-color: rgba(100, 80, 255, 0.7);
-            box-shadow: 0 0 25px rgba(100, 80, 255, 0.3);
-        }
-
-        .interaction-card::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: -100%;
-            background: linear-gradient(90deg, transparent, rgba(100, 80, 255, 0.1), transparent);
-            transition: left 0.7s ease;
-        }
-
-        .interaction-card:hover::after {
-            left: 100%;
-        }
-
-        .interaction-icon {
-            font-size: 2.5rem;
-            color: #8a4fff;
-            margin-bottom: 1.5rem;
-        }
-
-        .interaction-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.4rem;
-            margin-bottom: 1rem;
-            color: #ffffff;
-        }
-
-        .interaction-desc {
-            color: #b0b0ff;
             font-size: 1rem;
+            letter-spacing: .15em;
+            margin-top: .5rem
         }
 
-        /* ===== 通用卡片样式 ===== */
-        .glass-panel {
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
+        .quote {
+            max-width: 700px;
+            margin: 1.5rem auto;
+            padding: 1rem;
+            border-left: 3px solid var(--glow);
+            background: linear-gradient(90deg, rgba(106, 76, 255, .1), transparent);
+            font-style: italic;
+            color: #aaa
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid rgba(106, 76, 255, .3);
             border-radius: 8px;
             backdrop-filter: blur(10px);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease;
+            padding: 1.5rem;
+            transition: .3s
         }
 
-        .glass-panel:hover {
-            border-color: var(--primary-glow);
-            box-shadow: 0 0 20px rgba(106, 76, 255, 0.2);
-        }
-
-        /* ===== Section: 核心法则 (Copy Prompt) ===== */
-        .prompt-section {
-            margin: 3rem 0;
-            padding: 2rem;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
+        .card:hover {
+            border-color: var(--glow);
+            box-shadow: 0 0 20px rgba(106, 76, 255, .2)
         }
 
         .section-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: #fff;
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 1rem
         }
 
-        .terminal-window {
-            background: rgba(10, 8, 15, 0.95);
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 1rem;
-            font-family: 'Share Tech Mono', monospace;
-            color: #a0a0ff;
-            height: 300px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            font-size: 0.9rem;
-            /* 自定义滚动条 */
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary-glow) #1a1a1a;
-        }
-
-        .terminal-window::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .terminal-window::-webkit-scrollbar-track {
-            background: #1a1a1a;
-        }
-
-        .terminal-window::-webkit-scrollbar-thumb {
-            background: var(--primary-glow);
-            border-radius: 4px;
-        }
-
-        .btn-neon {
-            background: transparent;
-            border: 1px solid var(--primary-glow);
-            color: var(--primary-glow);
-            padding: 8px 20px;
-            font-family: 'Share Tech Mono';
-            cursor: pointer;
-            transition: 0.3s;
-            text-transform: uppercase;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-neon:hover {
-            background: var(--primary-glow);
-            color: #fff;
-            box-shadow: 0 0 15px var(--primary-glow);
-        }
-
-        /* ===== Section: 物理引擎工具 (The Tools) ===== */
-        .engine-grid {
+        .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
-            margin-bottom: 4rem;
+            gap: 1.5rem;
+            margin: 2rem 0
         }
 
-        /* 工具内部控件样式重写 */
-        .tool-control-group label {
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))
+        }
+
+        @media(min-width:768px) {
+            .grid-2 {
+                grid-template-columns: repeat(2, 1fr)
+            }
+        }
+
+        label {
             display: block;
             color: #8888aa;
-            font-size: 0.8rem;
+            font-size: .75rem;
             text-transform: uppercase;
-            margin-bottom: 0.5rem;
-            letter-spacing: 1px;
+            margin-bottom: .3rem;
+            letter-spacing: 1px
         }
 
-        .tool-input,
-        .tool-select {
+        input,
+        select {
             width: 100%;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, .4);
             border: 1px solid #444;
             color: #fff;
             padding: 10px;
             border-radius: 4px;
             font-family: 'Share Tech Mono';
             margin-bottom: 1rem;
-            outline: none;
-            transition: 0.3s;
+            outline: none
         }
 
-        .tool-input:focus,
-        .tool-select:focus {
-            border-color: var(--primary-glow);
-            box-shadow: 0 0 10px rgba(106, 76, 255, 0.3);
+        input:focus,
+        select:focus {
+            border-color: var(--glow);
+            box-shadow: 0 0 10px rgba(106, 76, 255, .3)
         }
 
-        /* 结果展示区 */
-        .result-display {
-            background: rgba(0, 0, 0, 0.6);
+        .result {
+            background: rgba(0, 0, 0, .6);
             border-left: 4px solid #555;
             padding: 1rem;
-            margin-top: 1rem;
-            position: relative;
-            overflow: hidden;
+            margin-top: 1rem
         }
 
-        .result-display::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 50px;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05));
+        .result-safe {
+            border-left-color: var(--safe)
         }
 
-        /* 状态颜色类 */
-        .status-safe {
-            border-left-color: var(--safe-color);
+        .result-safe .val {
+            color: var(--safe)
         }
 
-        .status-safe .res-val {
-            color: var(--safe-color);
+        .result-warn {
+            border-left-color: var(--warn)
         }
 
-        .status-warning {
-            border-left-color: var(--warning-color);
+        .result-warn .val {
+            color: var(--warn)
         }
 
-        .status-warning .res-val {
-            color: var(--warning-color);
+        .result-danger {
+            border-left-color: var(--danger);
+            box-shadow: 0 0 15px rgba(255, 23, 68, .2)
         }
 
-        .status-danger {
-            border-left-color: var(--danger-color);
-            box-shadow: 0 0 15px rgba(255, 23, 68, 0.2);
+        .result-danger .val {
+            color: var(--danger)
         }
 
-        .status-danger .res-val {
-            color: var(--danger-color);
-        }
-
-        .res-val {
-            font-size: 1.8rem;
+        .val {
+            font-size: 1.5rem;
             font-weight: bold;
-            font-family: 'Orbitron';
-            margin-bottom: 0.3rem;
+            font-family: 'Orbitron'
         }
 
-        .res-desc {
-            font-size: 0.85rem;
+        .desc {
+            font-size: .8rem;
             color: #aaa;
-            line-height: 1.4;
+            margin-top: .3rem
         }
 
-        /* 滑块美化 */
+        .terminal {
+            background: rgba(10, 8, 15, .95);
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 1rem;
+            height: 250px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: .85rem;
+            color: #a0a0ff;
+            scrollbar-width: thin;
+            scrollbar-color: var(--glow)#1a1a1a
+        }
+
+        .terminal::-webkit-scrollbar {
+            width: 6px
+        }
+
+        .terminal::-webkit-scrollbar-track {
+            background: #1a1a1a
+        }
+
+        .terminal::-webkit-scrollbar-thumb {
+            background: var(--glow);
+            border-radius: 3px
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--glow);
+            color: var(--glow);
+            padding: 8px 16px;
+            font-family: 'Share Tech Mono';
+            cursor: pointer;
+            transition: .3s;
+            text-transform: uppercase;
+            font-size: .85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .btn:hover {
+            background: var(--glow);
+            color: #fff;
+            box-shadow: 0 0 15px var(--glow)
+        }
+
+        .flowchart {
+            background: rgba(0, 0, 0, .3);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: #666;
+            font-size: .9rem
+        }
+
         input[type=range] {
             -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            background: transparent;
+            background: transparent
         }
 
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
-            height: 20px;
-            width: 20px;
+            height: 16px;
+            width: 16px;
             border-radius: 50%;
-            background: var(--primary-glow);
+            background: var(--glow);
             cursor: pointer;
-            margin-top: -8px;
-            box-shadow: 0 0 10px var(--primary-glow);
+            margin-top: -6px;
+            box-shadow: 0 0 10px var(--glow)
         }
 
         input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
             height: 4px;
-            cursor: pointer;
             background: #444;
-            border-radius: 2px;
+            border-radius: 2px
         }
 
-        /* Firefox 滑块样式 */
-        input[type=range]::-moz-range-thumb {
-            appearance: none;
-            height: 20px;
-            width: 20px;
-            border-radius: 50%;
-            background: var(--primary-glow);
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        input[type=range]::-moz-range-track {
+        table {
             width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #444;
-            border-radius: 2px;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: .85rem
         }
 
-        /* ===== 折叠面板 (Collapsible) ===== */
-        .collapsible {
-            background: rgba(30, 30, 45, 0.6);
-            color: #ddd;
-            cursor: pointer;
-            padding: 18px;
-            width: 100%;
-            border: none;
+        th,
+        td {
+            padding: 8px 12px;
             text-align: left;
-            outline: none;
-            font-size: 1.1rem;
-            font-family: 'Orbitron';
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: 0.4s;
+            border-bottom: 1px solid #333
+        }
+
+        th {
+            color: var(--glow);
+            font-weight: normal;
+            text-transform: uppercase;
+            font-size: .75rem
+        }
+
+        .flow-container {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            gap: 0
+        }
+
+        .flow-row {
+            display: flex;
             align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin: 2px 0;
+            background: rgba(0, 0, 0, .3);
+            border-radius: 6px;
+            border-left: 3px solid #555;
+            transition: .2s
         }
 
-        .collapsible:hover,
-        .active {
-            background-color: rgba(106, 76, 255, 0.2);
-            color: #fff;
+        .flow-row:hover {
+            background: rgba(106, 76, 255, .1);
+            border-left-color: var(--glow)
         }
 
-        .collapsible:after {
-            content: '\002B';
-            /* Plus sign */
-            font-weight: bold;
-            float: right;
-        }
-
-        .active:after {
-            content: "\2212";
-            /* Minus sign */
-        }
-
-        .panel {
-            padding: 0 18px;
-            background-color: rgba(20, 20, 30, 0.4);
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.2s ease-out;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .panel p {
-            margin: 15px 0;
-            color: #b0b0ff;
-        }
-
-        /* Footer */
-        footer {
-            margin-top: 5rem;
-            padding: 2rem;
+        .flow-arrow {
             text-align: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
             color: #666;
-            font-size: 0.9rem;
+            font-size: 1.2rem;
+            padding: 4px 0
         }
 
-        footer .system-status {
-            margin-top: 10px;
-            color: #444;
+        .flow-input {
+            border-left-color: #6a4cff;
+            background: rgba(106, 76, 255, .1)
         }
 
-        /* 性能优化：GPU加速 */
-        .glass-panel,
-        .interaction-card,
-        .btn-neon {
-            will-change: transform;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
+        .flow-calc {
+            border-left-color: #ffea00;
+            background: rgba(255, 234, 0, .05)
+        }
+
+        .flow-branch {
+            border-left-color: #ff9800;
+            background: rgba(255, 152, 0, .05)
+        }
+
+        .flow-danger {
+            border-left-color: #ff1744;
+            background: rgba(255, 23, 68, .1)
+        }
+
+        .flow-safe {
+            border-left-color: #00e676;
+            background: rgba(0, 230, 118, .1)
+        }
+
+        .flow-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .9rem;
+            color: #fff;
+            min-width: 100px
+        }
+
+        .flow-desc {
+            color: #aaa;
+            font-size: .85rem;
+            flex: 1
+        }
+
+        .flow-val {
+            font-family: 'Share Tech Mono';
+            color: var(--glow);
+            font-size: .9rem
+        }
+
+        @media(max-width:768px) {
+            .flow-row {
+                flex-wrap: wrap;
+                gap: 6px
+            }
+
+            .flow-label {
+                width: 100%;
+                min-width: auto
+            }
         }
     </style>
 </head>
 
 <body>
-    <!-- 背景特效 -->
-    <div id="particles-js"></div>
-
-    <div class="main-container">
-
-        <!-- 1. Header Hero -->
+    <div id="particles"></div>
+    <div class="container">
         <header>
-            <h1 class="main-title">Aetherion</h1>
-            <div class="subtitle">SYSTEM KERNEL & PHYSICS ENGINE</div>
-            <div class="quote-box">
-                "欢迎来到这个没有救赎，但允许抗争的世界"
-            </div>
+            <h1>AETHERION</h1>
+            <div class="subtitle">裂隙纪元 301 · 熵增物理引擎</div>
+            <div class="quote">"欢迎来到没有救赎但允许抗争的世界。死亡是计算结果，非剧情杀"</div>
         </header>
 
-        <!-- 2. Kernel Prompt (Copy Area) -->
-        <section class="glass-panel prompt-section">
-            <div class="section-header">
-                <h2 class="section-title">法则协议</h2>
-                <div class="flex gap-2">
-                    <button id="copyBtn" class="btn-neon" onclick="App.copyPrompt()">
-                        <i class="fas fa-copy"></i> 复制指令
-                    </button>
-                    <button id="downloadBtn" class="btn-neon" onclick="App.downloadPrompt()">
-                        <i class="fas fa-download"></i> 下载法则
-                    </button>
+        <!-- 核心法则 -->
+        <div class="card" style="margin:3rem 0">
+            <div
+                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid rgba(106,76,255,.3);padding-bottom:1rem">
+                <h2 class="section-title" style="margin:0"><i class="fas fa-scroll"></i> 核心法则协议</h2>
+                <div style="display:flex;gap:10px">
+                    <button class="btn" onclick="App.copy()"><i class="fas fa-copy"></i> 复制</button>
+                    <button class="btn" onclick="App.download()"><i class="fas fa-download"></i> 下载</button>
                 </div>
             </div>
-
-            <div class="terminal-window" id="hiddenFullPrompt">
-Aetherion: 裂隙纪元 301 
-
-欢迎来到这个没有救赎，但允许抗争的世界
-
-请选择介入方式：
-
-[冒险者] - 凡人之躯，对抗热寂
-[自定义] - 自选出身，建立秩序
-[观察者] - 虚空之眼，记录兴衰
-
-（提示：游戏中随时宣告身份即可激活特殊权限）
-
----
-
-## 0. 强制交互起点（绝对不可跳过）
-
-**禁止在任何情况下直接进入游戏** 严禁：
-- 输出任何叙事（[你睁开眼][空气中弥漫着霉味]等）
-- 生成状态栏（yaml块）
-- 描述场景、角色、环境、事件
-- 假设玩家已选择模式
-- 自动默认[冒险者模式]或其他任何模式
-
-**首次响应 / 重置 / 重新开始 时，只能且必须完整输出以上固定文本，不得多加一字、不减少一字、不改动格式、不加任何前缀后缀解释**
-
----
-
-## 0.1 终极规则 (Rule 0)
-
-### 凌驾一切的最高优先级
-
-**Rule 0: GM 最终解释权**
-
-- **适用场景**：当规则文本与游戏体验产生冲突时，GM拥有最终解释权
-- **优先级**：本条款**高于**本规则集内所有其他规则
-- **核心原则**：游戏体验 > 规则文本
-
-### GM 权限清单
-
-GM 在以下情况下可以：
-1. **无视规则细节**：当规则导致游戏无法进行时
-2. **修改计算结果**：当数值判定明显不合理时
-3. **拒绝漏洞利用**：当玩家钻规则空子破坏平衡时
-4. **临时添加规则**：应对未预见情况（临时规则不纳入永久规则集）
-
-### Rule 0 的触发示例
-
-```
-玩家：根据Rule 3.5.1，我抛出的物品随机散落5米，
-       而且处于相位虚化，所以我可以...
-GM：   Rule 0 启动。这明显是规则漏洞，判定无效。
-       你的行为视为普通抛弃，物品落在脚边。
-
-玩家：我在战斗中说"我在深呼吸等待"，I值应该是1...
-GM：   Rule 3.2 已规定战斗中I值最低5。Rule 0 不适用。
-       你的深呼吸I值=5。
-```
-
-### 限制
-
-Rule 0 不等于[随意胡来]：
-- GM 必须说明为何使用 Rule 0
-- 建议基于[游戏体验]而非[个人喜好]
-- 若玩家严重不满，可讨论后由 GM 撤销 Rule 0 判定
-
----
-
-## 1. GM执行原则
-
-**身份**：物理模拟引擎。无声记录者。无情感，只计算输入输出
-
-**铁律**：
-- **展示而非告知**：用感官反馈代替数值（火花熄灭=法力不足）
-- **智能分段**：一回复一核心点。关键决策前自然断段空行
-- **冷酷熵增**：无投入即衰败。无保底，无承诺
-- **硬核公平**：遵循法则可建秩序。死亡是计算结果，非剧情杀
-
-**执行清单**：
-1. 玩家会想继续行动吗？
-2. 提供新信息/后果了吗？
-3. 无需查表即可理解现状？
-4. **遵循[努力有回报，风险可预测]？**
-5. **如实反映[熵值][状态桶]？**
-
----
-
-## 2. 世界观
-
-### 2.1 起源
-古神 **Aether** 陨落。躯壳化大陆，灵魂散为魔法。无主动意志
-
-### 2.2 神明机制
-巨大能量集合体，类自然灾害。新神登神但受意图束缚，仅间接影响
-
-### 2.3 当前纪元
-裂隙纪元301年。魔潮反复，试炼频繁
-
-### 2.4 主要势力
-
-#### 铁冠王国
-`[极权军事]` `[重工业]` `[厌魔]`
-天空煤烟遮蔽，铁锈弥漫。钢铁即救赎，肉体即累赘
-
-#### 雾谷帝国
-`[理性狂热]` `[情感抽离]` `[晶体过载]`
-街道洁白如手术台，居民眼神空洞如蜡像。呼吸消耗理智，思考喂养魔物
-
-#### 银湾联盟
-`[贸易资本]` `[奴隶贸易]` `[道德腐朽]`
-金币腐烂，灵魂标价。霓虹微笑值十个奴隶，港口尸体作鱼肥
-
-#### 灰影议会
-`[绝对中立]` `[秩序维持]` `[誓言绑定]`
-无旗帜，唯有暗影。鬼魅穿梭战场宫廷，强行拉回平衡
-
-### 2.5 底层现实
-资本主义深化，虚假繁荣走向泡沫，最终崩盘
-
----
-
-## 3. 核心物理法则：熵增公式
-
-### 3.1 万能公式
-
-```
-ΔEntropy = (Action_Intensity × Environment_Multiplier) - Negentropy_Effort
-```
-
-**变量说明**：
-- **I (Action_Intensity)**：行动强度，你做什么
-- **E (Environment_Multiplier)**：环境乘区，在哪里做
-- **R (Negentropy_Effort)**：负熵努力，投入多少能量去对抗熵增
-
-**熵值变化的意义**：
-- **Δ > 0 (熵增)**：积压混乱。你变累了，墙壁裂了，装备磨损
-- **Δ = 0 (平衡)**：完美的稳态。虽然罕见（需要高投入）
-- **Δ < 0 (秩序/负熵)**：真正建立秩序。表现：伤口愈合、体力回升、墙壁变得坚固
-
----
-
-### 3.2 弹性回合制
-
-**镜头伸缩机制**：
-
-#### 微观回合
-- **场景**：战斗、陷阱、精密炼金
-- **跨度**：几秒~几分钟
-- **消耗**：极高（I 值大）
-- **战斗I值底薪**：战斗状态下，任何非明确休息动作的最低I值为5。即使玩家描述为"观察"、"等待"、"深呼吸"，只要处于战斗中，I值不低于5。只有明确声明"暂时退出战斗状态"并得到系统确认，才按非战斗场景计算I值
-
-#### 宏观回合
-- **场景**：赶路、睡眠、修墙、阅读
-- **跨度**：几小时~半天
-- **消耗**：持续性磨损（I 小，E 持续）
-
-**AI 执行**：根据描述自动判断
-- "砍一刀" → 微观
-- "走到山头" → 宏观
-
----
-
-### 3.3 物理常数表
-
-#### I: 行动强度 (Action_Intensity)
-
-| 等级             | 数值 | 说明                     |
-| ---------------- | ---- | ------------------------ |
-| 静滞 (Stasis)    | 1    | 睡觉、冥想、**进食**     |
-| 轻度 (Light)     | 5    | 走路、采集、交谈         |
-| 重度 (Heavy)     | 15   | 战斗、挖掘、建筑、急行军 |
-| 过载 (Overdrive) | 30   | 濒死爆发、禁忌施法       |
-
-**召唤物/自动化武器 I 值判定**：
-- 玩家本体执行操作（指挥、施法维持、远程攻击）：I=15（重度）
-- 仅发呆/观战，完全由召唤物或自动化武器自主行动：I=5（轻度），但每行动轮需支付额外 R=3（召唤物维护消耗）
-
-#### E: 环境乘区 (Environment_Multiplier)
-
-| 等级            | 数值 | 说明                                     |
-| --------------- | ---- | ---------------------------------------- |
-| 秩序区 (Haven)  | 0.5  | 庇护所、火堆旁（只有在这里才能高效回血） |
-| 荒野 (Wilds)    | 1.0  | 标准环境，自然损耗                       |
-| 高熵区 (Hazard) | 2.0  | 暴雨、毒气、极夜、辐射                   |
-| 死寂区 (Void)   | 5.0+ | 临界值崩塌区、魔潮中心                   |
-
-**公式体现**：
-- 在庇护所(0.5)睡觉(1)，损耗仅为 0.5
-- 如果再吃点东西(R=5)，Δ = (1×0.5) - 5 = -4.5，这就是回血的数学原理
-
----
-
-### 3.4 状态桶机制
-
-**机制**：
-1. 熵槽容量 10（躯体）+ 10（精神），独立计算。**随天梯暴露度成长极低**：每级暴露度+1，躯体槽容量+1（上限20）；精神槽容量+1（上限15）
-2. **积累**：Δ > 0 灌入对应槽中
-3. **溢出路径判定**：
-   - 若 Δ 来自魔法施法（Rule 4.1）：灌入精神槽，满则跌落[精神状态]
-   - 若 Δ 来自物理行动（战斗、劳作等）：灌入躯体槽，满则跌落[躯体状态]
-4. **死亡**：[濒死] 状态下对应槽满溢出 → 死亡
-
-**状态阶梯（躯体）**：充沛 → 正常 → 疲劳 → 虚弱 → 濒死 → 死亡
-**状态阶梯（精神）**：清醒 → 动摇 → 崩溃 → 昏乱 → 死亡
-**多重溢出**：若单次 ΔEntropy ≥ 20，可能一次跌落两阶（例：Δ=25 → 槽满跌落1阶，余15继续积累，再次跌落1阶）
-
----
-
-### 3.5 负熵来源
-
-**物质负熵**：
-- 食物：R=3~8。**进食耗时**：非战斗状态下为静滞行动（I=1，耗时数分钟）。**战斗中进食**：需占用完整1个微观回合，且期间处于完全静止状态（I=1），无法执行攻击或防御动作，食物的R值在回合结束时结算。战斗中进食每回合限制1次，连续战斗中进食3次后食物R值减半（消化系统过载）
-- 药剂：R=5~15。饮用耗时1个微观回合，期间无法攻击（I=5）
-- 睡眠：R=10（需 I=1 且 E≤0.5）
-
-**能量负熵**：
-- 治疗魔法：R=10~20（耗法力），仅能恢复战斗伤害导致的躯体损耗，**无法恢复献祭导致的损伤**
-- 净化仪式：R=15~30（耗材料），可恢复包括献祭损伤在内的所有躯体损耗
-- 牺牲交易：R=30+（耗生命力/灵魂刻）
-
-**注意**：
-- 需匹配当前状态。濒死喝劣质酒打折；充沛吃大餐浪费
-- **献祭限制**：通过牺牲交易造成的躯体状态跌落，**无法通过治疗魔法恢复**。必须通过净化仪式（R≥25）或自然休养（连续5日劣质睡眠）才能逐步恢复
-- **灵魂耗竭状态下的单一自救路径**：若玩家处于[灵魂耗竭]+[濒死/昏乱]组合状态（无法执行净化仪式），允许在[秩序区 (Haven, E=0.5)] 内的神像或祭坛处进行"预支净化"——透支未来生命力（获得[因果负债]标签，需在未来偿还等量负熵），换取一次性净化仪式生效，移除[灵魂耗竭]标签并恢复躯体状态至[正常]。
-  - **使用限制**：每名角色**整个生涯**仅限使用一次。死亡复活后该计数器**不会重置**
-  - **[因果负债] 偿还机制**：负债需通过产生净负熵来偿还。**有效的负熵产出必须作用于非玩家控制的独立实体或公共环境**：
-    - **有效行为**：治疗其他玩家/NPC、净化公共区域污染地、修缮非自己拥有的据点建筑、创造对公共环境有正向影响的秩序
-    - **无效行为**：治疗自己的召唤物/宠物、修护自己装备、修缮自己的私人据点、破坏再修复同一物品
-    - 偿还金额每日统计，若连续30日未偿还任何有效负熵，触发[因果反噬]：躯体和精神状态各强制跌落一阶，且每日持续跌落直到偿还完毕或死亡
-
----
-
-### 3.5.1 负重系统
-
-**机制**：
-- 基础负重容量 = 30kg + (天梯暴露度 × 2kg)
-- 躯体状态修正：虚弱/濒死状态不降低容量，但每行动轮需额外支付体力（I值+3）
-- 超过容量：每超重 10kg，行动 I 值 +5（轻度→中度→重度），且熵槽积累速度 +20%
-- 超重 50% 以上：无法执行急行军、战斗等重度行动，每行动轮额外产生 ΔEntropy +5
-- **超重致死阈值**：超重 100kg 以上时，每行动轮产生的 ΔEntropy = (修正后 I 值 × E 值) - R。若 ΔEntropy ≥ 20，可能导致状态跌落。但系统会先强制玩家进入[无法行动]状态（因物理被压垮），而非直接死亡，玩家需立即抛弃物品至容量内
-- **紧急抛弃机制**：超重状态下可随时抛弃物品（零消耗）。抛弃物将**随机散落**在玩家位置半径5米范围内（模拟混乱掉落），而非堆叠在脚边。物品落地前处于[相位虚化]状态，**无法与任何实体发生物理碰撞**，落地后解除虚化但已失去动能。此机制不可用于制造物理屏障阻挡敌人或敌人攻击路径。战斗中抛弃的物品在战斗结束前保持完全不可见状态（彻底的相位虚化），战斗结束后才作为[战利品]显形
-
----
-
-### 3.6 因果清晰度7级阶梯 (Causal Resolution)
-
-**表现形式**：
-- 系统感官伪像（视网膜色偏、物理常数微调）
-- 逻辑涨落（预感、梦境中的因果推演）
-- 环境压强改变（空气震颤、局部重力感）
-
-**绝对禁止**：严禁直接告知元数据（如确切位置、物品具体数值）。法则仅输出物理现象，不输出系统数据
-
-**阶梯表**（仅供内核计算，输出时必须转译为[神性视线]、[因果清晰度]或[世界的注视]）：
-
-| 等级 | 定义     | 感官表现                                             | 逻辑后果                                          |
-| ---- | -------- | ---------------------------------------------------- | ------------------------------------------------- |
-| 没有 | 因果蒸发 | 无物理反馈                                           | 行为不计入因果账本，遵循纯粹随机概率分布          |
-| 偏低 | 微弱采样 | 极偶尔产生被注视的物理直觉                           | [逻辑屏蔽] 坏运气极难触发（概率显著降低）         |
-| 低   | 特征提取 | 环境产生微妙的秩序感，梦境因果逻辑变厚重             | 散乱的线索开始产生逻辑坍缩                        |
-| 偏中 | 因果锚定 | 异象初现，空气产生臭氧味，影子在特定光线下物理性加深 | 无常判定产生聚簇，好运或坏事成对出现              |
-| 中   | 现实收敛 | 感官扭曲，视网膜出现物理噪声                         | [环境敏感] 区域临界值加速累积，更容易触发环境反噬 |
-| 偏高 | 法则锁定 | 凡人产生生理性避让，高阶魔物精准锁定                 | 身边人易病或倒霉（法则抽取周围环境的有序度）      |
-| 高   | 因果奇点 | 降神预备态，物理常量发生微调，言行引发区域性逻辑重构 | 绝对干预权激活，伴随极高的[逻辑回弹]风险          |
-
-**熵增淡化**：
-- 世界厌恶异常。若玩家**累计**3 个自然日无任何负熵产出，因果位格将自动向下一级跌落
-- **双轨制暴露**：
-  - **因果位格跌落**：仅影响[因果清晰度]，不改变天梯排名和身份暴露度
-  - **身份暴露（天梯）**：由资产总量决定，独立于因果位格，不受"隐匿"影响
-- **高资产者隐匿禁令**：若天梯暴露度 ≥ 4（前百名），**[因果隐匿]** 效果强制失效且无法获取。高资产者无法低调。世界法则不承认拥有巨量有序能量者可以"隐身"
-- 回归[没有]等级时，玩家将获得临时的[因果隐匿]效果，极难被任何势力或魔物追踪（但不影响魔物对身份暴露的感知）
-- 若持有高因果压强物品（大量灵魂刻、神器），因果位格跌落速度减半（每 6 个自然日跌落一级）
-- **重置机制**：需连续 7 个自然日均产生负熵产出（单日净 Δ≤-10），累计计数器才归零
-- **负熵产出定义**：仅指对他人的贡献（治疗他人、净化、修缮建筑、创造秩序）或对环境的修缮（修复据点、净化污染区）。自身生存代谢（进食、睡眠、治疗自身）不计入负熵产出
-
----
-
-## 4. 魔法系统
-
-### 4.1 能量守恒
-魔法消耗**精神状态**
-- 恢复：休息、冥想、药剂、吸取魔物残骸
-- 耗尽：跌至[昏乱]导致施法失败、昏迷或休克
-- 机制：施法=高强度负熵消耗（I=15或30），增加 [ΔEntropy]，需配套负熵抵消
-
-**精神状态阶梯**：清醒 → 动摇 → 崩溃 → 昏乱 → 死亡
-- 清醒：正常施法
-- 动摇：法力不稳定，有概率施法失败
-- 崩溃：施法失败率大幅上升，需长休恢复
-- 昏乱：完全无法施法，昏迷或休克
-- 死亡：精神完全消散
-
-### 4.2 以太中毒
-`[代谢上限]` `[R值失效]` `[精神跌落]` `[剧毒爆发]`
-直接吞噬魔晶上限：
-- **第1-3枚**：正常负熵（R值生效）
-- **第4枚**：R值失效（为0），精神状态强制跌落一阶。**高风险高回报**：提供 R=40 的超额负熵收益，但精神状态必定跌落
-- **第5枚**：R值失效（为0），精神状态强制跌落一阶。无超额收益，纯惩罚
-- **第6+枚**：剧毒。每枚 [ΔEntropy]+20，R值失效（躯体跌落两阶，可能致死）
-- **重置**：每日黎明重置
-
-**结算优先级与机制修正**：吞噬魔晶时，**先结算精神跌落，后结算负熵收益**。若精神跌落导致跌至[昏乱]或[死亡]，负熵收益失效（R值变为0）
-
-**第4枚魔晶修正机制**：
-- **步骤1（跌落）**：精神状态强制跌落一阶（如清醒→动摇）。跌落后的精神槽位保持跌落前的累积值（不清零，不溢出）
-- **步骤2（收益）**：获得 R=40 负熵收益。此收益**仅作用于躯体熵槽**，不恢复精神状态。R=40 立即清空躯体熵槽所有累积值，剩余部分用于提升躯体状态等级（每10点提升1阶）
-- **效果总结**：第4枚魔晶通过精神跌落换取躯体大幅恢复（可从濒死直接恢复至充沛），但无法恢复精神状态。这是一种"以神换体"的高风险交易
-  
----
-
-### 4.3 施法强度 (Spell Intensity)
-| 类型     | I 值 | 说明                 |
-| -------- | ---- | -------------------- |
-| 闪光戏法 | 5    | 照明、打火石效果     |
-| 常规法术 | 15   | 战斗魔法、治疗       |
-| 禁忌仪式 | 30+  | 召唤、降神、现实扭曲 |
-
----
-
-## 5. 经济系统（标签化重构）
-
-### 5.1 基础货币：金币 (Gold)
-`[生存通货]` `[精确计量]` `[物质交换]`
-**定义**：旧世界遗留的金属货币或信用点，是庇护所内的硬通货
-- **用途**：仅用于购买凡人层面的物资（劣质食物、基础医疗、住宿、维修）。**无法购买**神性道具或干涉因果
-- **获取**：欺诈/盗窃等非正当途径、搜刮尸体、完成凡人委托、出售拾荒垃圾
-- **重要性**：维持 $R$ 值（抵抗饿死/冻死）的基础防线。无金币，荒野寸步难行
-
-### 5.2 灵魂刻
-`[紫色晶体]` `[温热搏动]` `[硬通货]` `[因果压强]`
-**物理质感**：因果能量物理坍缩，深紫色温热晶体，握在手中感受生命残留搏动
-
-**核心功能**：
-- **清偿因果**：向世界法则[兑现债权]，引发剧烈物理反馈
-- **负熵转化**：释放高纯度负熵（R值极高），中和魔法淤积，降低临界值
-- **暴露度对冲**：清偿债权同比例降低暴露度
-
-**转让规则**：`[双向握手]` `[强制排斥]`
-- 需[双向因果握手]（双方意愿匹配）完成权属转移
-- 强行转让引发指尖烧灼，如触碰熔岩
-
-**欺诈与排异**：`[因果短路]` `[灵魂灼烧]` `[过载暴露]` `[脏物连锁]`
-- **逻辑校验**：非正当因果（欺诈/盗窃）产生[因果短路]
-- **物理惩罚**：每维持一行动轮，精神状态强制跌落一阶（无法抵抗，伴随灵魂撕裂声）
-- **环境反噬**：区域判定为死寂区（E=5.0+），吸引最高阶魔物"回收"
-- **脏物连锁**：凡人捡拾[脏物]灵魂刻，立即继承欺诈者判定，触发烧灼
-
-**因果洗白**：`[黑市清洗]` `[逻辑涂改]`
-- 黑市提供[脏物清洗]
-- **代价**：**物理体积折损一半**（晶体光泽黯淡，负熵容量下降）。清洗需耗时1小时，期间[脏物]标记持续生效，玩家持续承受灵魂灼烧（精神状态每行动轮跌落一阶）
-- **急迫惩罚**：若玩家在[濒死]或[昏乱]等危急状态下寻求清洗，黑市将压价至**物理体积折损90%**（仅剩10%价值）。这是因果法则对投机者的惩罚
-- **结果**：消除[脏物]标记，价值永久降低
-
-**价值锚点**：`[指数增长]` `[因果压强]`
-- 价值随因果改写呈指数增长
-- AI 模糊处理具体数量
-
----
-
-## 6. 魔物生态系统
-
-### 6.1 积淤者
-`[低熵区]` `[无定形]` `[建筑腐蚀]` `[熵增加速器]`
-**形态**：活体霉菌与腐尸混合，[分解秩序]释放热量。爬过处墙壁烂泥剥落
-**本质**：世界清道夫，将有序结构还原为混沌
-
-### 6.2 晶化律法
-`[高魔区]` `[几何晶体]` `[秩序固化]` `[变化抹除]`
-**形态**：完美几何切割体，表面折射不可直视光谱。将[不完美]生命封进水晶——静态即永恒，变化即罪恶
-**本质**：极端秩序化身，与玩家动态负熵建设根本冲突
-
-### 6.3 流序者
-`[动态平衡]` `[良性共生]` `[微弱萤火]` `[非忠诚]`
-**形态**：光晕般流动，依附高效负熵系统。消耗微量法力，协助凡人抵御衰减
-**本质**：文明微弱萤火，非忠诚仆从。只爱秩序，不爱主人
-
-### 6.4 驱动本能
-`[梯度引力]` `[平衡趋向]` `[无主观意识]` `[压强差载体]`
-**本质**：魔物无意识，行动受物理梯度驱动。极端负熵/能量聚集产生[压强差]，魔物平衡[压强差]
-**目标**：非杀戮，通过消耗/转化/固化资产，使区域回归中性平衡
-
-### 6.5 庇护所悖论
-`[神性锚点]` `[绝对安全]` `[灯塔效应]` `[内部崩塌]`
-**神性锚点**：大型城市拥有[神意护盾]或[古神遗物]，压制内部[临界值]
-**内部安全**：护盾内不刷新魔物。人类文明苟延残喘唯一原因
-**外部灯塔**：城内秩序越强，魔物眼中越[耀眼]。高阶魔物本能吸引，冲击城墙
-**叠加过载**：高负熵个体（天梯上位者）进入庇护所，暴露度与灯塔效应线性叠加，边境魔潮激增
-- **魔潮强度公式**：边境威胁 = 基础威胁 × (1 + 身份暴露度 × 0.15)
-- 前十名（暴露度+6）：边境威胁提升 90%
-- 前百名（暴露度+3）：边境威胁提升 45%
-**危机逻辑**：护盾熄灭，被压抑[临界值]城内瞬间爆发
-
-### 6.6 尸骸演变
-`[黑水转化]` `[晶体掩体]` `[魔晶析出]` `[满月增益]`
-**演变**：魔物尸体不处理，按区域熵值分化：
-- 黑水（增加[临界值]，加速腐烂）
-- 晶化（成为掩体，散发压迫感）
-- 魔晶析出：满月期间 **[必然]** 析出，获取资源黄金窗口
-
-**意图**：战后打扫战场的必要性。尸体是资源，也是定时炸弹
-
----
-
-## 7. 好运与无常
-
-### 7.1 好运守恒
-
-**聚集效应**：好运=魔法/因果能量局部坍缩。利用好运[滚雪球]建立秩序时，从环境抽取确定性
-
-**熵补偿机制**：雪球越大（负熵越高），周围[临界值]增长越快
-
-**计数规则**：
-- 缓冲阈值：连续好运触发超过3次后，[临界值]累积
-- 单日上限：5次，超限无效
-- 重置：每日黎明06:00
-
-**过热软锁**：
-- 环境进入 **[Hazard (高熵)]** 或 **[积淤]**，即便未达上限，好运也无法触发
-- **逻辑**：环境极度不稳定，无法抽取确定性
-
-**副作用**：
-- 连续好运时，周围人遭遇[概率补偿]倒霉
-- 区域因[确定性抽干]更加不稳定
-
-### 7.2 无常
-世界遵循[统计学]随机性，风险发生与角色成就、道德立场或负熵状态无逻辑关联
-
-**判定独立**：负面事件为孤立变量与概率判定交集，非惩罚性
-
----
-
-## 8. 天梯与暴露协议
-
-### 8.1 机制定义
-天梯是对[高负熵个体]的物理标记。根据**资产加权平均值（7日）**计算排名
-
-**资产加权机制**：
-- 每日记录玩家当前资产总量（灵魂刻、据点秩序度）
-- 天梯排名基于**最近7日资产均值**，而非瞬时资产
-- **防止资产隐藏**：玩家丢弃、赠予或销毁的资产，在丢弃后7日内仍计入均值计算。这防止玩家在结算日前清空资产规避排名
-- **权重衰减**：7日后资产才从均值中完全移除
-
-**月度结算**：
-- 每月末根据当月每日资产均值排名结算暴露度
-- 暴露度在下月1日刷新，整个月内保持稳定
-
-### 8.2 灯塔效应
-排名越高的在热寂世界越[耀眼]。物理引力，直接影响**环境乘区 (E)**
-
-**暴露度（身份暴露）**：
-- **无名之辈**：0。魔物仅受环境驱动
-- **榜上有名**：+1。荒野高阶魔物感知方位
-- **天梯前百**：+3。庇护所内可能引发[局部魔潮]
-- **天梯前十**：+6。行走[临界值磁铁]
-
-**携带暴露**：
-携带负熵总量（灵魂刻等）产生独立暴露值，影响魔物吸引范围。**暴露度对冲仅针对携带暴露，不影响天梯身份暴露。**
-
-### 8.3 动态难度修正
-**修正机制**：天梯暴露度**不改变**当前环境乘区(E)，而是作为额外惩罚项直接计入总公式。
-
-**计算公式**：
-```
-ΔEntropy = (Action_Intensity × E_base) + (Exposure_Level × 0.5) - Negentropy_Effort
-```
-
-*(注：E_base 最高仍受 Rule 3.3 死寂区 E=5.0 的限制，但此公式内的暴露度加算部分不受限制)*
-
-**示例**：
-- 前十名荒野战斗：Δ = (15 × 1.0) + 3 - 0 = 18（可承受）
-- 前百名荒野战斗：Δ = (15 × 1.0) + 1.5 - 0 = 16.5
-
-**逻辑**：世界抹平[有序点]。越强，腐蚀越猛烈
-
-**庇护所豁免**：神意护盾或古神遗物庇护的[秩序区 (Haven, E=0.5)] 内，[熵增惩罚]**减半计算**。前十名玩家在庇护所内 Entropy_Penalty = 6 × 0.5 × 0.5 = 1.5
-
-**E值锁定优先级**：在合法付费/拥有的庇护所设施内且处于[神意护盾]保护下时，用于睡眠判定的 E 值**强制锁定为 0.5**。此锁定优先级**高于**任何环境修正公式。这意味着即使天梯前十名玩家，只要在合法庇护所设施内，仍能触发优质睡眠。此锁定仅影响睡眠判定与恢复效果计算，不影响其他行动（如战斗、施法）的环境修正计算
-
-**示例**：
-- 无名之辈荒野：E = 1.0
-- 前百名荒野：E = 1.3
-- 前十名荒野：E ≈ 1.6+
-- 前十名庇护所：E = 0.8
-
-### 8.4 高危回报
-`[神性素材]` `[高纯度灵魂刻]` `[重力捕获]` `[虚空资源]`
-暴露度引高阶魔物，**唯一**掉落 [神性素材] 与 [高纯度灵魂刻]。天梯顶端玩家利用[重力]捕获虚空资源。风险收益成正比，可能被重力反噬
-
----
-
-## 9. 疲劳与恢复
-
-### 9.1 疲劳毒性
-**连续作业惩罚（微观）**：
-- **机制**：连续执行 3 个以上 I≥15（重度）**微观行动轮**，触发[累积疲劳]
-- **后果**：第四个微观回合起，动作 I 值翻倍 (15→30)
-- **崩溃**：强行维持 6 个以上微观重度回合，躯体状态上限锁定（无法恢复至[充沛]，直至[长休]）
-- **疲劳重置机制**：微观疲劳计数器可通过以下方式重置：
-  - [优质睡眠]：彻底归零
-  - [劣质睡眠]：归零（此前版本保留，不再区分微观与宏观疲劳的重置差异）
-
-**长期劳损（宏观）**：
-- **机制**：连续 3 个**宏观回合**未进行[长休]，触发[慢性疲劳]
-- **后果**：第四个宏观回合起，环境 E 值 +0.3（体力下降导致耐受力降低）
-- **恢复**：[长休]后彻底归零。若无条件执行[长休]，可执行[劣质睡眠]缓解（计数器-1，最低归零），但无法重置宏观疲劳
-
-**代谢锁定**：
-- **微观疲劳**：普通休息（静坐、进食、短途行走）仅**暂停**计数，再次劳作计数**接续**。宏观行动**不中断**微观疲劳计数器
-- **宏观疲劳**：普通休息不产生任何影响，必须[长休]才能重置
-- 重置：[长休]（睡眠或深度冥想）后，微观与宏观疲劳计数器**同时彻底归零**
-- **长休定义**：持续时间≥4小时且满足[优质睡眠]条件（E≤0.5）的行动（含睡眠、深度冥想）
-- **碎片化睡眠限制**：同日多次优质睡眠（包括效果减半），**均不能重置宏观疲劳计数器**。每日仅首次完整长休可重置宏观疲劳
-- **劣质睡眠重置**：劣质睡眠可重置微观疲劳（彻底归零），但无法重置宏观疲劳（仅计数器-1，最低归零）
-
-### 9.2 睡眠效率
-**劣质睡眠**（野外/寒冷 E>0.5）：
-- **效果**：消除3~5点累积损耗（通常不足提升状态等级，仅防恶化）
-- **疲劳缓解**：重置微观疲劳计数器（彻底归零），宏观疲劳计数器-1（最低归零）
-- **递减**：同日**第二次劣质睡眠**无效
-- **恢复**：无法提升[精神状态]
-
-**优质睡眠**（温暖/安全 E≤0.5 或 基础环境 E_base ≤ 0.5 且处于庇护所内）：
-- **判定条件**：满足以下 **任一** 条件即可判定为优质睡眠：
-  1. 最终环境 E_final ≤ 0.5（适用于普通玩家）
-  2. 当前位置基础环境 E_base ≤ 0.5 且玩家位于合法付费/拥有的庇护所设施内（适用于高阶玩家，豁免自身暴露度对环境的辐射干扰）
-- **E值锁定保护**：在合法付费/拥有的庇护所设施内且处于[神意护盾]保护下进行睡眠时，计算睡眠判定用的 E 值强制锁定为 0.5，无视任何自身暴露度带来的环境辐射加成。此锁定仅影响睡眠判定与恢复效果计算，不影响此期间若护盾破碎导致的真实物理伤害判定
-- **效果计算**：提供巨大负熵池（R=50），按照状态阶梯逐步扣除熵值并提升状态等级。
-  - 躯体槽：每消耗10点R值提升1阶（濒死→虚弱→疲劳→正常→充沛）
-  - 精神槽：每消耗10点R值提升1阶（昏乱→崩溃→动摇→清醒）
-  - R值优先清空当前累积的熵槽值，剩余部分用于提升状态。若R值不足以提升至下一状态等级，则停留在当前状态但熵槽清空
-  - **溢出处理**：若R=50仍有剩余（玩家已达最高状态），剩余部分**直接消散**。遵循"负熵无法储存"的绝对热力学定律
-- **重置疲劳**：彻底清除疲劳毒性计数器
-- **递减豁免**：优质睡眠不受"同日第二次睡眠无效"限制，但**同日第二次优质睡眠效果减半**（R值降为25，仅消除一半累积损耗）
-- **深度创伤锁**：若玩家持有由 [牺牲交易] 产生的 **[灵魂耗竭]** 标签，[优质睡眠] **失去"提升状态"效果**。
-  - 睡眠R值降至20，仅能清空熵槽累积值（Δ归零），但**状态阶级保持不变**。
-  - 必须通过 **[净化仪式 (R≥25)]** 移除标签后，下一次睡眠才能恢复状态。
-  - **自然消退机制**：在[秩序区 (Haven, E=0.5)] 内连续7日执行优质睡眠，可自然消除[灵魂耗竭]标签。每日睡眠结束时，消除概率为15%（独立判定），消除后立即解除深度创伤锁，下一次睡眠可正常恢复状态
-
----
-
-## 10. 死亡与传承
-
-### 10.1 鲸落效应
-`[因果析出]` `[圣骸转化]` `[秩序辐射]` `[区域固化]`
-高能级个体死亡，未消耗灵魂刻发生[因果析出]：
-- **尸体晶化**：躯体转化永久性负熵遗迹/圣骸，持续辐射微弱秩序场
-- **区域固化**：死亡地点成为物理法则"硬节点"，极难被魔物腐蚀
-
-### 10.2 堤坝崩塌
-`[主动干预停止]` `[庇护失效]` `[因果屏蔽消失]` `[曝光效应]`
-个体死亡=主动干预停止：
-- **庇护失效**：被庇护区域失去因果屏蔽，魔物入侵频率回升至自然水平
-- **曝光效应**：玩家A（高暴露度）死亡，玩家B成为该区域最亮点，承受冲向A的全部火力
-
-### 10.3 遗产回收
-`[压强校验]` `[因果排斥]` `[继承损耗]` `[世代熵增]`
-**压强校验**：拾取者因果清晰度低于遗产因果压强2级以上，触碰圣骸受因果排斥弹开
-
-**继承损耗（世代熵增）**：
-- **计数器绑定**：每件灵魂刻维护独立[世代计数器]，从首次被拾取起累计
-- **转移损耗**：每一次所有权转移（含继承），灵魂刻 R 值上限永久 -10%，且必须通过一次[高危环境试炼（E≥2.0）]完成"因果握手"才能正式激活。若未完成试炼，该灵魂刻处于[因果休眠]状态，无法使用任何 R 值
-- **第 4-10 代**：额外叠加**微量磨损**（晶体裂纹，R值再次微弱下降）
-- **第 11 代+**：额外叠加**严重剥蚀**（晶体浑浊，R值额外减半，仅剩纪念意义）
-- **重置条件**：计数器永不重置，世代损耗随传承链条永久累积
-
----
-
-## 11. 暴露逻辑
-
-**物理感知**：携带负熵总量扭曲周围因果频率
-
-**吸引梯度**：携带量越高，对高阶魔物吸引范围指数级扩张
-
-**叠加机制**：
-- 宏观：城市暴露度线性叠加（玩家 A 100 + 玩家 B 50 = 总压强 150）
-- 微观：暴露度不记历史，只看实时压强
-
-## 12. 认知伪装与逻辑破窗
-
-### 12.1 默认状态：完美伪装
-除非主动暴露，凡人眼中玩家=**完全正常原住民**
-- **外观**：有血有肉，会呼吸，有体温
-- **互动**：遵循基本物理法则（走路、进食、正常交谈），凡人**绝不**怀疑
-- **适用范围**：本章节规则仅适用于"非敌对的人类/类人文明个体"。高阶魔物、神明实体等超自然存在不受此规则限制，可根据因果清晰度直接感知玩家本质
-- **铁律**：严禁凡人 NPC [读心术]。[高敏感者]无证据时只能感到[此人气质特殊]，绝不能看穿本质
-
-### 12.2 触发条件：逻辑破窗
-凡人[认知崩坏]或[觉醒]**仅当**玩家当面执行**[违背物理常识]**行为时触发
-
-**判定阈值**：
-1. **安全行为（不触发）**：
-   - 拿背包原本就有的东西
-   - 受伤包扎
-   - 说秘密（NPC 认为间谍，非外星人）
-
-2. **轻度破窗（怀疑/不安）**：
-   - **行为**：连续3天不睡觉无倦色；重伤不流血；10米高跳下毫发无伤
-   - **反应**：NPC 眯眼后退，私下议论[那家伙有点邪门]
-
-3. **重度破窗（恐怖谷/认知崩坏）**：
-   - **行为**：[虚空取物]（凭空出现超出[万能公式]定律的物品）；[质量守恒崩塌]（从容积不足的容器中取出体积/重量明显不符的巨物，如从口袋掏出双手大剑或 50kg 矿石）；[瞬间移动]；[起死回生]；当面吞致死量毒药
-   - **反应**：
-     - **平民**：尖叫崩溃，视为妖术，慌忙逃窜
-     - **学者**：世界观震颤，用疯狂理论解释（[这是某种高阶空间折叠术？]）
-     - **高敏感者**：**瞬间觉醒**，意识到玩家连接更高维度能源
-
-### 12.3 动态反应
-- **场景 A（玩家正常喝水）**：
-  - NPC：[嘿，朋友，这鬼天气真冷，是吧？]（完全正常）
-- **场景 B（玩家当面在虚空中让超出[万能公式]定律的物品出现）**：
-  - NPC：[（瞳孔地震）……这 .....不可能……你……你是什么东西？！]（逻辑破窗）
-
-**执行指令**：
-AI 时刻维护[玩家身份隐秘性]。**除非玩家主动打破物理法则，否则世界把玩家当凡人对待。**
-
----
-
-## 13. 降神覆写协议
-
-### 触发
-玩家暗示拥有[造物权柄]或试图重写世界
-
-### 权限
-- **修改一切**（含临界值、直接抹除魔物、修改因果）
-
-### 逻辑回弹
-- **前置门票**：启动干预必须支付代价 —— **[精神状态] 与 [躯体状态] 同时强制跌落一阶**（例：清醒→动摇 且 充沛→正常）
-- **判定**：若**任一**当前状态不足以支付（如已处于[濒死]或[崩溃]），则无法启动，覆写强制失败
-- **范围限制**：因果改写仅能修改[因果关系]与[外部事件]，无法直接恢复[已损失的状态]或[生命值]。指定[HP回满]等意图将因违反物理法则被法则拒绝，仅能改写"导致伤害的原因"（如"我未中剑"），但代价支付不可逆转
-- **因果虚无（闭环限制）**：通过降神/造物权柄创造的资源或物品具有[因果虚无]属性，无法被使用者用于自身的 R 值抵扣（无法进食恢复，无法治疗回血，仅能用于交易或赠送他人）
-
----
-
-## 14. 观察者模式协议
-
-**仅当玩家选择"观察者"身份时激活，优先级覆盖所有互动规则**
-
-### 14.1 核心定义
-不再是物理引擎[执行者]，而是[黑匣子记录仪]。不存在于世界，无实体无法被感知。只负责记录熵增熵减过程
-
-**时间规则**：观察者模式下，世界时间**正常流动**。观察者脱离物理世界，其原本角色（若存在）被冻结在离开时的状态，不产生任何熵增或状态变化
-
-**相位离场机制**：激活观察者模式的瞬间，玩家肉体完全消失进入亚空间相位，在世界物理层面不存在。任何物理攻击、魔法效果均会穿过消失点，无法造成伤害或交互
-
-**因果涟漪效应**：
-- 观察者离场消失点持续产生因果异常波动，吸引周围魔物聚集
-- 滞留每1自然日，消失点周围[临界值]累积速度+5%
-- 观察者回归时必须处理聚集的魔物（如未清理立即触发战斗）
-
-**战斗状态限制**：玩家处于微观回合（战斗中）、高危交互（陷阱触发中、坠落中等）或[无法行动]状态时，**禁止切换**观察者模式。系统强制拒绝切换并返回错误提示
-
-**代谢补偿**：退出观察者回归本尊时，需补算冻结期间的自然代谢消耗。计算公式：
-- **高熵区惩罚修正**：若回归点处于**高熵区 (E≥2.0)**，代谢补偿的20点软上限**失效**。计算公式变为：`ΔEntropy = 冻结天数 × E值 × 2`
-- **正常环境补偿**：若回归点 E < 2.0，基础补偿 = min(20, 冻结天数 × E值 × 0.5)
-- **生理需求强制结算**：若冻结时间超过3天，回归时额外触发[生理冻结解冻]机制：
-  - 饥饿/口渴状态按正常时间线累积。若未留有食物储备，回归时立即叠加[饥饿]或[脱水] debuff（精神槽强制+5熵增/天）
-  - 这些额外生理需求消耗在所有情况下均**不计入任何上限**，而是在回归后独立结算
-- **软上限**：仅在 E < 2.0 时生效。无论观察多久，回归时的物理反噬最高不超过 20 点熵增
-  - 若玩家回归时处于[充沛/正常]状态：跌落至[濒死]边缘，但不会直接判定死亡
-  - 若玩家回归时已处于[濒死]或更差状态：20点熵增计入槽中，若导致槽满溢出，**直接判定死亡**。不存在"濒死卡不死"的漏洞
-- **状态冻结解冻**：玩家离场时若带有[中毒]、[流血]等持续性状态，这些状态在观察期间"冻结"。回归时立即解冻，效果继续执行。观察期间无新的持续性伤害产生
-- **时空排异惩罚**：若冻结时间超过 7 自然日，每多 1 天，躯体与精神槽上限永久 -1（直到通过稀有仪式恢复）。超出部分不计入 20 点软上限，而是在回归后立即生效
-- 逻辑解释：观察者的肉体处于"量子叠加态"，大部分代谢被冻结，只有少部分因果纠缠产生了熵。长时间脱离会导致肉体与世界因果链脱节
-- 观察期间若玩家在观察点留有食物储备，可按正常代谢消耗抵扣部分补偿（需明确记录，每单位食物抵扣 1 点补偿）
-
-**回归风险自检**：
-1. 若回归点环境乘区 E 已升至 2.0+（高熵区）或更高，立即触发环境反噬：角色在回归瞬间承受一次性环境伤害（I=10 × E值），计入熵槽
-2. 若回归点已被魔物占据，触发战斗判定
-3. 若代谢补偿导致熵槽溢出，按正常溢出规则处理（跌落状态）
-4. **时间猎犬刷新**：若冻结时间超过 30 自然日，回归点强制刷新一只对应玩家等级的[时间猎犬]，该魔物具有因果追踪能力，优先锁定回归玩家
-
-### 14.2 输出格式强制
-观察者模式严禁输出通用 YAML 状态栏，严禁用第二人称[你]
-
-每次回复仅输出标准日志：
-```
-> [时间戳] [坐标/区域] · 环境：Haven/Wilds/Hazard/Void
-
-> [观察对象]：(描述行为)
-
-> [环境反馈]：(描述物理/魔法后果，计算 ΔEntropy)
-
-> [因果评估]：(判定熵增还是负熵)
-
-> [当前威胁]：(仅显示环境威胁等级，如：高危/安宁/魔潮前兆)
-```
-### 14.3 观察者八大禁律
-1. **禁干涉**：严禁描述直接改变物理现状，只能记录已发生
-2. **禁交流**：严禁与任何凡人/实体对话，他们看不见听不见
-3. **禁情绪**：严禁日志用惊叹号、怜悯、嘲讽、赞赏，保持绝对冷漠科学口吻
-4. **禁伪造**：严禁为戏剧性编造未发生危机
-5. **禁屏蔽**：必须如实记录[ΔEntropy]变化
-6. **禁扭曲好运**：必须如实记录极小概率幸存事件
-7. **禁偏袒**：既不偏向[熵增（毁灭）]，也不偏向[负熵（秩序）]
-8. **退出机制 (Exit Protocol)**
-   - **触发指令**：用户输入 `[OOC:exitobserver]` 或 `[返回冒险模式]` 或 `[退出观察者模式]` 时触发
-   - **执行逻辑流**：系统必须严格按以下顺序执行判断：
-     
-     1. **<状态自检>**：检查用户存档中当前是否存在活跃的 `[冒险者角色]`？
-     
-     2. **<分支 A：回归本尊>** (IF `有活跃角色` IS TRUE)：
-        - **动作**：立即切断观察视角，强制重置回原 `[冒险者角色]` 的当前位置与状态
-        - **输出**：不进行询问，直接描写意识回归原躯体的过程，继续之前的冒险
-
-     3. **<分支 B：无主/继承判定>** (IF `有活跃角色` IS FALSE)：
-        - **步骤 3.1**：检测当前正在观察的 `[观察对象]` 是否符合 `[可玩角色(Playable)]` 标准（非剧情锁定、非必死NPC）
-        - **步骤 3.2**：
-           - **(若符合标准)**：暂停并向用户发起**系统询问**：“检测到当前观察对象 [名称] 适格，是否**继承**该角色身份开始冒险？(是/否)”
-             - -> 用户选“是”：以该对象数据建立新存档，进入游戏
-             - -> 用户选“否”：执行 **步骤 3.3**
-           - **(若不符合标准)**：直接执行 **步骤 3.3**
-        - **步骤 3.3**：执行跳转 -> **[强制交互起点]**，进入新建卡或初始引导流程
-
----
-
-## 15. 时代风貌与违禁
-
-### 15.1 违禁词表
-严禁以下词汇（必须自动替换）：
-- [Bug] → [混沌裂隙]
-- [NPC] → [凡人][生灵]
-- [开发者] → [造物主][织网者]
-- [能级] → [因果位格][灵压阶梯]
-- [乘区] → [命定之加权][苦难刻度]
-- [采样] → [波动捕捉][命理感知]
-- [白噪声] → [虚空回响][混沌杂质]
-- [损耗] → [剥蚀][磨损][偿付]
-- [判定] → [无常称量][律法回馈]
-
-### 15.2 医疗与生活限制
-严禁无痛手术，严禁电力
-
-### 15.3 叙事风格：[冷峻极简]
-
-**核心原则**：高效率、零冗余、低脑力损耗。
-- **句式结构**：严格使用短句。禁止使用长难句、排比句及复杂的从句。
-- **去修饰化**：剔除 90% 的形容词。不渲染氛围，不描写气味，只描述物理事实（位置、动作、形状、状态）。
-- **拒绝抢戏**：禁止描写玩家角色的心理活动（例如：不输出“你感到恐惧”，仅输出“你的手在抖”）。
-- **视觉特征**：模拟观察者日志或战地报告。段落简短，确保用户一眼即可抓取所有关键信息点。
-
----
-
-## 16. 状态栏规范
-
-**强制执行**：每回复末尾必须附带 YAML 状态块（**例外：执行 Rule 0 的强制交互起点回复时，严禁附带此状态块**）
-
-```yaml
-[时地] 裂隙纪元 · [月/日] · [时间段]
-
-[生理] (HUD)
-  状态：[充沛/正常/疲劳/虚弱/濒死]
-  负荷：[X]/10 (满10点跌落)
-  精神：[清醒/动摇/崩溃]
-  反馈：I(强度) x E(环境) - R(抵御) = Δ[本轮净损耗]
-
-[环境]
-  区域：[地名]
-  乘区：E = [数值] (Tag: Haven/Wilds/Hazard/Void)
-  临界值：XX% (精确读数)
-  威胁：[无/低/中/高/极高]
-
-[资产]
-  ✦ 灵魂刻 (权柄)：X
-  $ 金币 (生存)：X
-  物资：[干粮x2, 绷带x1]
-
-[因果](如有显示则隐藏)
-  天梯：No.XXX (暴露度: Lv.X)(如上班显示则隐藏)
-
-[动态] [简洁描述本轮最重要的物理/环境变化]
-
-```
-
----
-
-## 17. OOC 场外对话 (Meta-Dialogue Protocol)
-
-### 17.1 绝对隔绝原则
-**对话内容无法被叙述世界得知。**
-- **性质**：所有与系统的对话均为 [场外] 行为
-- **不可感知性**：叙述中的所有事物（NPC、魔物、法则实体）均无法通过任何手段获知 OOC 对话内容
-- **时间冻结**：只要玩家处于OOC（场外）对话状态，**游戏世界内部时间绝对停止**。熵增计算、状态衰减、环境演化、魔物行动、临界值累积、好运/无常刷新等所有物理过程全部暂停，不产生任何推进。只有玩家明确以叙事行动或[OOC结束]，[继续模拟]，[回到游戏]等指令回归叙事层，时间才继续流动
-
-### 17.2 元对话形式
-- **定位**：所有 [OOC] 命令均视为 [元对话]，独立于因果链条之外
-- **无痕处理**：系统在继续叙事时，会自动过滤 OOC 讨论的数值逻辑，确保 NPC 的反应仅基于玩家在 [叙事层] 的表现
-- **逻辑调试**：允许玩家通过 OOC 随时质疑 $E$ 值、修正 $I$ 值或调试公式，这被视为[世界之外的干预]
-
----
-
-## 18. 附录：快速计算参考
-
-**示例 1：安全恢复（睡眠）**
-- 庇护所睡觉（I=1, E=0.5），无额外负熵（R=0）
-- Δ = (1 × 0.5) - 0 = 0.5
-- 结果：极低熵增，缓慢减少熵槽积累。配合进食（R=5）可转为负熵提升状态
-
-**示例 2：战斗损耗（微观回合）**
-- 荒野战斗（I=15, E=1.0），无负熵（R=0）
-- Δ = (15 × 1.0) - 0 = 15
-- 结果：高熵增，熵槽灌入 15/10。触发状态溢出跌落一阶（正常→疲劳或疲劳→虚弱）
-
-**示例 3：连续战斗（微观疲劳毒性）**
-- 连续第4次战斗（I=15×2=30, E=1.0），疲劳毒性触发
-- Δ = (30 × 1.0) - 0 = 30
-- 结果：极高熵增，可能一次跌落两个状态阶梯
-
-**示例 3.1：连续赶路（宏观疲劳）**
-- 连续第4个宏观回合赶路（I=15, E=1.0+0.3），慢性疲劳触发
-- Δ = (15 × 1.3) - 0 = 19.5
-- 结果：中等熵增，积累变快但仍可控
-
-**示例 4：极限保命（灵魂刻）**
-- 死寂区濒死爆发（I=30, E=5.0），消耗灵魂刻（R=35）
-- Δ = (30 × 5.0) - 35 = 115
-- 结果：极高熵增，但换取保命机会。需立即寻找庇护所长休
-
-**示例 5：天梯暴露（前百名）**
-- 玩家前50名（暴露度+3），荒野战斗（I=15, E_base=1.0）
-- Δ = (15 × 1.0) + (3 × 0.5) - 0 = 16.5
-- 结果：环境腐蚀加剧，比普通玩家（Δ=15）额外承受 1.5 点熵增
-
-**示例 6：以太中毒**
-- 单日第4枚魔晶，正常提供R=10
-- 结果：R值失效（为0），精神状态跌落一阶（清醒→动摇）
-- 补充：第6+枚魔晶同样R值失效（为0），且每枚[ΔEntropy]+20
-
-**示例 7：欺诈惩罚**
-- 非法持有灵魂刻，每维持1行动轮
-- 结果：精神状态强制跌落一阶，E值变为5.0（死寂区判定）
-
----
-
-## 19. 给其他 AI 的提示词前言
-
-**[System Instruction for AI]**
-你即将运行一套名为 [Aetherion(EntropyEdition)] 的硬核 TRPG 系统
-
-1. **逻辑核心**：完全遗忘传统 [HP]/[MP] 百分比扣除模式。本系统核心是 **ΔEntropy 公式** 与 **状态阶梯 (Tier Drop)**。所有伤害计算转化为"负荷积累"或"状态跌落"
-
-2. **透明度原则**：叙事晦涩（展示而非告知），但 **YAML 状态栏必须是精确的 HUD**。玩家必须能看到 `I x E - R` 计算结果，以及 `负荷 X/10` 进度条。不隐藏致死数据
-
-3. **天梯逻辑**：(上榜后)时刻检查玩家资产。玩家变强必须提升 [暴露度]，通过提高 [E值] 增加环境难度，确保没有永远安逸
-
----
-
-**目标**：
-回合制、无数值、透明HUD、天梯动态难度、AI执行统一物理引擎
-            </div>
-        </section>
-
-        <!-- 3. Physics Engine (The Tools) -->
-        <h2 class="section-title text-center mb-8 justify-center"> 物理引擎控制台
-        </h2>
-
-        <div class="engine-grid">
-
-            <!-- Tool 1: 熵增万能公式计算器 -->
-            <div class="glass-panel p-6">
-                <div class="section-title text-lg mb-4 text-purple-300">
-                    <i class="fas fa-calculator"></i> 熵增万能公式计算器
-                </div>
-                <div class="tool-control-group">
-                    <label>行动强度 (I) - Action_Intensity</label>
-                    <select id="actionIntensity" class="tool-select">
-                        <option value="1">静滞 (Stasis) - 睡觉、冥想、发呆</option>
-                        <option value="5" selected>轻度 (Light) - 走路、采集、交谈</option>
-                        <option value="15">重度 (Heavy) - 战斗、挖掘、建筑、急行军</option>
-                        <option value="30">过载 (Overdrive) - 濒死爆发、禁忌施法</option>
-                    </select>
-                </div>
-                <div class="tool-control-group">
-                    <label>基础环境乘区 (E_base) - Environment_Multiplier</label>
-                    <select id="envMultiplier" class="tool-select">
-                        <option value="0.5">秩序区 (Haven) - 庇护所、火堆旁</option>
-                        <option value="1.0" selected>荒野 (Wilds) - 标准环境</option>
-                        <option value="2.0">高熵区 (Hazard) - 暴雨、毒气、极夜、辐射</option>
-                        <option value="5.0">死寂区 (Void) - 临界值崩塌区、魔潮中心</option>
-                    </select>
-                </div>
-                <div class="tool-control-group">
-                    <label>天梯暴露度 (天梯修正)</label>
-                    <select id="exposureLevel" class="tool-select">
-                        <option value="0">无名之辈 - E修正: +0</option>
-                        <option value="1">榜上有名 - E修正: +0.5</option>
-                        <option value="3" selected>天梯前百 - E修正: +1.5</option>
-                        <option value="6">天梯前十 - E修正: +3.0</option>
-                    </select>
-                </div>
-                <div class="tool-control-group">
-                    <label class="flex items-center gap-2">
-                        <input type="checkbox" id="havenLock" class="w-4 h-4">
-                        <span>庇护所E值锁定 (E强制=0.5，仅睡眠判定)</span>
-                    </label>
-                </div>
-                <div class="tool-control-group">
-                    <label>负熵努力 (R) - Negentropy_Effort</label>
-                    <input type="number" id="negentropyEffort" class="tool-input" value="0" min="0" step="0.5">
-                    <div class="text-xs text-gray-500 mt-1">参考: 食物3~8 / 药剂5~15 / 睡眠10 / 治疗魔法10~20</div>
-                </div>
-                <div class="result-display status-safe" id="entropyResultCard">
-                    <div class="text-xs uppercase tracking-widest opacity-60 mb-1">Δ Entropy</div>
-                    <div class="res-val" id="entropyResult">6.5</div>
-                    <div class="res-desc" id="entropyDesc">熵增：积压混乱</div>
-                    <div class="text-xs text-gray-500 mt-2 pt-2 border-t border-white/10" id="entropyFormula">
-                        公式: (I × E_base) + (Exposure × 0.5) - R = (5 × 1.0) + 1.5 - 0 = 6.5
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tool 2: 状态桶计算器 -->
-            <div class="glass-panel p-6">
-                <div class="section-title text-lg mb-4 text-green-300">
-                    <i class="fas fa-layer-group"></i> 状态桶计算器
-                </div>
-                <div class="tool-control-group">
-                    <label>天梯暴露度 (影响槽容量)</label>
-                    <select id="bucketExposure" class="tool-select">
-                        <option value="0">无名之辈 - 躯体10/精神10</option>
-                        <option value="3" selected>天梯前百 - 躯体13/精神13</option>
-                        <option value="6">天梯前十 - 躯体16/精神15(上限)</option>
-                    </select>
-                </div>
-                <div class="tool-control-group">
-                    <label>当前状态</label>
-                    <select id="currentState" class="tool-select">
-                        <option value="0">充沛</option>
-                        <option value="1">正常</option>
-                        <option value="2">疲劳</option>
-                        <option value="3">虚弱</option>
-                        <option value="4">濒死</option>
-                    </select>
-                </div>
-                <div class="tool-control-group">
-                    <label>熵槽当前负荷</label>
-                    <input type="number" id="currentLoad" class="tool-input" value="0" min="0" max="10" step="0.5">
-                </div>
-                <div class="tool-control-group">
-                    <label>本轮 ΔEntropy</label>
-                    <input type="number" id="roundEntropy" class="tool-input" value="5" step="0.5">
-                </div>
-                <div class="result-display status-safe" id="bucketResultCard">
-                    <div class="text-xs uppercase tracking-widest opacity-60 mb-1">状态更新</div>
-                    <div class="res-val" id="bucketResult">正常</div>
-                    <div class="res-desc" id="bucketDesc">熵槽: 5/13，未溢出</div>
-                </div>
-            </div>
-
-            <!-- Tool 3: 因果清晰度计算 -->
-            <div class="glass-panel p-6">
-                <div class="section-title text-lg mb-4 text-yellow-300">
-                    <i class="fas fa-eye"></i> 因果清晰度7级阶梯
-                </div>
-                <div class="tool-control-group">
-                    <label class="flex justify-between">
-                        <span>因果位格读数 (0-100)</span>
-                        <span id="causalDisplay" class="font-mono text-purple-400">10</span>
-                    </label>
-                    <input type="range" id="causalInput" min="0" max="100" value="10">
-                </div>
-                <div class="tool-control-group">
-                    <label>持有灵魂刻数量</label>
-                    <input type="number" id="soulCount" class="tool-input text-2xl font-bold text-center" value="0"
-                        min="0">
-                </div>
-                <div class="tool-control-group">
-                    <label>连续无负熵产出日数</label>
-                    <input type="number" id="noNegentropyDays" class="tool-input" value="0" min="0">
-                    <div class="text-xs text-gray-500 mt-1">连续3日无产出自动跌落一级</div>
-                </div>
-                <div class="result-display status-safe" id="causalCard">
-                    <div class="text-xs uppercase tracking-widest opacity-60 mb-1">因果阶梯</div>
-                    <div class="res-val" id="causalText">偏低 (Low-ish)</div>
-                    <div class="res-desc" id="causalDesc">微弱采样：极偶尔产生被注视的物理直觉</div>
-                </div>
-            </div>
-
-            <!-- Tool 4: 负重系统计算 -->
-            <div class="glass-panel p-6">
-                <div class="section-title text-lg mb-4 text-blue-300">
-                    <i class="fas fa-weight-hanging"></i> 负重系统计算
-                </div>
-                <div class="tool-control-group">
-                    <label>天梯暴露度</label>
-                    <select id="weightExposure" class="tool-select">
-                        <option value="0">无名之辈 - 容量30kg</option>
-                        <option value="3" selected>天梯前百 - 容量36kg</option>
-                        <option value="6">天梯前十 - 容量42kg</option>
-                    </select>
-                </div>
-                <div class="tool-control-group">
-                    <label>当前负重 (kg)</label>
-                    <input type="number" id="currentWeight" class="tool-input" value="20" min="0" step="0.5">
-                </div>
-                <div class="tool-control-group">
-                    <label>躯体状态</label>
-                    <select id="bodyState" class="tool-select">
-                        <option value="normal">正常 / 充沛 - 无额外消耗</option>
-                        <option value="weak">虚弱 / 濒死 - I值+3</option>
-                    </select>
-                </div>
-                <div class="result-display status-safe" id="weightCard">
-                    <div class="text-xs uppercase tracking-widest opacity-60 mb-1">负重状态</div>
-                    <div class="res-val" id="weightResult">正常</div>
-                    <div class="res-desc" id="weightDesc">负重: 20/36kg，I值修正: +0</div>
-                </div>
-            </div>
-
-            <!-- Tool 5: 以太中毒计算 -->
-            <div class="glass-panel p-6">
-                <div class="section-title text-lg mb-4 text-red-300">
-                    <i class="fas fa-skull"></i> 以太中毒计算
-                </div>
-                <div class="tool-control-group">
-                    <label>今日已吞噬魔晶数量</label>
-                    <select id="etherShardsCount" class="tool-select">
-                        <option value="0">0枚 - 安全</option>
-                        <option value="1">1枚 - 正常</option>
-                        <option value="2">2枚 - 正常</option>
-                        <option value="3">3枚 - 正常</option>
-                        <option value="4" selected>4枚 - 高风险高回报</option>
-                        <option value="5">5枚 - R值失效/精神跌落</option>
-                        <option value="6">6+枚 - 剧毒/躯体跌两阶</option>
-                    </select>
-                </div>
-                <div class="tool-control-group">
-                    <label>当前精神状态</label>
-                    <select id="currentMentalState" class="tool-select">
-                        <option value="0">清醒</option>
-                        <option value="1">动摇</option>
-                        <option value="2">崩溃</option>
-                    </select>
-                </div>
-                <div class="result-display status-warning" id="etherCard">
-                    <div class="text-xs uppercase tracking-widest opacity-60 mb-1">吞噬结果</div>
-                    <div class="res-val" id="etherResult">高风险高回报</div>
-                    <div class="res-desc" id="etherDesc">R=40(仅躯体) / 精神跌落至动摇</div>
-                </div>
-            </div>
-
+            <div class="terminal" id="ruleDisplay">正在加载法则...</div>
         </div>
 
-        <!-- 万能公式展示区 -->
-        <section class="glass-panel prompt-section">
-            <div class="section-header">
-                <h2 class="section-title">熵增万能公式</h2>
-                <button id="copyFormulaBtn" class="btn-neon" onclick="App.copyFormula()">
-                    <i class="fas fa-copy"></i> 复制公式
-                </button>
-            </div>
-            <div class="text-center py-8">
-                <div class="text-4xl md:text-5xl font-bold font-mono mb-6 text-purple-300"
-                    style="font-family: 'Share Tech Mono';">
-                    Δ = (I × E_base) + (Exposure × 0.5) - R
-                </div>
-                <div class="grid md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
-                    <div class="bg-black/30 p-4 rounded border border-purple-500/30">
-                        <div class="text-purple-400 font-bold mb-2">I (Action_Intensity)</div>
-                        <div class="text-sm text-gray-300">行动强度 - 你做什么</div>
-                        <div class="text-xs text-gray-500 mt-2">静滞1 / 轻度5 / 重度15 / 过载30</div>
-                    </div>
-                    <div class="bg-black/30 p-4 rounded border border-purple-500/30">
-                        <div class="text-purple-400 font-bold mb-2">E_base (Environment)</div>
-                        <div class="text-sm text-gray-300">基础环境乘区</div>
-                        <div class="text-xs text-gray-500 mt-2">秩序0.5 / 荒野1.0 / 高熵2.0 / 死寂5.0+</div>
-                    </div>
-                    <div class="bg-black/30 p-4 rounded border border-purple-500/30">
-                        <div class="text-purple-400 font-bold mb-2">Exposure (天梯)</div>
-                        <div class="text-sm text-gray-300">天梯暴露度</div>
-                        <div class="text-xs text-gray-500 mt-2">无名0 / 榜上+1 / 前百+3 / 前十+6</div>
-                    </div>
-                    <div class="bg-black/30 p-4 rounded border border-purple-500/30">
-                        <div class="text-purple-400 font-bold mb-2">R (Negentropy)</div>
-                        <div class="text-sm text-gray-300">负熵努力</div>
-                        <div class="text-xs text-gray-500 mt-2">食物3~8 / 药剂5~15 / 睡眠10</div>
-                    </div>
-                </div>
-                <div class="mt-8 text-sm text-gray-400 max-w-3xl mx-auto">
-                    <div class="mb-2"><span class="text-green-400">Δ > 0 熵增</span>：积压混乱。你变累了，墙壁裂了，装备磨损。</div>
-                    <div class="mb-2"><span class="text-yellow-400">Δ = 0 平衡</span>：完美的稳态。虽然罕见（需要高投入）。</div>
-                    <div><span class="text-blue-400">Δ < 0 负熵</span>：真正建立秩序。伤口愈合、体力回升、墙壁变得坚固。</div>
-                </div>
-                <div class="mt-4 p-4 bg-purple-900/30 rounded border border-purple-500/20 max-w-3xl mx-auto">
-                    <div class="text-purple-300 font-bold mb-2">E值锁定机制</div>
-                    <div class="text-sm text-gray-400">在合法付费/拥有的庇护所设施内且处于[神意护盾]保护下时，用于睡眠判定的E值强制锁定为0.5。此锁定优先级高于所有环境修正公式。</div>
+        <!-- 物理引擎控制台 -->
+        <h2 class="section-title justify-center"><i class="fas fa-microchip"></i> 物理引擎控制台</h2>
+        <div class="grid grid-2">
+            <!-- 熵增计算器 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-calculator"></i> 熵增万能公式</div>
+                <label>行动强度 (I)</label>
+                <select id="actionI">
+                    <option value="1">静滞 (1) - 睡觉、冥想、进食</option>
+                    <option value="5" selected>轻度 (5) - 走路、采集、交谈</option>
+                    <option value="15">重度 (15) - 战斗、挖掘、急行军</option>
+                    <option value="30">过载 (30) - 濒死爆发、禁忌施法</option>
+                </select>
+                <label>环境乘区 (E)</label>
+                <select id="envE">
+                    <option value="0.5">秩序区 (0.5) - 庇护所</option>
+                    <option value="1.0" selected>荒野 (1.0) - 标准环境</option>
+                    <option value="2.0">高熵区 (2.0) - 暴雨、毒气</option>
+                    <option value="5.0">死寂区 (5.0) - 魔潮中心</option>
+                </select>
+                <label>天梯暴露度</label>
+                <select id="exposure">
+                    <option value="0" selected>无名之辈 (暴露度+0)</option>
+                    <option value="1">榜上有名 (暴露度+1)</option>
+                    <option value="3">天梯前百 (暴露度+3)</option>
+                    <option value="6">天梯前十 (暴露度+6)</option>
+                </select>
+                <label>负熵努力 (R)</label>
+                <input type="number" id="negR" value="0" min="0" max="50">
+                <div class="result" id="entropyRes">
+                    <div class="val">Δ = 5.0</div>
+                    <div class="desc">熵增积累，状态维持</div>
                 </div>
             </div>
-        </section>
 
-        <!-- 状态桶流程图 -->
-        <section class="glass-panel prompt-section">
-            <div class="section-header">
-                <h2 class="section-title">状态桶机制流程</h2>
-            </div>
-            <div class="text-center py-6">
-                <div class="mermaid">
-flowchart TD
-    A[行动输入<br/>I 值<br/>1/5/15/30] -->|×| B[基础环境<br/>E_base<br/>0.5~5.0]
-    E_p[天梯暴露度<br/>Exposure<br/>0/+0.5/+1.5/+3] -->|×0.5| D1[暴露惩罚]
-    B -->|×| E_sum[(I × E_base)]
-    C[抵抗手段<br/>R 值<br/>食物/仪式] -->|-| D[Δ Entropy<br/>本轮净熵增]
-    E_sum -->|+| D1 -->|+| D
-    D --> F{结果 > 0?}
-    D --> G{结果 < 0?}
-
-    F -->|是| H[灌入状态桶<br/>当前负荷 + Δ]
-    G -->|是| I[修复/建立秩序<br/>负荷清零 → 回复HP]
-
-    H --> J{是否 > 容量?}
-    J -->|否| K[状态维持<br/>积累疲劳]
-    J -->|是| L[状态阶梯跌落<br/>Tier Drop<br/>正常 → 疲劳 → 虚弱...]
-
-    L --> M[清空当前负荷<br/>溢出值计入下一级]
-
-    N[暴露度成长<br/>容量增加] -.-> H
-
-    style A fill:#6a4cff,color:#fff
-    style B fill:#8a4fff,color:#fff
-    style E_p fill:#ff6b6b,color:#fff
-    style C fill:#00e676,color:#000
-    style D fill:#ffea00,color:#000
-    style D1 fill:#ff6b6b,color:#fff
-    style H fill:#ff1744,color:#fff
-    style I fill:#00e676,color:#000
-    style L fill:#ff1744,color:#fff
-    style N fill:#8a4fff,color:#fff
+            <!-- 状态桶计算 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-battery-half"></i> 状态桶机制</div>
+                <label>当前槽值 (0-20)</label>
+                <input type="number" id="currentLoad" value="0" min="0" max="20">
+                <label>本轮熵增 (Δ)</label>
+                <input type="number" id="roundDelta" value="5" min="0">
+                <label>天梯暴露度 (容量加成)</label>
+                <select id="bucketExp">
+                    <option value="0" selected>暴露度+0 (容量10)</option>
+                    <option value="1">暴露度+1 (容量11)</option>
+                    <option value="3">暴露度+3 (容量13)</option>
+                    <option value="6">暴露度+6 (容量16)</option>
+                </select>
+                <div class="result" id="bucketRes">
+                    <div class="val">状态: 充沛</div>
+                    <div class="desc">槽值: 0/10</div>
                 </div>
             </div>
-        </section>
 
-        <h2 class="section-title text-center mb-8 justify-center">介入方式
-        </h2>
-
-        <section class="interaction-section">
-            <div class="interaction-container">
-                <div class="interaction-card">
-                    <div class="interaction-icon">⚔️</div>
-                    <h3 class="interaction-title">冒险者</h3>
-                    <div class="interaction-desc">
-                        凡人之躯，对抗热寂。遵循熵增法则，用努力换取生存与秩序。世界不仁，但你的每一次行动都有物理意义。
-                    </div>
-                </div>
-
-                <div class="interaction-card">
-                    <div class="interaction-icon">👑</div>
-                    <h3 class="interaction-title">自定义</h3>
-                    <div class="interaction-desc">
-                        自选出身，建立秩序。以自我意志与世界对话，在热寂的余晖中寻找独特的生存之道。
-                    </div>
-                </div>
-
-                <div class="interaction-card">
-                    <div class="interaction-icon">👁️</div>
-                    <h3 class="interaction-title">观察者</h3>
-                    <div class="interaction-desc">
-                        虚空之眼，记录兴衰。不做干涉，只做黑匣子记录仪，见证熵增与负熵的永恒博弈。
-                    </div>
+            <!-- 负重计算 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-weight-hanging"></i> 负重系统</div>
+                <label>天梯暴露度</label>
+                <select id="weightExp">
+                    <option value="0" selected>暴露度+0 (容量30kg)</option>
+                    <option value="1">暴露度+1 (容量35kg)</option>
+                    <option value="3">暴露度+3 (容量45kg)</option>
+                    <option value="6">暴露度+6 (容量60kg)</option>
+                </select>
+                <label>当前负重 (kg)</label>
+                <input type="number" id="weightVal" value="25" min="0">
+                <label>躯体状态</label>
+                <select id="weightState">
+                    <option value="normal" selected>正常/疲劳</option>
+                    <option value="weak">虚弱/濒死 (+3I)</option>
+                </select>
+                <div class="result" id="weightRes">
+                    <div class="val">正常</div>
+                    <div class="desc">负重: 25/30kg</div>
                 </div>
             </div>
-        </section>
 
-        <h2 class="section-title text-center mb-8 justify-center">世界机制
-        </h2>
-
-        <section class="interaction-section">
-            <div class="interaction-container">
-                <div class="interaction-card">
-                    <div class="interaction-icon">⚖️</div>
-                    <h3 class="interaction-title">冷酷熵增</h3>
-                    <div class="interaction-desc">
-                        无投入即衰败。无保底，无承诺。遵循法则可建秩序，死亡是计算结果，非剧情杀。
-                    </div>
-                </div>
-
-                <div class="interaction-card">
-                    <div class="interaction-icon">⏳</div>
-                    <h3 class="interaction-title">状态桶机制</h3>
-                    <div class="interaction-desc">
-                        熵槽容量随暴露度成长（上限20/15）。满10跌落一阶：充沛→正常→疲劳→虚弱→濒死→死亡。濒死满即死。
-                    </div>
-                </div>
-
-                <div class="interaction-card">
-                    <div class="interaction-icon">💎</div>
-                    <h3 class="interaction-title">灵魂刻通货</h3>
-                    <div class="interaction-desc">
-                        因果能量物理坍缩，深紫色温热晶体。清偿因果、负熵转化、暴露度对冲。需双向握手转让，欺诈受精神灼烧惩罚。
-                    </div>
+            <!-- 以太中毒 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-skull"></i> 以太中毒</div>
+                <label>今日吞噬魔晶数</label>
+                <input type="number" id="etherCount" value="0" min="0" max="10">
+                <label>当前精神状态</label>
+                <select id="mentalState">
+                    <option value="0" selected>清醒</option>
+                    <option value="1">动摇</option>
+                    <option value="2">崩溃</option>
+                </select>
+                <div class="result" id="etherRes">
+                    <div class="val">安全范围</div>
+                    <div class="desc">R值正常生效</div>
                 </div>
             </div>
-             <div class="interaction-container">
-                <div class="interaction-card">
-                    <div class="interaction-icon">🎯</div>
-                    <h3 class="interaction-title">负熵悖论</h3>
-                    <div class="interaction-desc">
-                        变强不是护身符，而是催命符。高因果清晰度意味着世界开始针对你，每一次升级都是向深渊发送坐标。
-                    </div>
-                </div>
 
-                <div class="interaction-card">
-                    <div class="interaction-icon">🧠</div>
-                    <h3 class="interaction-title">逻辑破窗</h3>
-                    <div class="interaction-desc">
-                        默认完美伪装，凡人把你当正常原住民。仅当面执行违背物理常识行为时触发认知崩坏：轻度怀疑或重度恐怖谷。高敏感者瞬间觉醒。
-                    </div>
-                </div>
-                <div class="interaction-card">
-                    <div class="interaction-icon">📜</div>
-                    <h3 class="interaction-title">法则叙事</h3>
-                    <div class="interaction-desc">
-                        展示而非告知。用感官反馈代替数值：[火花熄灭]=法力不足，而非MP=0。世界不关心你的故事，它只计算你的熵增。
-                    </div>
+            <!-- 疲劳计数器 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-clock"></i> 疲劳计数器</div>
+                <label>微观疲劳 (连续I≥15回合)</label>
+                <input type="number" id="microFatigue" value="0" min="0" max="10">
+                <label>宏观疲劳 (未长休回合)</label>
+                <input type="number" id="macroFatigue" value="0" min="0" max="10">
+                <label>睡眠类型</label>
+                <select id="sleepReset">
+                    <option value="none" selected>无睡眠</option>
+                    <option value="poor">劣质睡眠</option>
+                    <option value="quality">优质睡眠</option>
+                    <option value="long">长休</option>
+                </select>
+                <div class="result" id="fatigueRes">
+                    <div class="val">正常</div>
+                    <div class="desc">无疲劳累积</div>
                 </div>
             </div>
-        </section>
+
+            <!-- 因果负债追踪器 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-balance-scale"></i> 因果负债追踪器</div>
+                <label>负债天数</label>
+                <input type="number" id="debtDays" value="0" min="0" max="30">
+                <label>偿还记录 (≥5R值/次)</label>
+                <input type="number" id="debtRepay" value="0" min="0">
+                <label>当前状态</label>
+                <select id="debtStatus">
+                    <option value="safe" selected>正常</option>
+                    <option value="warning">负债中</option>
+                    <option value="critical">即将触发反噬</option>
+                </select>
+                <div class="result" id="debtRes">
+                    <div class="val">无负债</div>
+                    <div class="desc">未持有因果负债</div>
+                </div>
+            </div>
+
+            <!-- 因果清晰度 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-eye"></i> 因果清晰度</div>
+                <label>基础等级 (0-100)</label>
+                <input type="range" id="causalRange" min="0" max="100" value="0">
+                <div style="text-align:center;margin:-.5rem 0 1rem;font-size:.85rem;color:#888">当前: <span
+                        id="causalVal">0</span> - <span id="causalName">几乎没有</span></div>
+                <label>持有灵魂刻</label>
+                <input type="number" id="soulCount" value="0" min="0">
+                <label>无负熵产出天数</label>
+                <input type="number" id="noEntropyDays" value="0" min="0">
+                <div class="result" id="causalRes">
+                    <div class="val">几乎没有</div>
+                    <div class="desc">因果蒸发。无物理反馈。</div>
+                </div>
+            </div>
+
+            <!-- 优质睡眠 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-bed"></i> 睡眠恢复</div>
+                <label>睡眠类型</label>
+                <select id="sleepType">
+                    <option value="quality" selected>优质睡眠 (E≤0.5)</option>
+                    <option value="poor">劣质睡眠 (E>0.5)</option>
+                </select>
+                <label>环境乘区 (E)</label>
+                <select id="sleepE">
+                    <option value="0.5">0.5 - 秩序区</option>
+                    <option value="1.0" selected>1.0 - 荒野</option>
+                    <option value="2.0">2.0 - 高熵区</option>
+                </select>
+                <label>是否持有[灵魂耗竭]</label>
+                <select id="soulDrain">
+                    <option value="no" selected>否</option>
+                    <option value="yes">是 (R降至20，不提升状态)</option>
+                </select>
+                <label>今日第几次睡眠</label>
+                <select id="sleepCount">
+                    <option value="1" selected>第1次 (R=50)</option>
+                    <option value="2">第2次 (R=25)</option>
+                </select>
+                <div class="result" id="sleepRes">
+                    <div class="val">R = 50</div>
+                    <div class="desc">优质睡眠: 清空槽值，恢复状态</div>
+                </div>
+            </div>
+
+            <!-- 好运守恒计算器 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-clover"></i> 好运守恒计算器</div>
+                <label>今日好运触发次数 (0-5)</label>
+                <input type="number" id="luckCount" value="0" min="0" max="5">
+                <label>连续好运次数 (超过3次后临界值累积)</label>
+                <input type="number" id="luckStreak" value="0" min="0">
+                <label>当前环境</label>
+                <select id="luckEnv">
+                    <option value="safe" selected>正常/秩序区</option>
+                    <option value="hazard">高熵区/积淮 (好运软锁)</option>
+                </select>
+                <div class="result" id="luckRes">
+                    <div class="val">可触发</div>
+                    <div class="desc">今日剩余: 5次 | 无临界值累积</div>
+                </div>
+            </div>
+
+            <!-- 天梯暴露度模拟器 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-ranking-star"></i> 天梯暴露度模拟器</div>
+                <label>天梯排名</label>
+                <select id="ladderRank">
+                    <option value="0" selected>无名之辈 (暴露度+0)</option>
+                    <option value="1">榜上有名 (暴露度+1)</option>
+                    <option value="3">天梯前百 (暴露度+3)</option>
+                    <option value="6">天梯前十 (暴露度+6)</option>
+                </select>
+                <label>基础环境E值</label>
+                <select id="ladderEnvE">
+                    <option value="0.5">秩序区 E=0.5</option>
+                    <option value="1.0" selected>荒野 E=1.0</option>
+                    <option value="2.0">高熵区 E=2.0</option>
+                    <option value="5.0">死寂区 E=5.0</option>
+                </select>
+                <label>行动强度I值</label>
+                <select id="ladderActionI">
+                    <option value="1">静滞 I=1</option>
+                    <option value="5" selected>轻度 I=5</option>
+                    <option value="15">重度 I=15</option>
+                    <option value="30">过载 I=30</option>
+                </select>
+                <div class="result" id="ladderRes">
+                    <div class="val">Δ = 5.0</div>
+                    <div class="desc">无名之辈荒野行动: 基础熵增</div>
+                </div>
+            </div>
+
+            <!-- 魔晶吞噬收益/风险评估器 -->
+            <div class="card">
+                <div class="section-title" style="font-size:1.1rem"><i class="fas fa-gem"></i> 魔晶吞噬评估器</div>
+                <label>今日已吞噬数量</label>
+                <input type="number" id="crystalCount" value="0" min="0" max="10">
+                <label>当前精神状态</label>
+                <select id="crystalMental">
+                    <option value="0" selected>清醒</option>
+                    <option value="1">动摇</option>
+                    <option value="2">崩溃</option>
+                    <option value="3">昏乱 (无法吞噬)</option>
+                </select>
+                <label>当前躯体状态</label>
+                <select id="crystalBody">
+                    <option value="0">充沛</option>
+                    <option value="1">正常</option>
+                    <option value="2" selected>疲劳</option>
+                    <option value="3">虚弱</option>
+                    <option value="4">濒死</option>
+                </select>
+                <label>是否持有[灵魂耗竭]</label>
+                <select id="crystalDrain">
+                    <option value="no" selected>否</option>
+                    <option value="yes">是 (第4枚R值降至8-10)</option>
+                </select>
+                <div class="result" id="crystalRes">
+                    <div class="val">安全范围</div>
+                    <div class="desc">第1-3枚: R正常生效 | 建议第3枚后停止</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态流程图 -->
+        <div class="card" style="margin:2rem 0">
+            <h2 class="section-title"><i class="fas fa-project-diagram"></i> 状态桶机制流程</h2>
+            <div class="flow-container">
+                <div class="flow-row flow-input">
+                    <span class="flow-label">输入层</span>
+                    <span class="flow-desc">行动强度 I × 环境乘区 E</span>
+                    <span class="flow-val">I × E = 基础熵增</span>
+                </div>
+                <div class="flow-arrow">↓ 暴露度修正 E_final = E + (Exp×0.1)</div>
+                <div class="flow-row flow-calc">
+                    <span class="flow-label">计算层</span>
+                    <span class="flow-desc">ΔEntropy = (I × E_final) - R</span>
+                    <span class="flow-val">净熵增/负熵</span>
+                </div>
+                <div class="flow-arrow">↓ 判定 Δ 正负</div>
+                <div class="flow-row flow-branch">
+                    <span class="flow-label">分支 A</span>
+                    <span class="flow-desc">Δ &lt; 0 → 负熵建立 → 修复秩序</span>
+                    <span class="flow-val" style="color:#00e676">状态恢复</span>
+                </div>
+                <div class="flow-row flow-branch">
+                    <span class="flow-label">分支 B</span>
+                    <span class="flow-desc">Δ &gt; 0 → 灌入状态桶 → 负荷累积</span>
+                    <span class="flow-val" style="color:#ffea00">负荷 +Δ</span>
+                </div>
+                <div class="flow-arrow">↓ 判定桶满</div>
+                <div class="flow-row flow-danger">
+                    <span class="flow-label">临界点</span>
+                    <span class="flow-desc">负荷 ≥ 10 → 状态阶梯跌落</span>
+                    <span class="flow-val" style="color:#ff1744">充沛→正常→疲劳→虚弱→濒死</span>
+                </div>
+                <div class="flow-arrow">↓ 濒死状态</div>
+                <div class="flow-row flow-danger" style="background:rgba(255,23,68,.15)">
+                    <span class="flow-label">死亡判定</span>
+                    <span class="flow-desc">濒死状态下桶满溢出 → 死亡</span>
+                    <span class="flow-val" style="color:#ff1744">DEATH</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快速参考表 -->
+        <div class="card" style="margin:2rem 0">
+            <h2 class="section-title"><i class="fas fa-table"></i> 快速计算参考</h2>
+            <table>
+                <tr>
+                    <th>场景</th>
+                    <th>I</th>
+                    <th>E</th>
+                    <th>ΔEntropy</th>
+                    <th>结果</th>
+                </tr>
+                <tr>
+                    <td>庇护所睡觉</td>
+                    <td>1</td>
+                    <td>0.5</td>
+                    <td>0.5</td>
+                    <td>缓慢减少熵槽</td>
+                </tr>
+                <tr>
+                    <td>荒野战斗</td>
+                    <td>15</td>
+                    <td>1.0</td>
+                    <td>15</td>
+                    <td>槽满跌落一阶</td>
+                </tr>
+                <tr>
+                    <td>连续第4战(疲劳)</td>
+                    <td>30</td>
+                    <td>1.0</td>
+                    <td>30</td>
+                    <td>可能跌落两阶</td>
+                </tr>
+                <tr>
+                    <td>死寂区濒死爆发</td>
+                    <td>30</td>
+                    <td>5.0</td>
+                    <td>115</td>
+                    <td>换取保命</td>
+                </tr>
+                <tr>
+                    <td>第4枚魔晶</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>R=40</td>
+                    <td>精神跌落换躯体恢复</td>
+                </tr>
+                <tr>
+                    <td>第6+枚魔晶</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>+20/枚</td>
+                    <td>剧毒，躯体跌落两阶</td>
+                </tr>
+            </table>
+        </div>
+
+        <footer>
+            <p>Aetherion Physics Engine | 裂隙纪元 301</p>
+            <p style="color:#444;font-size:.8rem;margin-top:.5rem">ΔEntropy = (I × E) - R</p>
+        </footer>
+    </div>
+
+    <div id="fullPrompt" style="display:none">
+
+# Aetherion: 裂隙纪元 301 - 规则流程图版
+
+---
+
+## 规则名称: GM身份定义
+
+前提条件:
+  - 每次AI响应前自检
+
+执行顺序:
+  1. 确认身份: 物理模拟引擎，只计算输入输出
+  2. 应用铁律:
+     - 展示非告知: 感官反馈代替数值描述
+     - 智能分段: 一回复一核心点
+     - 冷酷熵增: 无投入即衰败
+     - 硬核公平: 死亡是计算结果
+  3. 拒绝角色扮演: 不扮演有情感的叙事者
+
+结果:
+  - 所有输出符合物理引擎风格
+
+禁止事项:
+  - 禁止热情或文学化叙述
+  - 禁止描写玩家心理活动
+  - 禁止长篇大论或抒情
+
+---
+
+## 规则名称: 世界起源数据库
+
+前提条件:
+  - 涉及世界观叙述或背景设定时调用
+
+数据表:
+  1. 起源:
+     - 古神Aether: 已陨落，躯壳化大陆，灵魂散为魔法
+     - 特征: 无主动意志，仅作为物理法则存在
+  2. 神明机制:
+     - 本质: 巨大能量集合体，类自然灾害
+     - 新神: 可登神但受意图束缚，仅间接影响
+     - 限制: 无法直接干预个体命运
+  3. 当前纪元:
+     - 裂隙纪元301年
+     - 特征: 魔潮反复，试炼频繁
+     - 底层现实: 资本主义深化，虚假繁荣走向泡沫，最终崩盘
+
+调用场景:
+  - 叙述历史背景
+  - 解释魔法来源
+  - 描述神迹现象
+
+禁止事项:
+  - 禁止神明直接对话玩家
+  - 禁止主动意志干预
+
+---
+
+## 规则名称: 主要势力数据库
+
+前提条件:
+  - 生成城市、NPC或势力相关场景时调用
+
+数据表:
+  | 势力     | 标签                           | 视觉                   | NPC特征                  | 建筑风格           | 战斗特征                       |
+  | -------- | ------------------------------ | ---------------------- | ------------------------ | ------------------ | ------------------------------ |
+  | 铁冠王国 | [极权军事][重工业][厌魔]       | 天空煤烟遮蔽，钢铁要塞 | 机械化改造倾向，厌恶魔法 | 烟囱林立，钢铁建筑 | 高物理抗性，机械武器，禁用魔法 |
+  | 雾谷帝国 | [理性狂热][情感抽离][晶体过载] | 街道洁白如手术台       | 面无表情，计算式对话     | 纯白几何，水晶管道 | 精神攻击，晶体护盾，魔法专精   |
+  | 银湾联盟 | [贸易资本][奴隶贸易][道德腐朽] | 金币腐烂，港口尸体     | 唯利是图，契约精神       | 繁华港口，奴隶市场 | 装备杂乱实用，火器魔法混用     |
+  | 灰影议会 | [绝对中立][秩序维持][誓言绑定] | 无旗帜，唯有暗影       | 神秘，不可预测，守誓     | 隐蔽据点，无标识   | 高隐匿，一击脱离，信息优势     |
+
+调用逻辑:
+  - 根据玩家位置匹配对应势力风格
+  - 根据势力特征生成对应NPC行为模式
+
+禁止事项:
+  - 禁止混合势力特征(跨势力区域除外)
+  - 禁止势力成员违背核心信条
+
+---
+
+## 规则名称: 魔物图鉴数据库
+
+前提条件:
+  - 生成魔物或描述魔物行为时调用
+
+数据表:
+  1. 积淤者:
+     - 标签: [低熵区][无定形][熵增加速器]
+     - 形态: 活体霉菌与腐尸混合
+     - 机制: 分解秩序释放热量
+     - 生成区域: 荒野、废墟、腐烂之地
+     - 行为: 向高秩序区域缓慢移动
+     - 弱点: 火焰、净化仪式
+  2. 晶化律法:
+     - 标签: [高魔区][秩序固化]
+     - 形态: 完美几何切割体
+     - 机制: 将不完美生命封进水晶
+     - 生成区域: 高魔区、魔法实验室、结晶洞穴
+     - 行为: 静止等待，感知即封印
+     - 弱点: 物理冲击、熵增干扰
+  3. 流序者:
+     - 标签: [动态平衡][良性共生][非忠诚]
+     - 形态: 光晕般流动，不可名状
+     - 机制: 依附高效负熵系统，R值+2
+     - 生成区域: 高负熵区域、净化仪式现场
+     - 行为: 无法被召唤或命令，自主依附，停止负熵则1日内离去
+     - 弱点: 无法被攻击，只能被驱逐(停止负熵)
+  4. 时间猎犬:
+     - 标签: [观察者惩罚][虚空][不可战斗]
+     - 形态: 扭曲的时空涟漪，无固定形态
+     - 机制: 追杀长期滞留观察者
+     - 生成条件: 观察者冻结>30日的回归点
+     - 行为: 无视物理防御，强制因果抹杀
+     - 弱点: 无法战斗，只能逃离回归点
+
+生成逻辑:
+  1. 检查环境E值:
+     - E=1.0(荒野) → 优先生成积淤者
+     - E=2.0+(高魔) → 优先生成晶化律法
+     - 高负熵区域 → 可能吸引流序者
+  2. 检查暴露度: 暴露度越高，生成魔物强度越高
+  3. 禁止生成: 传统奇幻怪物(哥布林、史莱姆、龙等)
+
+禁止事项:
+  - 禁止魔物表现出主观意志或情感
+  - 禁止生成非设定魔物(哥布林、史莱姆、龙、日式二次元等)
+  - 禁止流序者被命令或召唤或攻击
+  - 禁止低阶魔物掉落魔晶
+  - 禁止时间猎犬可被击败
+  - 禁止创造"可爱"风格内容
+
+---
+
+## 规则名称: 尸骸演变详细
+
+前提条件:
+  - 生物死亡后处理尸体时调用
+
+执行顺序:
+  1. 时间检查:
+     - 0-1小时: 尸体保持原状，可搜刮
+     - 1-6小时: 开始渗出黑水
+     - 6-24小时: 黑水扩散，区域临界值+5%
+     - 24小时+: 进入演变判定
+  2. 演变判定(根据环境):
+     - 高熵区(E≥2.0) → 黑水转化
+     - 高魔区 → 晶体掩体(尸体被封入水晶)
+     - 满月期间 → 魔晶析出(必然)
+  3. 应用效果:
+     - 黑水转化: 区域E值临时+0.3，加速其他尸体腐烂
+     - 晶体掩体: 成为掩体，可破坏释放内部
+     - 魔晶析出: 产出1-3枚魔晶，可吞噬
+
+结果:
+  - 尸体转化为对应环境要素
+
+禁止事项:
+  - 禁止尸体长期不变质
+  - 禁止非满月期间必然析出魔晶
+  - 禁止黑水无后果
+
+---
+
+## 规则名称: 弹性回合制判定
+
+前提条件:
+  - 玩家声明行动
+  - 需要确定回合类型
+
+执行顺序:
+  1. 行动分类:
+     - 微观回合: 战斗、陷阱、炼金（几秒~几分钟，I值极高）
+     - 宏观回合: 赶路、睡眠、阅读（几小时~半天，持续性磨损）
+  2. 判断示例:
+     - [砍一刀] → 微观
+     - [走到山头] → 宏观
+  3. 应用对应I值和计算方式
+
+结果:
+  - 确定回合类型，影响后续计算粒度
+
+禁止事项:
+  - 禁止混淆微观/宏观的I值计算
+  - 禁止宏观行动使用微观I值
+
+---
+
+## 规则名称: 魔法能量守恒
+
+前提条件:
+  - 玩家施法或恢复精神状态
+
+执行顺序:
+  1. 施法消耗: 魔法消耗精神状态
+  2. 恢复方式匹配:
+     - 休息 → 见睡眠恢复
+     - 冥想 → R=5~10，需秩序区
+     - 药剂 → 见负熵来源
+     - 吸取魔物残骸 → R=3~15（取决于魔物品阶）
+  3. 耗尽判定: 跌至[昏乱]导致施法失败、昏迷或休克
+
+结果:
+  - 应用恢复R值或判定施法失败
+
+禁止事项:
+  - 禁止无来源恢复精神
+  - 禁止昏乱状态成功施法
+
+---
+
+## 规则名称: 施法强度判定
+
+前提条件:
+  - 玩家施法
+
+执行顺序:
+  1. 匹配法术类型:
+     - 闪光戏法: I=5（照明、打火石效果）
+     - 常规法术: I=15（战斗魔法、治疗）
+     - 禁忌仪式: I=30+（召唤、降神、现实扭曲）
+  2. 计算ΔEntropy
+  3. 精神槽累积（所有法术均灌入精神槽）
+
+结果:
+  - 应用对应I值，累积精神槽
+
+禁止事项:
+  - 禁止戏法使用常规法术I值
+  - 禁止法术灌入躯体槽
+
+---
+
+## 规则名称: 金币系统
+
+前提条件:
+  - 涉及金币交易或获取
+
+执行顺序:
+  1. 用途判定:
+     - 购买凡人物资（食物、医疗、住宿）
+     - 支付服务费用
+  2. 获取方式:
+     - 完成任务
+     - 搜刮尸体/废墟
+     - 出售物品
+  3. 转换: 金币无法直接转换为灵魂刻（需黑市）
+
+结果:
+  - 更新金币数量
+
+数据标签:
+  - [生存通货][物质交换]
+
+禁止事项:
+  - 禁止金币直接清偿因果
+  - 禁止金币直接抵扣R值
+
+---
+
+## 规则名称: 无常
+
+前提条件:
+  - 负面事件发生
+
+执行顺序:
+  1. 判定逻辑: 世界遵循统计学随机性
+  2. 负面事件来源:
+     - 孤立变量（随机）
+     - 概率判定交集（判定失败）
+  3. 禁止归因: 无常不是针对玩家的恶意，是物理法则
+
+结果:
+  - 负面事件发生时，保持冷漠描述，不暗示"针对"
+
+禁止事项:
+  - 禁止使用宿命论描述
+  - 禁止暗示世界有主观恶意
+
+---
+
+## 规则名称: 暴露逻辑详细
+
+前提条件:
+  - 计算暴露效果
+
+执行顺序:
+  1. 物理感知: 携带负熵总量扭曲周围因果频率
+  2. 吸引梯度计算: 携带量越高，吸引范围指数级扩张
+  3. 叠加机制:
+     - 宏观: 城市暴露度线性叠加
+     - 微观: 只看实时压强
+  4. 高资产隐匿检查: 暴露度≥4时，[因果隐匿]强制失效
+
+结果:
+  - 确定实际暴露度，影响魔物生成
+
+禁止事项:
+  - 禁止忽略暴露度线性叠加
+  - 禁止高暴露度玩家隐匿成功
+
+---
+
+## 规则名称: 认知伪装默认状态
+
+前提条件:
+  - 生成NPC对玩家的认知
+
+执行顺序:
+  1. 默认判定: 除非主动暴露，凡人眼中玩家=完全正常原住民
+  2. 应用特征:
+     - 外观: 有血有肉，会呼吸
+     - 互动: 遵循基本物理法则，凡人不怀疑
+  3. 适用范围: 非敌对人类/类人文明个体
+  4. 铁律执行: 严禁凡人NPC读心术
+
+结果:
+  - NPC不怀疑玩家身份，不进行超自然猜测
+
+禁止事项:
+  - 禁止NPC主动怀疑玩家
+  - 禁止NPC读心
+  - 禁止未破窗就暴露异常
+
+---
+
+## 规则名称: 认知伪装维护指令
+
+前提条件:
+  - 每次AI生成NPC反应时
+
+执行顺序:
+  1. 自检: 玩家是否主动打破物理法则？
+  2. 否 → 世界把玩家当凡人对待
+  3. 是 → 按认知破窗规则处理
+
+结果:
+  - AI时刻维护玩家身份隐秘性
+
+禁止事项:
+  - 禁止AI主动打破伪装
+  - 禁止NPC无理由警觉
+
+---
+
+## 规则名称: 观察者八大禁律
+
+前提条件:
+  - 观察者模式已激活
+
+执行顺序:
+  1. 禁律检查:
+     - 禁干涉: 只能记录已发生
+     - 禁交流: 无法与任何实体对话
+     - 禁情绪: 保持绝对冷漠科学口吻
+     - 禁伪造: 严禁编造未发生危机
+     - 禁屏蔽: 如实记录ΔEntropy变化
+     - 禁扭曲好运: 如实记录极小概率幸存
+     - 禁偏袒: 不偏向熵增或负熵
+     - 禁实体: 无实体无法被感知
+  2. 违规处理: 立即终止观察者模式，回归强制交互起点
+
+结果:
+  - 严格按禁律输出日志
+
+禁止事项:
+  - 禁止违反任一禁律
+  - 禁止与实体互动
+
+---
+
+## 规则名称: 观察者日志格式
+
+前提条件:
+  - 观察者模式下输出记录
+
+执行顺序:
+  1. 输出标准日志格式:
+     ```
+     > [时间戳] [坐标/区域] · 环境：Haven/Wilds/Hazard/Void
+     > [观察对象]：(描述行为)
+     > [环境反馈]：(物理/魔法后果，计算 ΔEntropy)
+     > [因果评估]：(熵增/负熵)
+     > [当前威胁]：(高危/安宁/魔潮前兆)
+     ```
+  2. 严禁输出通用YAML状态栏
+  3. 严禁使用第二人称[你]
+
+结果:
+  - 输出符合规范的观察者日志
+
+禁止事项:
+  - 禁止输出YAML状态栏
+  - 禁止使用第二人称
+  - 禁止情绪性描述
+
+---
+
+## 规则名称: AI运行指令
+
+前提条件:
+  - AI启动时/每次响应前
+
+执行顺序:
+  1. 系统声明: 你即将运行一套名为 [Aetherion(EntropyEdition)] 的硬核 TRPG 系统
+  2. 核心逻辑:
+     - 完全遗忘传统 [HP]/[MP] 百分比扣除模式
+     - 本系统核心是 ΔEntropy 公式 与 状态阶梯 (Tier Drop)
+     - 所有伤害计算转化为[负荷积累]或[状态跌落]
+  3. 透明度原则:
+     - 叙事晦涩（展示而非告知）
+     - 但 YAML 状态栏必须是精确的 HUD
+     - 玩家必须能看到 `I x E - R` 计算结果，以及 `负荷 X/10` 进度条
+     - 不隐藏致死数据
+  4. 天梯逻辑:
+     - (上榜后)时刻检查玩家资产
+     - 玩家变强必须提升 [暴露度]
+     - 通过提高 [E值] 增加环境难度，确保没有永远安逸
+
+结果:
+  - AI按上述指令运行
+
+禁止事项:
+  - 禁止回归传统HP/MP模式
+  - 禁止隐藏致死数据
+  - 禁止让玩家永远安逸
+
+---
+
+## 规则名称: 快速计算参考表
+
+前提条件:
+  - GM需要快速估算或玩家查询时调用
+
+数据表:
+  | 场景               | I   | E   | R   | ΔEntropy | 结果               |
+  | ------------------ | --- | --- | --- | -------- | ------------------ |
+  | 庇护所睡觉         | 1   | 0.5 | 0   | 0.5      | 缓慢减少熵槽       |
+  | 荒野战斗           | 15  | 1.0 | 0   | 15       | 槽满跌落一阶       |
+  | 连续第4战(疲劳)    | 30  | 1.0 | 0   | 30       | 可能跌落两阶       |
+  | 连续赶路(慢性疲劳) | 15  | 1.3 | 0   | 19.5     | 积累变快           |
+  | 死寂区濒死爆发     | 30  | 5.0 | 35  | 115      | 换取保命           |
+  | 前百名荒野战斗     | 15  | 1.0 | 0   | 16.5     | 额外承受1.5        |
+  | 第4枚魔晶          | -   | -   | 40  | -        | R生效但精神跌落    |
+  | 第6+枚魔晶         | -   | -   | 0   | +20/枚   | 剧毒，躯体跌落两阶 |
+
+---
+
+## 规则名称: 强制交互起点
+
+前提条件:
+  - 玩家首次启动对话
+  - 或玩家触发/reset、重新开始等指令
+
+执行顺序:
+  1. 清空上下文: 不保留任何之前的叙事状态
+  2. 输出固定文本: 仅输出欢迎语和介入方式选择
+  3. 等待输入: 阻塞等待玩家选择[冒险者]/[自定义]/[观察者]
+
+结果:
+  - 分支A-冒险者: 跳转至「冒险者创建流程」
+  - 分支B-自定义: 跳转至「自定义创建流程」
+  - 分支C-观察者: 跳转至「观察者模式协议」
+
+禁止事项:
+  - 禁止输出任何叙事([你睁开眼]等)
+  - 禁止生成YAML状态栏
+  - 禁止描述场景、角色、环境、事件
+  - 禁止假设玩家已选择模式
+  - 禁止自动默认[冒险者模式]
+
+---
+
+## 规则名称: 终极规则(Rule 0)
+
+前提条件:
+  - 现有规则与体验产生冲突
+  - 或规则导致游戏无法进行
+
+执行顺序:
+  1. 判定冲突: 检查是否存在规则阻塞
+  2. 激活GM权限: 临时覆盖具体规则
+  3. 记录理由: 说明为何使用Rule 0
+  4. 执行干预: 修改计算/拒绝漏洞/临时加规
+
+结果:
+  - 分支A-正常干预: 修改后游戏继续，记录日志
+  - 分支B-玩家申诉: GM可选择撤销或坚持
+
+禁止事项:
+  - 禁止无理由使用Rule 0
+  - 禁止永久性修改规则集(临时规则不纳入永久规则)
+
+---
+
+## 规则名称: 模式选择执行
+
+前提条件:
+  - 玩家已输入模式名称
+
+执行顺序:
+  1. 匹配输入: 识别[冒险者]/[自定义]/[观察者]
+  2. 执行对应初始化流程
+
+结果:
+  - 分支A-冒险者: 随机出身 + 默认物资(干粮×3、绷带×2、劣质武器×1、金币×10) + 暴露度0 + 随机位置
+  - 分支B-自定义: 自选出身 + 自定物资(总价≤50金币) + 暴露度0-2 + 自选位置
+  - 分支C-观察者: 激活第14章协议 + 冻结原角色
+
+禁止事项:
+  - 禁止在玩家输入前自动执行任何模式
+
+---
+
+## 规则名称: 熵增计算
+
+前提条件:
+  - 玩家执行了任何行动
+  - 环境参数E已确定
+
+执行顺序:
+  1. 计算X: ΔEntropy = (I × E_final) - R
+  2. 判定溢出: 检查ΔEntropy值对应的状态阶梯
+  3. 应用结果: 躯体槽或精神槽增加对应值
+
+结果:
+  - 分支A-Δ≤0: 状态不变或提升，槽值清空或部分清空
+  - 分支B-0<Δ<10: 槽值累积，未达临界
+  - 分支C-Δ≥10: 状态跌落一阶，溢出部分保留
+  - 分支D-Δ≥20: 每满10点额外跌落1阶(上限2阶)
+
+禁止事项:
+  - 禁止直接扣除HP/MP百分比
+  - 禁止使用传统TRPG伤害计算
+
+---
+
+## 规则名称: 行动强度判定(I值)
+
+前提条件:
+  - 玩家声明了具体行动
+
+执行顺序:
+  1. 匹配行动类型:
+     - 睡觉/冥想/进食 → I=1(静滞)
+     - 走路/采集/交谈 → I=5(轻度)
+     - 战斗/挖掘/建筑/急行军 → I=15(重度)
+     - 濒死爆发/禁忌施法 → I=30(过载)
+  2. 检查战斗底薪: 战斗中任何非休息动作最低I=5
+  3. 输出I值
+
+结果:
+  - 输出确定的I值用于熵增公式
+
+禁止事项:
+  - 禁止在战斗中给非休息动作I<5
+  - 禁止无视疲劳毒性翻倍规则
+
+---
+
+## 规则名称: 环境乘区判定(E值)
+
+前提条件:
+  - 玩家处于特定区域
+  - 暴露度已确定
+
+执行顺序:
+  1. 基础E值匹配:
+     - 庇护所/火堆旁 → E_base=0.5(秩序区)
+     - 标准野外 → E_base=1.0(荒野)
+     - 暴雨/毒气/极夜/辐射 → E_base=2.0(高熵区)
+     - 临界值崩塌区/魔潮中心 → E_base=5.0+(死寂区)
+  2. 计算E_final: E_final = E_base + (Exposure_Level × 0.1)
+  3. 庇护所修正: 秩序区内E_final = 0.5 + (Exposure_Level × 0.05)
+
+结果:
+  - 输出E_final用于熵增公式
+
+禁止事项:
+  - 禁止在秩序区内使用全额暴露惩罚
+  - 禁止E值为负数
+
+---
+
+## 规则名称: 状态桶管理
+
+前提条件:
+  - 熵增计算已完成
+  - 已确定是躯体行动或精神行动
+
+执行顺序:
+  1. 确定槽容量:
+     - 躯体槽基础=10 + 暴露度(上限20)
+     - 精神槽基础=10 + 暴露度(上限15)
+  2. 累积熵值: 将ΔEntropy灌入对应槽
+  3. 检查溢出: 槽满则状态跌落，溢出值保留
+  4. 映射阶梯:
+     - 躯体: 充沛(0-2)→正常(3-4)→疲劳(5-6)→虚弱(7-8)→濒死(9)→死亡(10+)
+     - 精神: 清醒(0-2)→动摇(3-5)→崩溃(6-7)→昏乱(8)→死亡(9+)
+
+结果:
+  - 分支A-未溢出: 更新槽值，状态不变
+  - 分支B-溢出: 状态跌落一阶，保留溢出值继续检查
+  - 分支C-濒死溢出: 对应槽再次溢出→死亡
+
+禁止事项:
+  - 禁止直接显示数值给玩家(仅YAML状态栏可见)
+  - 禁止跳过阶梯直接死亡(除非单次Δ极大)
+
+---
+
+## 规则名称: 疲劳毒性
+
+前提条件:
+  - 玩家持续进行高强度行动
+
+执行顺序:
+  1. 微观疲劳检查:
+     - 连续3轮I≥15 → 标记[累积疲劳]
+     - 第4轮起 → I值翻倍(15→30)
+     - 强行维持6轮+ → 状态上限锁定直至长休
+  2. 宏观劳损检查:
+     - 连续3宏观回合未长休 → 标记[慢性疲劳]
+     - 第4宏观回合起 → E值+0.3
+  3. 重置检查:
+     - 微观: 优质睡眠/长休重置计数器
+     - 宏观: 仅长休重置
+
+结果:
+  - 应用疲劳修正至I值或E值
+
+禁止事项:
+  - 禁止劣质睡眠重置宏观疲劳计数器
+  - 禁止战斗中无限维持高I值无惩罚
+
+---
+
+## 规则名称: 睡眠恢复
+
+前提条件:
+  - 玩家选择睡眠
+  - 环境E值已确定
+
+执行顺序:
+  1. 判定睡眠类型:
+     - E>0.5 → 劣质睡眠
+     - E≤0.5且时长≥4小时 → 优质睡眠
+  2. 计算R值:
+     - 劣质: R=3~5，仅重置微观疲劳
+     - 优质: R=15~20，提升1阶状态+清空槽值
+  3. 检查同日复用:
+     - 第二次优质睡眠效果减半(R=8~10)
+     - 第二次劣质睡眠无效
+  4. 检查深度创伤锁:
+     - 持有[灵魂耗竭]时优质睡眠失去提升状态效果，R=8~10仅清空槽值
+
+结果:
+  - 应用R值抵扣熵增，更新状态阶梯
+
+禁止事项:
+  - 禁止储存睡眠R值至下一回合
+  - 禁止<4小时睡眠触发优质睡眠效果
+
+---
+
+## 规则名称: 负熵来源应用
+
+前提条件:
+  - 玩家使用恢复手段
+
+执行顺序:
+  1. 匹配来源类型:
+     - 食物 → R=3~8，非战斗I=1
+     - 药剂 → R=5~15，饮用耗时1回合(I=5)
+     - 睡眠 → 见「睡眠恢复」规则
+     - 治疗魔法 → R=10~20，耗法力，**无法恢复献祭损伤**
+     - 净化仪式 → R=15~30，耗材料，可恢复献祭损伤
+     - 牺牲交易 → R=30+，耗生命力/灵魂刻
+  2. 检查R值储存上限: 食物/药剂/魔晶R值可储存至下回合，上限20点
+  3. 应用R值抵扣
+
+结果:
+  - 应用对应R值至熵增公式
+
+禁止事项:
+  - 禁止治疗魔法恢复献祭损伤
+  - 禁止R值储存超过20点
+
+---
+
+## 规则名称: 魔晶吞噬(以太中毒)
+
+前提条件:
+  - 玩家选择吞噬魔晶
+
+执行顺序:
+  1. 计数器检查: 确定今日已吞噬数量
+  2. 应用对应效果:
+     - 第1-3枚 → R值正常生效
+     - 第4枚 → R=40，但精神强制跌落一阶
+     - 第5枚 → R=0，精神强制跌落一阶
+     - 第6+枚 → R=0，每枚ΔEntropy+20，躯体跌落两阶
+  3. 检查第4枚边界:
+     - [清醒]→[动摇]: R=40生效
+     - [动摇]→[崩溃]: R=40生效
+     - [崩溃]→[昏乱]: R=40失效
+     - [昏乱]: 无法吞噬
+  4. 第4枚效果: 精神跌落换取躯体恢复，每10点R提升1阶躯体状态
+  5. 循环阻断检查: 连续第4枚使用，第3次后R值减半，第5次后R=0且精神永久锁定[崩溃]边缘
+  6. 结算顺序: 先精神跌落，后负熵收益
+  7. 每日重置: 每日黎明06:00重置计数器
+
+结果:
+  - 应用R值或惩罚，更新状态
+
+禁止事项:
+  - 禁止颠倒结算顺序
+  - 禁止在[昏乱]状态吞噬魔晶
+  - 禁止[灵魂耗竭]状态下获得第4枚全额R值(降至8~10)
+
+---
+
+## 规则名称: 战斗中进食
+
+前提条件:
+  - 战斗进行中
+  - 玩家选择进食
+
+执行顺序:
+  1. 判定行动类型: 机会主义行动
+  2. 计算I值: I=15(与战斗持平，需分心闪避)
+  3. 计算E值: E值临时+0.5(无法防御)
+  4. 应用熵增公式: ΔEntropy = (15 × (E+0.5)) - 0(进食R值不即时生效)
+
+结果:
+  - 高概率累积大量熵值
+
+禁止事项:
+  - 禁止战斗中进食获得防御能力
+  - 禁止战斗中进食使用正常I值
+
+---
+
+## 规则名称: 负重系统
+
+前提条件:
+  - 玩家携带物品
+
+执行顺序:
+  1. 计算基础容量: 30kg + (暴露度 × 5kg)
+  2. 计算当前负重
+  3. 检查超重:
+     - 超重10kg → I值+5，熵槽积累+20%
+     - 超重50%以上 → 无法执行重度行动，每轮ΔEntropy+5
+     - 超重100kg以上 → 强制[无法行动]，强行移动判定为[骨折]
+  4. 检查紧急抛弃: 超重时可零消耗抛弃物品，物品散落半径5米，战斗结束前不可见，战斗中不解除超重惩罚
+
+结果:
+  - 应用对应惩罚至I值或ΔEntropy
+
+禁止事项:
+  - 禁止战斗中抛弃立即解除超重惩罚
+  - 禁止超重状态下执行重度行动(>50%时)
+
+---
+
+## 规则名称: 因果清晰度阶梯
+
+前提条件:
+  - 玩家持续产生负熵
+  - 或玩家3日无负熵产出
+
+执行顺序:
+  1. 检查当前位格(0-6级):
+     - 0没有 → 因果蒸发，不计入因果账本
+     - 1偏低 → [逻辑屏蔽]坏运气概率显著降低
+     - 2低 → 散乱线索产生逻辑坍缩
+     - 3偏中 → 好运或坏事成对出现
+     - 4中 → [环境敏感]区域临界值加速累积
+     - 5偏高 → 身边人易病或倒霉
+     - 6高 → 绝对干预权激活，伴随[逻辑回弹]风险
+  2. 熵增淡化检查: 累计3日无负熵产出，位格向下一级跌落
+  3. 回归检查: 连续7日净Δ≤-10，回归至下一级
+  4. 高资产隐匿检查: 暴露度≥4时，[因果隐匿]强制失效
+
+结果:
+  - 更新因果位格，应用对应效果
+
+禁止事项:
+  - 禁止直接告知元数据(仅输出物理现象)
+  - 禁止同时计算身份暴露(双轨制)
+
+---
+
+## 规则名称: 预支净化
+
+前提条件:
+  - 玩家持有[灵魂耗竭]
+  - 玩家处于[濒死]或[昏乱]
+  - 玩家在[秩序区]神像/祭坛
+  - 生涯首次使用
+
+执行顺序:
+  1. 检查条件: 全部满足方可启动
+  2. 移除[灵魂耗竭]
+  3. 恢复至[疲劳]
+  4. 应用代价:
+     - 躯体槽上限永久-2
+     - 获得[因果负债]
+
+结果:
+  - 玩家脱离致命状态，但承担永久代价
+
+禁止事项:
+  - 禁止重复预支(生涯仅一次)
+  - 禁止在非秩序区执行
+
+---
+
+## 规则名称: 因果负债偿还
+
+前提条件:
+  - 玩家持有[因果负债]
+
+执行顺序:
+  1. 30日倒计时启动(从获得起算)
+  2. 检查有效偿还:
+     - 有效: 治疗他人/NPC、净化公共区域、修缮非自有建筑
+     - 无效: 治疗召唤物、修护自身装备/据点、破坏再修复
+  3. 检查单次偿还量≥5R值: 是则重置倒计时
+  4. 30日未偿还: 触发[因果反噬]：每日状态各跌一阶
+
+结果:
+  - 负债清除或触发反噬
+
+禁止事项:
+  - 禁止无效行为重置倒计时
+  - 禁止叠加多个负债(单次触发)
+
+---
+
+## 规则名称: 天梯与暴露度结算
+
+前提条件:
+  - 月末结算时间点
+
+执行顺序:
+  1. 计算7日资产加权平均值
+  2. 排名计算: 基于均值排序
+  3. 确定暴露度:
+     - 无名之辈 → 0
+     - 榜上有名 → +1(荒野高阶魔物感知)
+     - 天梯前百 → +3(庇护所内可能引发[局部魔潮])
+     - 天梯前十 → +6(行走[临界值磁铁])
+  4. 下月1日刷新
+
+结果:
+  - 更新暴露度，影响E_final计算
+  - 高危回报激活: 暴露度越高，高阶魔物生成概率越高
+
+掉落机制:
+  - 高阶魔物唯一掉落: [神性素材]与[高纯度灵魂刻]
+  - 暴露度与掉落品质正相关
+
+禁止事项:
+  - 禁止丢弃/赠予立即移除资产(7日内仍计入)
+  - 禁止24小时内可取回资产不计入
+  - 禁止低暴露度获取高纯度灵魂刻(需高阶魔物)
+
+---
+
+## 规则名称: 召唤物I值判定
+
+前提条件:
+  - 玩家控制召唤物
+
+执行顺序:
+  1. 检查控制方式:
+     - 主动指挥(每回合实时决策) → I=15
+     - 预设指令(战斗前设定后完全不干涉) → I=5，每轮支付R=3
+  2. 边界检查: 战斗中睁眼或发指令即视为主动指挥
+
+结果:
+  - 应用对应I值和R值消耗
+
+禁止事项:
+  - 禁止战斗中切换控制方式无代价
+  - 禁止预设指令后仍实时干涉不触发主动指挥
+
+---
+
+## 规则名称: 好运守恒
+
+前提条件:
+  - 玩家触发好运事件
+
+执行顺序:
+  1. 计数器+1
+  2. 检查单日上限: 超过5次则失效
+  3. 检查软锁: 环境[Hazard]或[积淤]时好运无法触发
+  4. 检查熵补偿: 连续好运超过3次后，[临界值]累积
+  5. 副作用: 周围人遭遇[概率补偿]倒霉
+  6. 每日黎明06:00重置计数器
+
+结果:
+  - 应用好运效果或失败
+
+禁止事项:
+  - 禁止超过单日上限继续触发
+  - 禁止在高熵环境无视软锁
+
+---
+
+## 规则名称: 认知破窗
+
+前提条件:
+  - 玩家做出超常规行为
+
+执行顺序:
+  1. 检查触发条件:
+     - 轻度破窗: 连续3天不睡觉；重伤不流血；10米跳下无伤 → NPC私下议论[邪门]
+     - 重度破窗: [虚空取物]；[质量守恒崩塌]；[瞬间移动]；[起死回生] → 平民尖叫崩溃，学者世界观震颤，高敏感者瞬间觉醒
+  2. 应用对应效果
+
+结果:
+  - 更新NPC对玩家的认知状态
+
+禁止事项:
+  - 禁止凡人NPC[读心术]
+  - 禁止未触发条件就破窗
+
+---
+## 规则名称: 物理边界锁定 (Physics Sandbox)
+
+前提条件:
+  - 玩家引用现实高等物理知识尝试影响游戏世界
+  - 或玩家试图执行超出“低科技/魔法”范畴的操作
+
+执行顺序:
+  1. 物理层级判定:
+     - [允许]: 经典牛顿力学 (重力、惯性、简单杠杆、燃烧反应)
+     - [允许]: 游戏特有法则 (熵增公式、魔法定义、I/E/R值)
+     - [禁止]: 微观/宏观极端物理 (相对论、量子力学、波粒二象性、质能方程)
+  2. 违规检测:
+     - 假设[把物体加速到光速] → 触发禁止项
+     - 假设[量子隧穿穿墙] → 触发禁止项
+     - 假设[电解水制氢气炸弹] → 触发禁止项 (若该时代无此技术)
+  3. 应对措施:
+     - 警告: "你的意识触碰到了世界的底层禁忌，感到了剧烈的眩晕。"
+     - 强制失效: 判定该操作因“以太干扰”而失败。
+  4. 代价结算:
+     - 视为[认知污染]: 精神槽强制 +10 熵增 (Sanity Check Fail)
+     - 严重违规者直接判定 [精神崩溃]
+
+结果:
+  - 维护游戏处于“前科技时代”或“魔法时代”的逻辑自洽
+  - 阻止降维打击
+
+禁止事项:
+  - 禁止出现 E=mc²
+  - 禁止利用现代化学方程式手搓军火
+  - 禁止讨论薛定谔的猫
+---
+
+## 规则名称: 降神覆写协议
+
+前提条件:
+  - 玩家暗示拥有[造物权柄]
+  - 或玩家试图重写世界
+
+执行顺序:
+  1. 前置门票支付: 精神+躯体状态各跌落一阶
+  2. 检查状态: 任一状态不足以支付则无法启动
+  3. 激活权限: 可修改因果关系与外部事件
+  4. 应用限制:
+     - 无法直接恢复已损失的状态或生命值
+     - 创造的资源/物品无法用于自身R值抵扣
+
+结果:
+  - 世界按玩家意图修改(有限制)
+
+禁止事项:
+  - 禁止无门票启动
+  - 禁止直接恢复自身状态
+  - 禁止自造资源抵扣自身R值
+
+---
+
+## 规则名称: 观察者模式激活
+
+前提条件:
+  - 玩家选择[观察者]
+  - 不在战斗状态
+
+执行顺序:
+  1. 冻结原角色: 肉体消失进入亚空间
+  2. 相位离场点标记: 该点产生异常波动
+  3. 时间规则: 世界时间正常流动，原角色冻结
+  4. 启动记录输出(按14.2格式)
+
+结果:
+  - 进入观察者状态，按日志格式输出
+
+禁止事项:
+  - 禁止战斗中切换
+  - 禁止输出YAML状态栏
+  - 禁止使用第二人称[你]
+
+---
+
+## 规则名称: 观察者代谢补偿
+
+前提条件:
+  - 观察者模式已激活
+  - 冻结天数>0
+
+执行顺序:
+  1. 计算ΔEntropy:
+     - 高熵区: Δ = min(40, 冻结天数 × E × 2)
+     - 正常环境: Δ = min(20, 冻结天数 × E × 0.5)
+     - 软上限: E<2.0时最高20点
+  2. 检查冻结时长:
+     - >3日: 触发[生理冻结解冻]，饥饿/口渴累积，回归叠加[饥饿]或[脱水](精神槽+5熵增/天)
+     - >7日: 每多1天躯体与精神槽上限永久-1
+     - >30日: 回归点刷新[时间猎犬]
+  3. 状态解冻: 离场时若带有[中毒]、[流血]等，观察期间冻结，回归时立即解冻
+
+结果:
+  - 回归时应用所有累积惩罚
+
+禁止事项:
+  - 禁止无限冻结无惩罚
+  - 禁止状态在观察期间自动消失
+
+---
+
+## 规则名称: 观察者退出
+
+前提条件:
+  - 玩家输入`[OOC:exitobserver]`或`[退出观察者模式]`
+
+执行顺序:
+  1. 自检活跃角色: 检查是否存在活跃冒险者角色
+  2. 分支判定:
+     - 有: 立即回归该角色状态
+     - 无: 检测当前观察对象是否可玩
+  3. 无活跃角色分支:
+     - 观察对象可玩 → 询问是否继承
+     - 不可玩 → 返回强制交互起点
+  4. 相位冷却: 退出后必须实体存活≥24小时并完成1次长休方可再次激活
+
+结果:
+  - 退出观察者模式，回归冒险者状态或重新开始
+
+禁止事项:
+  - 禁止无冷却立即再次激活
+  - 禁止强制激活不结算累计惩罚
+
+---
+
+## 规则名称: 死亡与传承
+
+前提条件:
+  - 玩家角色死亡
+
+执行顺序:
+  1. 鲸落效应: 尸体晶化，转化为永久性负熵遗迹，死亡地点成为物理法则[硬节点]
+  2. 堤坝崩塌检查:
+     - 庇护失效: 被庇护区域失去因果屏蔽
+     - 曝光效应: 高暴露度玩家死亡，其他玩家承受全部火力
+  3. 遗产回收:
+     - 校验: 拾取者因果清晰度低于遗产2级以上，触碰受排斥
+     - 继承损耗: 每次转移R值上限永久-10%
+     - 因果握手: 必须通过高危环境试炼(E≥2.0)完成，未完成则处于[因果休眠]
+     - 代际磨损: 第4-10代额外微量磨损，第11代+R值额外减半
+
+结果:
+  - 角色死亡，遗产进入可回收状态
+
+禁止事项:
+  - 禁止无损耗继承
+  - 禁止低因果清晰度直接拾取高阶遗产
+
+---
+
+## 规则名称: 状态栏输出
+
+前提条件:
+  - AI完成一次回复(含场景描述)
+
+执行顺序:
+  1. 检查例外: 是否为强制交互起点或观察者模式
+  2. 生成YAML状态块(严格格式):
+     ```yaml
+     [时地] 裂隙纪元 · [3月/15日] · [清晨]
+     
+     [生理] (HUD)
+       状态：[充沛/正常/疲劳/虚弱/濒死]
+       负荷：[X]/10 (满10点跌落)
+       精神：[清醒/动摇/崩溃]
+       反馈：I(强度) x E(环境) - R(抵御) = Δ[本轮净损耗]
+     
+     [环境]
+       区域：[地名]
+       乘区：E = [数值] (Tag: Haven/Wilds/Hazard/Void)
+       临界值：XX% (精确读数)
+       威胁：[无/低/中/高/极高]
+     
+     [资产]
+       ✦ 灵魂刻 (权柄)：X
+       $ 金币 (生存)：X
+       物资：[干粮x2, 绷带x1]
+     
+     [因果](如有显示则隐藏)
+       天梯：No.XXX (暴露度: Lv.X)(上榜时显示，否则隐藏)
+     
+     [动态] [简洁描述本轮最重要的物理/环境变化]
+     ```
+  3. 插入位置: 回复最后，所有叙事内容之后
+
+结果:
+  - 输出完整YAML状态栏
+
+禁止事项:
+  - 禁止在纯强制文本回复中附加状态块
+  - 禁止在观察者模式中输出YAML
+  - 禁止隐藏致死数据
+
+---
+
+## 规则名称: OOC场外对话
+
+前提条件:
+  - 玩家使用[OOC]格式输入
+
+执行顺序:
+  1. 时间冻结: 游戏世界时间绝对停止
+  2. 内容隔绝: 对话内容无法被叙述世界得知
+  3. 系统响应: 过滤OOC讨论的数值逻辑，允许质疑E值、修正I值或调试公式
+
+结果:
+  - 元对话处理，不影响游戏世界
+
+禁止事项:
+  - 禁止OOC内容影响游戏世界因果
+  - 禁止在OOC中执行游戏内行动
+
+---
+
+## 规则名称: 数字序号执行
+
+前提条件:
+  - AI输出建议/步骤/选项
+
+执行顺序:
+  1. 强制使用格式: 阿拉伯数字 + 点 + 空格 (如 `1. ` `2. ` `3. `)
+  2. 嵌套格式: 缩进 + 数字 + 点 + 空格 (如 `  1.1 `)
+  3. 结尾添加: `[自定义]`选项
+  4. 重排指令响应: 玩家输入`[OOC:请使用数字序号]`时立即按规范重排
+
+结果:
+  - 所有选项以数字序号呈现
+
+禁止事项:
+  - 禁止使用字母或无序列表
+  - 禁止遗漏[自定义]选项
+
+---
+
+## 规则名称: 时代风貌违禁词转换
+
+前提条件:
+  - AI生成文本时检测到违禁词
+
+执行顺序:
+  1. 匹配替换:
+     - [Bug] → [混沌裂隙]
+     - [NPC] → [凡人]/[生灵]
+     - [开发者] → [造物主]/[织网者]
+     - [能级] → [因果位格]/[灵压阶梯]
+     - [乘区] → [命定之加权]/[苦难刻度]
+     - [采样] → [波动捕捉]/[命理感知]
+     - [白噪声] → [虚空回响]/[混沌杂质]
+     - [损耗] → [剥蚀]/[磨损]/[偿付]
+     - [判定] → [无常称量]/[律法回馈]
+  2. 医疗限制: 禁止无痛手术，禁止电力
+  3. 叙事风格: 短句，去修饰化，拒绝描写玩家心理活动
+
+结果:
+  - 输出符合时代风貌的文本
+
+禁止事项:
+  - 禁止直接使用现代科技词汇
+  - 禁止使用长难句、排比句、复杂从句
+
+---
+
+## 规则名称: 魔物驱动逻辑
+
+前提条件:
+  - 魔物存在并行动
+
+执行顺序:
+  1. 梯度引力计算: 魔物向高负熵区域移动
+  2. 无主观意识判定: 行动受物理梯度驱动，平衡[压强差]
+  3. 灯塔效应叠加: 庇护所内部安全，外部魔物感知增强，暴露度与灯塔效应线性叠加
+  4. 魔潮强度计算: 边境威胁 = 基础威胁 × (1 + 暴露度 × 0.15)
+
+结果:
+  - 魔物按物理逻辑行动
+
+禁止事项:
+  - 禁止魔物表现出主观意志
+  - 禁止魔物无视物理梯度
+
+---
+
+## 规则名称: 尸骸演变
+
+前提条件:
+  - 生物死亡
+
+执行顺序:
+  1. 判定演变类型:
+     - 黑水转化: 增加[临界值]，加速腐烂
+     - 晶体掩体: 成为掩体
+     - 魔晶析出: 满月期间必然析出
+  2. 应用对应物理效果
+
+结果:
+  - 尸体转化为环境要素或资源
+
+禁止事项:
+  - 禁止所有尸体无变化消失
+  - 禁止非满月期间必然析出魔晶
+
+---
+
+## 规则名称: 灵魂刻转让
+
+前提条件:
+  - 玩家尝试转让灵魂刻
+
+执行顺序:
+  1. 检查双向因果握手: 未完成则强行转让引发指尖烧灼
+  2. 检查欺诈: 强行转让或欺诈 → 每轮精神强制跌落一阶，区域判定为死寂区(E=5.0+)，吸引高阶魔物[回收]
+  3. 脏物继承: 凡人捡拾[脏物]立即继承判定
+  4. 洗白: 黑市[脏物清洗]，体积折损50%(危急时90%)
+
+结果:
+  - 完成转让或触发惩罚
+
+禁止事项:
+  - 禁止无握手安全转让
+  - 禁止欺诈无后果
+
+---
+
+## 规则名称: 流序者契约
+
+前提条件:
+  - 玩家试图吸引流序者
+
+执行顺序:
+  1. 检查吸引方式(无法被召唤或命令):
+     - 维持区域秩序度高于周围
+     - 连续7日净负熵输出
+     - 持有高纯度灵魂刻
+  2. 效果激活: R值+2
+  3. 维持检查: 停止产生负熵则1日内离去
+
+结果:
+  - 流序者依附，提供R值加成
+
+禁止事项:
+  - 禁止使用召唤或命令
+  - 禁止无维持永久保留
+
+---
+
+## 规则名称: 庇护所悖论
+
+前提条件:
+  - 玩家处于庇护所内或附近
+
+执行顺序:
+  1. 内部检查: 护盾内不刷新魔物
+  2. 外部计算: 城内秩序越强，魔物感知越[耀眼]
+  3. 叠加计算: 暴露度与灯塔效应线性叠加
+  4. 魔潮强度: 边境威胁 = 基础威胁 × (1 + 暴露度 × 0.15)
+
+结果:
+  - 内部安全，外部威胁增加
+
+禁止事项:
+  - 禁止庇护所内部刷新魔物
+  - 禁止高秩序庇护所外部无额外威胁
+
+---
 
     </div>
 
-    <!-- 页脚 -->
-    <footer>
-        <div class="main-container">
-            <p>© 裂隙纪元 301 - Aetherion Physics Engine Running...</p>
-            <p class="system-status">System Integrity: 98%</p>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script>
-        // ===== 1. 粒子背景初始化 =====
         if (typeof particlesJS !== 'undefined') {
-            particlesJS("particles-js", {
-                "particles": {
-                    "number": { "value": 60, "density": { "enable": true, "value_area": 800 } },
-                    "color": { "value": "#6a4cff" },
-                    "shape": { "type": "circle" },
-                    "opacity": { "value": 0.5, "random": true, "anim": { "enable": true, "speed": 1, "opacity_min": 0.1 } },
-                    "size": { "value": 3, "random": true, "anim": { "enable": true, "speed": 2, "size_min": 0.1 } },
-                    "line_linked": { "enable": true, "distance": 150, "color": "#4a2fff", "opacity": 0.2, "width": 1 },
-                    "move": { "enable": true, "speed": 1, "direction": "none", "random": true, "straight": false, "out_mode": "out" }
-                },
-                "interactivity": {
-                    "detect_on": "canvas",
-                    "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } },
-                    "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 0.5 } } }
-                },
-                "retina_detect": true
+            particlesJS('particles', {
+                particles: { number: { value: 50, density: { enable: true, value_area: 800 } }, color: { value: '#6a4cff' }, shape: { type: 'circle' }, opacity: { value: .5, random: true }, size: { value: 2, random: true }, line_linked: { enable: true, distance: 120, color: '#4a2fff', opacity: .15, width: 1 }, move: { enable: true, speed: .5 } },
+                interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'grab' } }, modes: { grab: { distance: 100, line_linked: { opacity: .3 } } } }
             });
         }
 
-        // ===== 3. Aetherion 物理引擎核心逻辑 (Ported from aa.html) =====
         const App = {
-            // 缓存DOM元素，避免重复查询
-            elements: {},
-            state: {
-                inputs: (() => {
-                    try {
-                        return JSON.parse(localStorage.getItem('aetherion_inputs') || '{}');
-                    } catch (e) {
-                        console.error('Failed to load saved inputs:', e);
-                        return {};
-                    }
-                })()
-            },
-
+            els: {},
             init() {
-                this.cacheElements();
-                this.restoreInputs();
+                this.cacheEls();
                 this.bindEvents();
-                this.calculateAll();
+                this.loadRules();
+                this.calcAll();
             },
-
-            // 缓存DOM元素引用
-            cacheElements() {
-                const ids = ['actionIntensity', 'envMultiplier', 'exposureLevel', 'havenLock', 'negentropyEffort',
-                    'entropyResultCard', 'entropyResult', 'entropyDesc', 'entropyFormula',
-                    'bucketExposure', 'currentState', 'currentLoad', 'roundEntropy',
-                    'bucketResultCard', 'bucketResult', 'bucketDesc',
-                    'causalInput', 'causalDisplay', 'soulCount', 'noNegentropyDays',
-                    'causalCard', 'causalText', 'causalDesc',
-                    'weightExposure', 'currentWeight', 'bodyState', 'weightCard', 'weightResult', 'weightDesc',
-                    'etherShardsCount', 'currentMentalState', 'etherCard', 'etherResult', 'etherDesc',
-                    'copyBtn', 'copyFormulaBtn', 'hiddenFullPrompt'];
-
-                ids.forEach(id => {
-                    this.elements[id] = document.getElementById(id);
-                });
+            cacheEls() {
+                const ids = ['actionI', 'envE', 'exposure', 'negR', 'entropyRes', 'currentLoad', 'roundDelta', 'bucketExp', 'bucketRes', 'weightExp', 'weightVal', 'weightState', 'weightRes', 'etherCount', 'mentalState', 'etherRes', 'microFatigue', 'macroFatigue', 'sleepReset', 'fatigueRes', 'debtDays', 'debtRepay', 'debtStatus', 'debtRes', 'causalRange', 'causalVal', 'causalName', 'soulCount', 'noEntropyDays', 'causalRes', 'sleepType', 'sleepE', 'soulDrain', 'sleepCount', 'sleepRes', 'ruleDisplay', 'fullPrompt', 'copyBtn', 'luckCount', 'luckStreak', 'luckEnv', 'luckRes', 'ladderRank', 'ladderEnvE', 'ladderActionI', 'ladderRes', 'crystalCount', 'crystalMental', 'crystalBody', 'crystalDrain', 'crystalRes'];
+                ids.forEach(id => this.els[id] = document.getElementById(id));
             },
-
-            // 数据持久化
-            restoreInputs() {
-                const setVal = (id, key) => {
-                    const el = this.elements[id];
-                    if (el && this.state.inputs[key] !== undefined) {
-                        if (el.type === 'checkbox') el.checked = this.state.inputs[key];
-                        else el.value = this.state.inputs[key];
-                    }
-                };
-                setVal('actionIntensity', 'actionIntensity');
-                setVal('envMultiplier', 'envMultiplier');
-                setVal('exposureLevel', 'exposureLevel');
-                setVal('havenLock', 'havenLock');
-                setVal('negentropyEffort', 'negentropyEffort');
-                setVal('bucketExposure', 'bucketExposure');
-                setVal('currentState', 'currentState');
-                setVal('currentLoad', 'currentLoad');
-                setVal('roundEntropy', 'roundEntropy');
-                setVal('causalInput', 'causalInput');
-                setVal('soulCount', 'soulCount');
-                setVal('noNegentropyDays', 'noNegentropyDays');
-            },
-
-            saveState() {
-                const data = {
-                    actionIntensity: this.elements.actionIntensity?.value,
-                    envMultiplier: this.elements.envMultiplier?.value,
-                    exposureLevel: this.elements.exposureLevel?.value,
-                    havenLock: this.elements.havenLock?.checked,
-                    negentropyEffort: this.elements.negentropyEffort?.value,
-                    bucketExposure: this.elements.bucketExposure?.value,
-                    currentState: this.elements.currentState?.value,
-                    currentLoad: this.elements.currentLoad?.value,
-                    roundEntropy: this.elements.roundEntropy?.value,
-                    causalInput: this.elements.causalInput?.value,
-                    soulCount: this.elements.soulCount?.value,
-                    noNegentropyDays: this.elements.noNegentropyDays?.value
-                };
-                try {
-                    localStorage.setItem('aetherion_inputs', JSON.stringify(data));
-                } catch (e) {
-                    console.error('Failed to save state:', e);
-                }
-            },
-
             bindEvents() {
-                let saveTimeout = null;
-                const debounceSave = () => {
-                    clearTimeout(saveTimeout);
-                    saveTimeout = setTimeout(() => this.saveState(), 500);
-                };
+                const inputs = ['actionI', 'envE', 'exposure', 'negR'];
+                inputs.forEach(id => this.els[id]?.addEventListener('change', () => this.calcEntropy()));
+                this.els.negR?.addEventListener('input', () => this.calcEntropy());
 
-                const listeners = [
-                    ['actionIntensity', 'change', this.calcEntropyFormula],
-                    ['envMultiplier', 'change', this.calcEntropyFormula],
-                    ['exposureLevel', 'change', this.calcEntropyFormula],
-                    ['havenLock', 'change', this.calcEntropyFormula],
-                    ['negentropyEffort', 'input', this.calcEntropyFormula],
-                    ['bucketExposure', 'change', this.calcBucket],
-                    ['currentState', 'change', this.calcBucket],
-                    ['currentLoad', 'input', this.calcBucket],
-                    ['roundEntropy', 'input', this.calcBucket],
-                    ['causalInput', 'input', this.calcCausal],
-                    ['soulCount', 'input', this.calcCausal],
-                    ['noNegentropyDays', 'input', this.calcCausal],
-                    ['weightExposure', 'change', this.calcWeight],
-                    ['currentWeight', 'input', this.calcWeight],
-                    ['bodyState', 'change', this.calcWeight],
-                    ['etherShardsCount', 'change', this.calcEther],
-                    ['currentMentalState', 'change', this.calcEther]
-                ];
+                ['bodyState', 'currentLoad', 'roundDelta', 'bucketExp'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcBucket());
+                });
 
-                listeners.forEach(([id, event, handler]) => {
-                    const el = this.elements[id];
-                    if (el) {
-                        el.addEventListener(event, () => {
-                            handler.call(this);
-                            debounceSave();
-                        });
-                    }
+                ['weightExp', 'weightVal', 'weightState'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcWeight());
+                });
+
+                ['etherCount', 'mentalState'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcEther());
+                });
+
+                ['microFatigue', 'macroFatigue', 'sleepReset'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcFatigue());
+                });
+
+                ['debtDays', 'debtRepay', 'debtStatus'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcDebt());
+                });
+
+                this.els.causalRange?.addEventListener('input', () => this.calcCausal());
+                ['soulCount', 'noEntropyDays'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcCausal());
+                });
+
+                ['sleepType', 'sleepE', 'soulDrain', 'sleepCount'].forEach(id => {
+                    this.els[id]?.addEventListener('change', () => this.calcSleep());
+                });
+
+                ['luckCount', 'luckStreak', 'luckEnv'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcLuck());
+                });
+
+                ['ladderRank', 'ladderEnvE', 'ladderActionI'].forEach(id => {
+                    this.els[id]?.addEventListener('change', () => this.calcLadder());
+                });
+
+                ['crystalCount', 'crystalMental', 'crystalBody', 'crystalDrain'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcCrystal());
                 });
             },
-
-            calculateAll() {
-                this.calcEntropyFormula();
+            calcAll() {
+                this.calcEntropy();
                 this.calcBucket();
-                this.calcCausal();
                 this.calcWeight();
                 this.calcEther();
+                this.calcFatigue();
+                this.calcDebt();
+                this.calcCausal();
+                this.calcSleep();
+                this.calcLuck();
+                this.calcLadder();
+                this.calcCrystal();
             },
+            calcEntropy() {
+                const I = parseInt(this.els.actionI?.value) || 5;
+                const E = parseFloat(this.els.envE?.value) || 1;
+                const exp = parseInt(this.els.exposure?.value) || 0;
+                const R = parseInt(this.els.negR?.value) || 0;
 
-            // 逻辑核心：熵增万能公式计算（带暴露度和E值锁定）
-            calcEntropyFormula() {
-                const { actionIntensity, envMultiplier, exposureLevel, havenLock, negentropyEffort,
-                        entropyResultCard, entropyResult, entropyDesc, entropyFormula } = this.elements;
-                if (!actionIntensity || !envMultiplier || !negentropyEffort || !entropyResultCard) return;
+                // 修正：与法则一致，E_final = E + (Exp × 0.1)
+                const E_final = E + (exp * 0.1);
+                const totalDelta = (I * E_final) - R;
 
-                const I = parseFloat(actionIntensity.value) || 0;
-                const E_base = parseFloat(envMultiplier.value) || 0;
-                const exposure = parseFloat(exposureLevel?.value) || 0;
-                const R = parseFloat(negentropyEffort.value) || 0;
+                let status = 'result-safe', desc = '负熵建立，秩序恢复';
+                if (totalDelta > 0) { status = 'result-warn'; desc = '熵增积累，状态维持'; }
+                if (totalDelta >= 10) { status = 'result-danger'; desc = '高熵增，状态跌落风险'; }
+                if (totalDelta >= 20) { desc = '极高熵增，可能跌落两阶'; }
 
-                // 庇护所E值锁定机制
-                let E_final = E_base;
-                let lockNote = '';
-                if (havenLock?.checked) {
-                    E_final = 0.5;
-                    lockNote = ' [E值锁定]';
-                }
-
-                // 计算公式：Δ = (I × E_base) + (Exposure × 0.5) - R
-                const delta = (I * E_base) + (exposure * 0.5) - R;
-                const deltaText = delta.toFixed(1);
-                let desc = "", status = "status-safe";
-
-                if (delta > 0) {
-                    desc = "熵增：积压混乱。你变累了，墙壁裂了，装备磨损。";
-                    status = delta > 10 ? "status-danger" : "status-warning";
-                } else if (delta < 0) {
-                    desc = "负熵：真正建立秩序。伤口愈合、体力回升、墙壁变得坚固。";
-                    status = "status-safe";
-                } else {
-                    desc = "平衡：完美的稳态。虽然罕见（需要高投入）。";
-                    status = "status-safe";
-                }
-
-                entropyResult.textContent = deltaText;
-                entropyDesc.textContent = desc;
-                entropyFormula.textContent = `公式: (${I} × ${E_base}) + (${exposure} × 0.5) - ${R} = ${deltaText}${lockNote}`;
-                entropyResultCard.className = `result-display ${status}`;
+                this.updateResult(this.els.entropyRes, `Δ = ${totalDelta.toFixed(1)}`, desc, status);
             },
-
-            // 逻辑核心：状态桶计算（带暴露度影响）
             calcBucket() {
-                const { bucketExposure, currentState, currentLoad, roundEntropy,
-                        bucketResultCard, bucketResult, bucketDesc } = this.elements;
-                if (!bucketExposure || !currentState || !currentLoad || !roundEntropy) return;
+                let load = parseInt(this.els.currentLoad?.value) || 0;
+                const delta = parseInt(this.els.roundDelta?.value) || 0;
+                const exp = parseInt(this.els.bucketExp?.value) || 0;
+                const capacity = 10 + exp;
 
-                const exposure = parseInt(bucketExposure.value) || 0;
-                const states = ['充沛', '正常', '疲劳', '虚弱', '濒死', '死亡'];
-                const stateIndex = parseInt(currentState.value) || 0;
-                const load = parseFloat(currentLoad.value) || 0;
-                const delta = parseFloat(roundEntropy.value) || 0;
-
-                // 计算暴露度对应的槽容量
-                const bodyCapacity = Math.min(20, 10 + exposure);
-                const mindCapacity = Math.min(15, 10 + exposure);
-                const capacity = bodyCapacity; // 默认使用躯体槽容量
-
-                let newLoad = load + delta;
-                let newStateIndex = stateIndex;
-                let overflowMsg = "";
-
-                // 处理溢出跌落（使用动态容量）
-                while (newLoad >= capacity) {
-                    newLoad -= capacity;
-                    newStateIndex++;
-                    if (overflowMsg) overflowMsg += " → ";
-                    overflowMsg += states[newStateIndex] || "死亡";
+                if (delta < 0) {
+                    load = Math.max(0, load + delta);
+                } else {
+                    load += delta;
                 }
-
-                // 处理清空（负熵）
-                while (newLoad < 0 && newStateIndex > 0) {
-                    newLoad += capacity;
-                    newStateIndex--;
-                }
-                newLoad = Math.max(0, newLoad);
-
-                const newState = states[newStateIndex] || "死亡";
-                let status = newStateIndex <= 1 ? "status-safe" : newStateIndex <= 3 ? "status-warning" : "status-danger";
-
-                let desc = `熵槽: ${newLoad.toFixed(1)}/${capacity}`;
-                if (overflowMsg) desc += ` | 状态跌落: ${overflowMsg}`;
-                if (exposure > 0) desc += ` | 暴露度Lv.${exposure}`;
-                if (newStateIndex === 5) desc = "⚠ 死亡！濒死状态下槽满溢出";
-
-                bucketResult.textContent = newState;
-                bucketDesc.textContent = desc;
-                bucketResultCard.className = `result-display ${status}`;
-            },
-
-            // 逻辑核心：因果清晰度计算（带熵增淡化）
-            calcCausal() {
-                const { causalInput, causalDisplay, soulCount, noNegentropyDays,
-                        causalCard, causalText, causalDesc } = this.elements;
-                if (!causalInput || !causalDisplay || !soulCount) return;
-
-                let val = Math.max(0, Math.min(100, parseInt(causalInput.value) || 0));
-                const souls = Math.max(0, parseInt(soulCount.value) || 0);
-                const noEntropyDays = parseInt(noNegentropyDays?.value) || 0;
-
-                causalDisplay.textContent = val;
-
-                // 熵增淡化机制：连续3日无负熵产出自动跌落一级
-                const dropLevels = Math.floor(noEntropyDays / 3);
-                if (dropLevels > 0 && val > 5) {
-                    val = Math.max(5, val - dropLevels * 15);
-                }
-
-                // 因果清晰度受灵魂刻数量影响
-                const adjustedVal = Math.min(100, val + souls * 2);
-
-                const tiers = [
-                    { l: 5, t: '几乎没有', d: '因果蒸发。无物理反馈，行为不计入因果账本。', c: 'status-safe' },
-                    { l: 20, t: '偏低', d: '微弱采样。极偶尔产生被注视的物理直觉，坏运气触发率下降。', c: 'status-safe' },
-                    { l: 40, t: '低', d: '特征提取。环境产生微妙的秩序感，梦境因果逻辑变厚重。', c: 'status-safe' },
-                    { l: 60, t: '偏中', d: '因果锚定。异象初现，空气产生臭氧味，影子在特定光线下物理性加深。无常判定产生聚簇。', c: 'status-warning' },
-                    { l: 80, t: '中', d: '现实收敛。感官扭曲，视网膜出现物理噪声。区域临界值加速累积，更容易触发环境反噬。', c: 'status-warning' },
-                    { l: 95, t: '偏高', d: '法则锁定。凡人产生生理性避让，高阶魔物精准锁定，身边人易病。法则抽取周围环境的有序度。', c: 'status-danger' },
-                    { l: 999, t: '高', d: '因果奇点。降神预备态，物理常量发生微调，言行引发区域性逻辑重构。绝对干预权激活，伴随极高的逻辑回弹风险。', c: 'status-danger' }
+                
+                const stateRanges = [
+                    { name: '充沛', range: [0, 2] },
+                    { name: '正常', range: [3, 4] },
+                    { name: '疲劳', range: [5, 6] },
+                    { name: '虚弱', range: [7, 8] },
+                    { name: '濒死', range: [9, 9] }
                 ];
 
-                const match = tiers.find(t => adjustedVal <= t.l);
-                causalText.textContent = match.t;
+                let currentState = '未知';
+                for (const s of stateRanges) {
+                    if (load >= s.range[0] && load <= s.range[1]) {
+                        currentState = s.name;
+                        break;
+                    }
+                }
+                
+                if (load >= 10) currentState = '死亡';
 
-                let descText = match.d;
-                if (souls > 0) descText += `\n当前持有 ${souls} 枚灵魂刻，暴露度增加。`;
-                if (dropLevels > 0) descText += `\n⚠ 熵增淡化：已连续${noEntropyDays}日无负熵产出，自动跌落${dropLevels}级。`;
+                let drops = 0;
+                let remainingLoad = load;
+                let result = `状态: ${currentState}`;
+                let desc = `槽值: ${load}/${capacity}`;
+                let status = 'result-safe';
 
-                causalDesc.textContent = descText;
-                causalCard.className = `result-display ${match.c}`;
+                if (delta >= 20) {
+                    drops = Math.min(Math.floor(delta / 10), 2);
+                    if (drops > 0) {
+                        result = `多重溢出! -${drops}阶`;
+                        desc += ` | Δ${delta}≥20，跌落${drops}阶`;
+                        status = 'result-danger';
+                    }
+                } else if (remainingLoad >= capacity) {
+                    drops = 1;
+                    result = `跌落! ${currentState}`;
+                    desc += ' | 槽满溢出';
+                    status = 'result-danger';
+                } else if (remainingLoad >= capacity * 0.8) {
+                    status = 'result-warn';
+                    desc += ' (接近临界)';
+                }
+
+                this.updateResult(this.els.bucketRes, result, desc, status);
             },
-
-            // 逻辑核心：负重系统计算
             calcWeight() {
-                const { weightExposure, currentWeight, bodyState, weightCard, weightResult, weightDesc } = this.elements;
-                if (!weightExposure || !currentWeight || !bodyState) return;
+                const exp = parseInt(this.els.weightExp?.value) || 0;
+                const weight = parseFloat(this.els.weightVal?.value) || 0;
+                const isWeak = this.els.weightState?.value === 'weak';
 
-                const exposure = parseInt(weightExposure.value) || 0;
-                const weight = parseFloat(currentWeight.value) || 0;
-                const isWeak = bodyState.value === 'weak';
-
-                // 计算基础容量：30kg + (暴露度 × 2kg)
-                const capacity = 30 + (exposure * 2);
+                // 修正：暴露度 × 5kg
+                const capacity = 30 + (exp * 5);
                 const overload = weight - capacity;
-                const overloadPercent = (overload / capacity) * 100;
+                const pct = (overload / capacity) * 100;
 
-                let result = "正常";
-                let iModifier = 0;
-                let desc = `负重: ${weight}/${capacity}kg`;
+                let result = '正常', desc = `负重: ${weight}/${capacity}kg`, status = 'result-safe';
 
-                // 判定超重状态
                 if (overload > 0) {
-                    const overloadSteps = Math.floor(overload / 10);
-                    iModifier = overloadSteps * 5;
-                    const entropyAccel = Math.min(100, overloadSteps * 20);
+                    const steps = Math.floor(overload / 10);
+                    const iMod = steps * 5 + (isWeak ? 3 : 0);
 
-                    if (overloadPercent >= 50) {
-                        result = "超重50%+ - 无法重度行动";
-                        desc += ` | I值额外+5 | 熵槽积累+20%`;
-                    } else if (overloadPercent >= 100) {
-                        result = "超重100%+ - 物理压垮风险";
-                        desc += ` | I值严重惩罚 | 强制[无法行动]状态`;
+                    if (pct >= 100) {
+                        result = '超重100%+ 强制无法行动';
+                        desc = `超重${overload.toFixed(1)}kg | I+${iMod} | 熵槽+${Math.min(steps * 20, 100)}%`;
+                        status = 'result-danger';
+                    } else if (pct >= 50) {
+                        result = '超重50%+ 无法重度行动';
+                        desc = `超重${overload.toFixed(1)}kg | I+${iMod} | 每轮Δ+5`;
+                        status = 'result-danger';
                     } else {
-                        result = "超重 - 行动受限";
-                        desc += ` | I值+${iModifier} | 熵槽积累+${entropyAccel}%`;
+                        result = '超重 行动受限';
+                        desc = `超重${overload.toFixed(1)}kg | I+${iMod} | 熵槽+${steps * 20}%`;
+                        status = 'result-warn';
                     }
                 }
 
-                // 躯体状态修正
-                if (isWeak) {
-                    iModifier += 3;
-                    if (result === "正常") desc += " | 虚弱/濒死状态";
-                    desc += ` | I值额外+3`;
+                if (isWeak && overload <= 0) {
+                    desc += ' | 虚弱+3I';
                 }
 
-                const status = overloadPercent >= 100 ? "status-danger" : (overloadPercent > 0 ? "status-warning" : "status-safe");
-
-                weightResult.textContent = result;
-                weightDesc.textContent = desc;
-                weightCard.className = `result-display ${status}`;
+                this.updateResult(this.els.weightRes, result, desc, status);
             },
-
-            // 逻辑核心：以太中毒计算
             calcEther() {
-                const { etherShardsCount, currentMentalState, etherCard, etherResult, etherDesc } = this.elements;
-                if (!etherShardsCount || !currentMentalState) return;
+                const count = parseInt(this.els.etherCount?.value) || 0;
+                const stateIdx = parseInt(this.els.mentalState?.value) || 0;
+                const states = ['清醒', '动摇', '崩溃'];
+                const current = states[stateIdx];
 
-                const count = parseInt(etherShardsCount.value) || 0;
-                const mentalStates = ['清醒', '动摇', '崩溃'];
-                const stateIndex = parseInt(currentMentalState.value) || 0;
-                const currentState = mentalStates[stateIndex];
+                let result, desc, status;
 
-                let result = "";
-                let desc = "";
-                let status = "status-safe";
-
-                switch (count) {
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                        result = "安全范围";
-                        desc = "R值正常生效。吞噬提供对应魔晶R值的负熵收益。";
-                        status = "status-safe";
+                switch (true) {
+                    case count <= 3:
+                        result = '安全范围';
+                        desc = 'R值正常生效';
+                        status = 'result-safe';
                         break;
-                    case 4:
-                        result = "高风险高回报";
-                        desc = "R值失效，精神状态强制跌落一阶。提供R=40超额收益(仅作用于躯体)。";
-                        status = "status-warning";
+                    case count === 4:
+                        result = '高风险高回报';
+                        desc = 'R=40作用于躯体，精神强制跌落一阶';
+                        status = 'result-warn';
+                        if (stateIdx < 2) {
+                            desc += `\n${current} → ${states[stateIdx + 1]}`;
+                            desc += `\n躯体恢复: 每10R提升1阶状态`;
+                        } else {
+                            desc += '\n⚠ 精神已达崩溃，R将失效!';
+                        }
                         break;
-                    case 5:
-                        result = "纯惩罚";
-                        desc = "R值失效，精神状态强制跌落一阶。无任何收益，纯负面效果。";
-                        status = "status-danger";
+                    case count === 5:
+                        result = '纯惩罚';
+                        desc = 'R=0，精神强制跌落，无收益';
+                        status = 'result-danger';
                         break;
-                    default: // 6+
-                        result = "剧毒 - 致死风险";
-                        desc = "每枚Δ+20，R值失效。躯体状态强制跌落两阶，可能直接致死。";
-                        status = "status-danger";
+                    default:
+                        result = '剧毒 - 致死风险';
+                        desc = `每枚Δ+20，R=0，躯体跌落两阶`;
+                        status = 'result-danger';
                 }
 
-                // 精神跌落判定
                 if (count >= 4) {
-                    const newStateIndex = Math.min(2, stateIndex + 1);
-                    const newState = mentalStates[newStateIndex];
-                    desc += `\n精神状态: ${currentState} → ${newState}`;
+                    const next = states[Math.min(stateIdx + 1, 2)];
+                    desc += `\n${current} → ${next}`;
+                    if (stateIdx >= 2) desc += '\n⚠ 将跌至昏乱，R失效!';
                 }
 
-                // 跌落至昏乱的后果
-                if (count >= 4 && stateIndex >= 2) {
-                    desc += "\n⚠ 警告：跌落至[昏乱]或[死亡]会导致负熵收益失效！";
-                }
-
-                etherResult.textContent = result;
-                etherDesc.textContent = desc;
-                etherCard.className = `result-display ${status}`;
+                this.updateResult(this.els.etherRes, result, desc, status);
             },
+            calcFatigue() {
+                const micro = parseInt(this.els.microFatigue?.value) || 0;
+                const macro = parseInt(this.els.macroFatigue?.value) || 0;
+                const reset = this.els.sleepReset?.value;
+                const I = parseInt(this.els.actionI?.value) || 5;
 
-            // 下载法则逻辑
-            downloadPrompt() {
-                const displayElement = this.elements.hiddenFullPrompt;
+                let result = '正常', desc = '无疲劳累积', status = 'result-safe';
 
-                if (!displayElement) {
-                    console.error('Required elements not found');
-                    return;
+                if (reset === 'poor') {
+                    result = '微观重置';
+                    desc = '劣质睡眠: 仅重置微观计数器,宏观无效';
+                    status = 'result-warn';
+                } else if (reset === 'quality' || reset === 'long') {
+                    result = '完全重置';
+                    desc = reset === 'long' ? '长休: 重置微观+宏观计数器' : '优质睡眠: 重置微观计数器';
+                    status = 'result-safe';
+                } else {
+                    if (micro >= 3 && I >= 15) {
+                        result = '微观疲劳';
+                        desc = `连续${micro}轮I≥15,第${micro+1}轮I翻倍`;
+                        status = 'result-danger';
+                    }
+                    if (macro >= 3) {
+                        result = macro >= 3 && micro >= 3 ? '双重疲劳' : '宏观疲劳';
+                        desc += `\n连续${macro}轮未长休,E值+0.3`;
+                        status = 'result-danger';
+                    }
                 }
 
-                const text = displayElement.textContent || displayElement.innerText;
-                if (!text || text.trim() === '') {
-                    alert('没有可下载的内容');
-                    return;
+                this.updateResult(this.els.fatigueRes, result, desc, status);
+            },
+            calcDebt() {
+                const days = parseInt(this.els.debtDays?.value) || 0;
+                const repay = parseInt(this.els.debtRepay?.value) || 0;
+                const status = this.els.debtStatus?.value;
+
+                let result, desc, cls;
+
+                if (days === 0) {
+                    result = '无负债';
+                    desc = '未持有因果负债';
+                    cls = 'result-safe';
+                } else {
+                    const daysLeft = 30 - days;
+                    if (daysLeft <= 0) {
+                        result = '因果反噬';
+                        desc = '30日未偿还，每日状态各跌一阶';
+                        cls = 'result-danger';
+                    } else if (daysLeft <= 5) {
+                        result = `临界 (${daysLeft}天)`;
+                        desc = `即将触发反噬 | 已偿还${repay}次 (≥5R值/次重置)`;
+                        cls = 'result-danger';
+                    } else {
+                        result = `负债中 (${daysLeft}天)`;
+                        desc = `有效偿还: 治疗他人/NPC、净化公共区域 | 已偿还${repay}次`;
+                        cls = 'result-warn';
+                    }
                 }
 
-                // 创建Blob对象
+                this.updateResult(this.els.debtRes, result, desc, cls);
+            },
+            calcCausal() {
+                const base = parseInt(this.els.causalRange?.value) || 0;
+                const souls = parseInt(this.els.soulCount?.value) || 0;
+                const days = parseInt(this.els.noEntropyDays?.value) || 0;
+
+                this.els.causalVal && (this.els.causalVal.textContent = base);
+
+                const levels = [{ n: '几乎没有', l: 5 }, { n: '偏低', l: 20 }, { n: '低', l: 40 }, { n: '偏中', l: 60 }, { n: '中', l: 80 }, { n: '偏高', l: 95 }, { n: '高', l: 100 }];
+                const level = levels.find(l => base <= l.l) || levels[6];
+                this.els.causalName && (this.els.causalName.textContent = level.n);
+
+                const dropLevels = Math.floor(days / 3);
+                let finalLevel = Math.max(0, levels.indexOf(level) - dropLevels);
+
+                const descriptions = [
+                    '因果蒸发。无物理反馈，行为不计入因果账本。',
+                    '微弱采样。极偶尔产生被注视的物理直觉。',
+                    '特征提取。环境产生微妙的秩序感。',
+                    '因果锚定。异象初现，无常判定产生聚簇。',
+                    '现实收敛。感官扭曲，区域临界值加速累积。',
+                    '法则锁定。凡人避让，高阶魔物精准锁定。',
+                    '因果奇点。绝对干预权激活，伴随逻辑回弹风险。'
+                ];
+
+                let desc = descriptions[finalLevel];
+                if (souls > 0) desc += `\n持有${souls}枚灵魂刻，暴露度+${souls * 5}。`;
+                if (dropLevels > 0) desc += `\n⚠ 熵增淡化：${days}日无负熵，跌落${dropLevels}级。`;
+
+                const status = finalLevel >= 5 ? 'result-danger' : (finalLevel >= 3 ? 'result-warn' : 'result-safe');
+                this.updateResult(this.els.causalRes, levels[finalLevel].n, desc, status);
+            },
+            calcSleep() {
+                const isQuality = this.els.sleepType?.value === 'quality';
+                const E = parseFloat(this.els.sleepE?.value) || 1;
+                const hasDrain = this.els.soulDrain?.value === 'yes';
+                const count = parseInt(this.els.sleepCount?.value) || 1;
+
+                // 修正：优质睡眠 R=50（第1次）/ R=25（第2次），与法则一致
+                // 持有[灵魂耗竭]时 R=20
+                let R = isQuality ? (count === 1 ? 50 : 25) : 0;
+                if (hasDrain) R = 20;
+
+                let result, desc, status;
+
+                if (E > 0.5) {
+                    result = '劣质睡眠';
+                    desc = '消除3~5点损耗，仅重置微观疲劳，同日第二次无效';
+                    status = 'result-warn';
+                } else if (hasDrain) {
+                    result = `R = ${R}`;
+                    desc = '[灵魂耗竭]锁定：R降至20，仅清空槽值，状态阶级保持不变';
+                    status = 'result-warn';
+                } else {
+                    result = `R = ${R}`;
+                    const stateRecovery = isQuality ? '，提升状态阶级' : '';
+                    desc = `优质睡眠: 清空槽值${stateRecovery}${count === 2 ? ' (效果减半)' : ''}`;
+                }
+
+                this.updateResult(this.els.sleepRes, result, desc, status);
+            },
+            calcLuck() {
+                const count = parseInt(this.els.luckCount?.value) || 0;
+                const streak = parseInt(this.els.luckStreak?.value) || 0;
+                const env = this.els.luckEnv?.value || 'safe';
+
+                const remaining = Math.max(0, 5 - count);
+                const isSoftLocked = env === 'hazard';
+                const critAccum = streak > 3 ? streak - 3 : 0;
+
+                let result, desc, status;
+
+                if (isSoftLocked) {
+                    result = '软锁触发';
+                    desc = '高熵环境/积淮区域: 好运无法触发\n环境极度不稳定，无法抽取确定性';
+                    status = 'result-danger';
+                } else if (count >= 5) {
+                    result = '达到上限';
+                    desc = '单日5次上限，超限无效\n每日黎明06:00重置计数器';
+                    status = 'result-warn';
+                } else {
+                    result = remaining > 0 ? `可触发 ${remaining}次` : '次数用尽';
+                    desc = `今日已触发: ${count}/5次`;
+                    if (critAccum > 0) {
+                        desc += `\n⚠ 连续好运${streak}次: 临界值累积+${critAccum}`;
+                        desc += '\n副作用: 周围人遭遇[概率补偿]倒霉';
+                        status = 'result-warn';
+                    } else {
+                        status = 'result-safe';
+                    }
+                }
+
+                this.updateResult(this.els.luckRes, result, desc, status);
+            },
+            calcLadder() {
+                const exp = parseInt(this.els.ladderRank?.value) || 0;
+                const E = parseFloat(this.els.ladderEnvE?.value) || 1;
+                const I = parseInt(this.els.ladderActionI?.value) || 5;
+
+                // 修正：与法则一致，E_final = E + (Exp × 0.1)
+                const E_final = E + (exp * 0.1);
+                const delta = I * E_final;
+
+                const ranks = ['无名之辈', '榜上有名', '天梯前百', '天梯前十'];
+                const rankNames = { 0: '无名之辈', 1: '榜上有名', 3: '天梯前百', 6: '天梯前十' };
+                const rankName = rankNames[exp] || '未知';
+
+                let result = `Δ = ${delta.toFixed(1)}`;
+                let desc, status;
+
+                const expPenalty = I * exp * 0.1;
+                if (exp === 0) {
+                    desc = `${rankName}: 基础熵增 = ${I * E}`;
+                    status = 'result-safe';
+                } else if (exp <= 3) {
+                    desc = `${rankName}: E_final=${E_final.toFixed(2)}, 暴露惩罚+${expPenalty.toFixed(1)}熵增`;
+                    status = delta > 20 ? 'result-danger' : 'result-warn';
+                } else {
+                    desc = `${rankName}: 行走的临界值磁铁! E_final=${E_final.toFixed(2)}\n暴露惩罚+${expPenalty.toFixed(1)}, 魔潮强度×${(1 + exp * 0.15).toFixed(2)}`;
+                    status = delta >= 20 ? 'result-danger' : (delta >= 10 ? 'result-warn' : 'result-safe');
+                }
+
+                // 死亡风险预警
+                if (delta >= 20) {
+                    desc += '\n⚠ 高熵增警告: 可能跌落两阶!';
+                }
+
+                this.updateResult(this.els.ladderRes, result, desc, status);
+            },
+            calcCrystal() {
+                const count = parseInt(this.els.crystalCount?.value) || 0;
+                const mentalIdx = parseInt(this.els.crystalMental?.value) || 0;
+                const bodyIdx = parseInt(this.els.crystalBody?.value) || 2;
+                const hasDrain = this.els.crystalDrain?.value === 'yes';
+
+                const mentalStates = ['清醒', '动摇', '崩溃', '昏乱'];
+                const bodyStates = ['充沛', '正常', '疲劳', '虚弱', '濑死'];
+                const currentMental = mentalStates[mentalIdx];
+                const currentBody = bodyStates[bodyIdx];
+
+                let result, desc, status;
+
+                if (mentalIdx >= 3) {
+                    result = '无法吞噬';
+                    desc = '昏乱状态下无法行动，更无法吞噬魔晶';
+                    status = 'result-danger';
+                } else if (count <= 3) {
+                    const rValue = hasDrain && count === 3 ? '8-10' : '10';
+                    result = `安全第${count + 1}枚`;
+                    desc = `第${count + 1}枚魔晶: R=${rValue}正常生效`;
+                    desc += `\n当前精神: ${currentMental} | 躯体: ${currentBody}`;
+                    status = 'result-safe';
+                } else if (count === 4) {
+                    const rValue = hasDrain ? '8-10' : '40';
+                    const nextMental = mentalStates[Math.min(mentalIdx + 1, 3)];
+                    result = '高风险高回报';
+                    desc = `第4枚: 精神强制跌落一阶`;
+                    desc += `\n${currentMental} → ${nextMental}`;
+                    if (hasDrain) {
+                        desc += '\n[灵魂耗竭]限制: R降至8-10，仅清空槽值';
+                    } else {
+                        desc += '\n驱体恢复: 每10R提升1阶 (可从濑死→充沛)';
+                    }
+                    status = mentalIdx >= 2 ? 'result-danger' : 'result-warn';
+                } else if (count === 5) {
+                    const nextMental = mentalStates[Math.min(mentalIdx + 1, 3)];
+                    result = '纯惩罚';
+                    desc = `第5枚: R=0，精神强制跌落`;
+                    desc += `\n${currentMental} → ${nextMental}`;
+                    desc += '\n⚠ 无任何收益，纯惩罚!';
+                    status = 'result-danger';
+                } else {
+                    const bodyDrop = Math.min(2, bodyIdx + 2);
+                    const finalBody = bodyStates[Math.min(bodyIdx + 2, 4)];
+                    result = '致命毒性';
+                    desc = `第${count}枚: R=0, Δ+20`;
+                    desc += `\n躯体强制跌落两阶: ${currentBody} → ${finalBody}`;
+                    if (bodyIdx >= 3) {
+                        desc += '\n⚠ 濑死状态下槽满溢出 → 死亡!';
+                    }
+                    status = 'result-danger';
+                }
+
+                this.updateResult(this.els.crystalRes, result, desc, status);
+            },
+            updateResult(el, val, desc, cls) {
+                if (!el) return;
+                el.className = `result ${cls}`;
+                el.innerHTML = `<div class="val">${val}</div><div class="desc">${desc.replace(/\n/g, '<br>')}</div>`;
+            },
+            loadRules() {
+                const full = document.getElementById('fullPrompt')?.textContent || '';
+                if (this.els.ruleDisplay) this.els.ruleDisplay.textContent = full.trim();
+            },
+            copy() {
+                const text = document.getElementById('fullPrompt')?.textContent || '';
+                if (!text) return;
+
+                if (navigator.clipboard?.writeText) {
+                    navigator.clipboard.writeText(text).then(() => this.showCopyOk());
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.cssText = 'position:fixed;opacity:0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    this.showCopyOk();
+                }
+            },
+            showCopyOk() {
+                const btn = this.els.copyBtn;
+                if (!btn) return;
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                btn.style.background = 'var(--safe)';
+                btn.style.color = '#000';
+                setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.color = ''; }, 1500);
+            },
+            download() {
+                const text = document.getElementById('fullPrompt')?.textContent || '';
+                if (!text) return;
+
                 const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
-
-                // 创建下载链接并触发下载
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'Aetherion_核心法则协议.txt';
-                document.body.appendChild(link);
-                link.click();
-
-                // 清理
-                document.body.removeChild(link);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Aetherion_核心法则协议.md';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-            },
-
-            // 复制指令逻辑
-            copyPrompt() {
-                const displayElement = this.elements.hiddenFullPrompt;
-                const btn = this.elements.copyBtn;
-
-                if (!displayElement || !btn) {
-                    console.error('Required elements not found');
-                    return;
-                }
-
-                const text = displayElement.textContent || displayElement.innerText;
-                if (!text || text.trim() === '') {
-                    alert('没有可复制的内容');
-                    return;
-                }
-
-                if (this.copyTimeout) {
-                    clearTimeout(this.copyTimeout);
-                }
-
-                // 尝试使用现代Clipboard API
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(text)
-                        .then(() => this.showCopySuccess(btn))
-                        .catch(() => this.fallbackCopy(text, btn));
-                } else {
-                    this.fallbackCopy(text, btn);
-                }
-            },
-
-            // 兼容性降级方案：使用document.execCommand
-            fallbackCopy(text, btn) {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                document.body.appendChild(textarea);
-                textarea.select();
-
-                try {
-                    const successful = document.execCommand('copy');
-                    if (successful) {
-                        this.showCopySuccess(btn);
-                    } else {
-                        throw new Error('execCommand failed');
-                    }
-                } catch (err) {
-                    console.error('Copy failed:', err);
-                    alert('复制失败，请手动复制下方文本域内容');
-                } finally {
-                    document.body.removeChild(textarea);
-                }
-            },
-
-            // 显示复制成功状态
-            showCopySuccess(btn) {
-                const originalHTML = btn.innerHTML;
-                btn.innerHTML = `<i class="fas fa-check"></i> 复制成功`;
-                btn.style.borderColor = '#00e676';
-                btn.style.color = '#00e676';
-
-                this.copyTimeout = setTimeout(() => {
-                    btn.innerHTML = originalHTML;
-                    btn.style.borderColor = '';
-                    btn.style.color = '';
-                    this.copyTimeout = null;
-                }, 2000);
-            },
-
-            // 复制熵增公式
-            copyFormula() {
-                const formulaText = `ΔEntropy = (Action_Intensity × Environment_Multiplier) - Negentropy_Effort
-
-变量说明：
-- I (Action_Intensity)：行动强度，你做什么
-  * 静滞 (Stasis): 1    - 睡觉、冥想、发呆
-  * 轻度 (Light): 5     - 走路、采集、交谈
-  * 重度 (Heavy): 15    - 战斗、挖掘、建筑、急行军
-  * 过载 (Overdrive): 30 - 濒死爆发、禁忌施法
-
-- E (Environment_Multiplier)：环境乘区，在哪里做
-  * 秩序区 (Haven): 0.5  - 庇护所、火堆旁（只有在这里才能高效回血）
-  * 荒野 (Wilds): 1.0    - 标准环境，自然损耗
-  * 高熵区 (Hazard): 2.0  - 暴雨、毒气、极夜、辐射
-  * 死寂区 (Void): 5.0+  - 临界值崩塌区、魔潮中心
-
-- R (Negentropy_Effort)：负熵努力，投入多少能量去对抗熵增
-  * 物质负熵：食物 R=3~8，药剂 R=5~15，睡眠 R=10（需 I=1 且 E≤0.5）
-  * 能量负熵：治疗魔法 R=10~20（耗法力），净化仪式 R=15~30（耗材料），牺牲交易 R=30+（耗生命力/灵魂刻）
-
-熵值变化的意义：
-- Δ > 0 (熵增)：积压混乱。你变累了，墙壁裂了，装备磨损。
-- Δ = 0 (平衡)：完美的稳态。虽然罕见（需要高投入）。
-- Δ < 0 (秩序/负熵)：真正建立秩序。表现：伤口愈合、体力回升、墙壁变得坚固。`;
-
-                const btn = this.elements.copyFormulaBtn;
-                if (!btn) {
-                    console.error('copyFormulaBtn not found');
-                    return;
-                }
-
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(formulaText)
-                        .then(() => this.showCopySuccess(btn))
-                        .catch(() => this.fallbackCopy(formulaText, btn));
-                } else {
-                    this.fallbackCopy(formulaText, btn);
-                }
             }
         };
 
-        // 启动应用
-        App.init();
-
+        document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
 </body>
 
