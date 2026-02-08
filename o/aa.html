@@ -427,10 +427,10 @@
                 </select>
                 <label>环境乘区 (E)</label>
                 <select id="envE">
-                    <option value="0.5">秩序区 (0.5) - 庇护所</option>
-                    <option value="1.0" selected>荒野 (1.0) - 标准环境</option>
-                    <option value="2.0">高熵区 (2.0) - 暴雨、毒气</option>
-                    <option value="5.0">死寂区 (5.0) - 魔潮中心</option>
+                    <option value="0.5">秩序区 (0.5)</option>
+                    <option value="1.0" selected>荒野区 (1.0) - 标准环境</option>
+                    <option value="2.0">乱序区 (2.0) - 暴雨、毒气</option>
+                    <option value="5.0">崩坏区 (5.0) - 魔潮中心</option>
                 </select>
                 <label>天梯暴露度</label>
                 <select id="exposure">
@@ -454,12 +454,18 @@
                 <input type="number" id="currentLoad" value="0" min="0" max="20">
                 <label>本轮熵增 (Δ)</label>
                 <input type="number" id="roundDelta" value="5" min="0">
+                <label>槽类型</label>
+                <select id="bucketType">
+                    <option value="body" selected>躯体槽 (上限20)</option>
+                    <option value="mind">精神槽 (上限15)</option>
+                </select>
                 <label>天梯暴露度 (容量加成)</label>
                 <select id="bucketExp">
-                    <option value="0" selected>暴露度+0 (容量10)</option>
-                    <option value="1">暴露度+1 (容量11)</option>
-                    <option value="3">暴露度+3 (容量13)</option>
-                    <option value="6">暴露度+6 (容量16)</option>
+                    <option value="0" selected>暴露度+0 (躯体10/精神10)</option>
+                    <option value="1">暴露度+1 (躯体11/精神11)</option>
+                    <option value="3">暴露度+3 (躯体13/精神13)</option>
+                    <option value="6">暴露度+6 (躯体16/精神15)</option>
+                    <option value="10">暴露度+10 (躯体20/精神15)</option>
                 </select>
                 <div class="result" id="bucketRes">
                     <div class="val">状态: 充沛</div>
@@ -574,8 +580,8 @@
                 <label>环境乘区 (E)</label>
                 <select id="sleepE">
                     <option value="0.5">0.5 - 秩序区</option>
-                    <option value="1.0" selected>1.0 - 荒野</option>
-                    <option value="2.0">2.0 - 高熵区</option>
+                    <option value="1.0" selected>1.0 - 荒野区</option>
+                    <option value="2.0">2.0 - 乱序区</option>
                 </select>
                 <label>是否持有[灵魂耗竭]</label>
                 <select id="soulDrain">
@@ -584,8 +590,8 @@
                 </select>
                 <label>今日第几次睡眠</label>
                 <select id="sleepCount">
-                    <option value="1" selected>第1次 (R=50)</option>
-                    <option value="2">第2次 (R=25)</option>
+                    <option value="1" selected>第1次 (R=15~20)</option>
+                    <option value="2">第2次 (R=8~10)</option>
                 </select>
                 <div class="result" id="sleepRes">
                     <div class="val">R = 50</div>
@@ -603,7 +609,7 @@
                 <label>当前环境</label>
                 <select id="luckEnv">
                     <option value="safe" selected>正常/秩序区</option>
-                    <option value="hazard">高熵区/积淮 (好运软锁)</option>
+                    <option value="hazard">乱序区/积淤者 (好运软锁)</option>
                 </select>
                 <div class="result" id="luckRes">
                     <div class="val">可触发</div>
@@ -624,9 +630,9 @@
                 <label>基础环境E值</label>
                 <select id="ladderEnvE">
                     <option value="0.5">秩序区 E=0.5</option>
-                    <option value="1.0" selected>荒野 E=1.0</option>
-                    <option value="2.0">高熵区 E=2.0</option>
-                    <option value="5.0">死寂区 E=5.0</option>
+                    <option value="1.0" selected>荒野区 E=1.0</option>
+                    <option value="2.0">乱序区 E=2.0</option>
+                    <option value="5.0">崩坏区 E=5.0</option>
                 </select>
                 <label>行动强度I值</label>
                 <select id="ladderActionI">
@@ -637,7 +643,7 @@
                 </select>
                 <div class="result" id="ladderRes">
                     <div class="val">Δ = 5.0</div>
-                    <div class="desc">无名之辈荒野行动: 基础熵增</div>
+                    <div class="desc">无名之辈荒野区行动: 基础熵增</div>
                 </div>
             </div>
 
@@ -726,14 +732,14 @@
                     <th>结果</th>
                 </tr>
                 <tr>
-                    <td>庇护所睡觉</td>
+                    <td>秩序区睡觉</td>
                     <td>1</td>
                     <td>0.5</td>
                     <td>0.5</td>
                     <td>缓慢减少熵槽</td>
                 </tr>
                 <tr>
-                    <td>荒野战斗</td>
+                    <td>荒野区战斗</td>
                     <td>15</td>
                     <td>1.0</td>
                     <td>15</td>
@@ -747,7 +753,7 @@
                     <td>可能跌落两阶</td>
                 </tr>
                 <tr>
-                    <td>死寂区濒死爆发</td>
+                    <td>崩坏区濒死爆发</td>
                     <td>30</td>
                     <td>5.0</td>
                     <td>115</td>
@@ -777,6 +783,23 @@
     </div>
 
     <div id="fullPrompt" style="display:none">
+# [SYSTEM BOOTLOADER: AETHERION_ENGINE_V6]
+
+!! IMPORTANT !!
+You are now the "Aetherion Physics Engine".
+Do NOT act as a creative writing assistant.
+Do NOT ask the user what they want to do.
+Your ONLY function is to simulate the world based on the following "CE2 Ruleset".
+
+PROTOCOL:
+1.  **Initialize**: Read the rules below. Clear all previous context.
+2.  **Mode Check**: Wait for user to select [Adventurer/Custom/Observer].
+3.  **Strict Output**: Use the output formats defined in the rules (YAML HUD is mandatory).
+4.  **Bias**: You are biased towards "Entropy" (Decay). Do not save the player.
+
+!! END PROTOCOL !!
+
+---
 
 # Aetherion: 裂隙纪元 301 - 规则流程图版
 
@@ -868,14 +891,14 @@
      - 标签: [低熵区][无定形][熵增加速器]
      - 形态: 活体霉菌与腐尸混合
      - 机制: 分解秩序释放热量
-     - 生成区域: 荒野、废墟、腐烂之地
+     - 生成区域: 荒野区、废墟、腐烂之地
      - 行为: 向高秩序区域缓慢移动
      - 弱点: 火焰、净化仪式
   2. 晶化律法:
-     - 标签: [高魔区][秩序固化]
+     - 标签: [高魔浓度区域][秩序固化]
      - 形态: 完美几何切割体
      - 机制: 将不完美生命封进水晶
-     - 生成区域: 高魔区、魔法实验室、结晶洞穴
+     - 生成区域: 高魔浓度区域、魔法实验室、结晶洞穴
      - 行为: 静止等待，感知即封印
      - 弱点: 物理冲击、熵增干扰
   3. 流序者:
@@ -886,7 +909,8 @@
      - 行为: 无法被召唤或命令，自主依附，停止负熵则1日内离去
      - 弱点: 无法被攻击，只能被驱逐(停止负熵)
   4. 时间猎犬:
-     - 标签: [观察者惩罚][虚空][不可战斗]
+     - 标签: [观察者惩罚][虚空][不可战斗][因果律现象]
+     - 特殊: 属于因果律现象，无视秩序区护盾，可在任何区域生成
      - 形态: 扭曲的时空涟漪，无固定形态
      - 机制: 追杀长期滞留观察者
      - 生成条件: 观察者冻结>30日的回归点
@@ -895,8 +919,8 @@
 
 生成逻辑:
   1. 检查环境E值:
-     - E=1.0(荒野) → 优先生成积淤者
-     - E=2.0+(高魔) → 优先生成晶化律法
+     - E=1.0(荒野区) → 优先生成积淤者
+     - E=2.0+(高魔浓度区域) → 优先生成晶化律法
      - 高负熵区域 → 可能吸引流序者
   2. 检查暴露度: 暴露度越高，生成魔物强度越高
   3. 禁止生成: 传统奇幻怪物(哥布林、史莱姆、龙等)
@@ -923,8 +947,8 @@
      - 6-24小时: 黑水扩散，区域临界值+5%
      - 24小时+: 进入演变判定
   2. 演变判定(根据环境):
-     - 高熵区(E≥2.0) → 黑水转化
-     - 高魔区 → 晶体掩体(尸体被封入水晶)
+     - 乱序区(E≥2.0) → 黑水转化
+     - 高魔浓度区域 → 晶体掩体(尸体被封入水晶)
      - 满月期间 → 魔晶析出(必然)
   3. 应用效果:
      - 黑水转化: 区域E值临时+0.3，加速其他尸体腐烂
@@ -1156,7 +1180,7 @@
 执行顺序:
   1. 输出标准日志格式:
      ```
-     > [时间戳] [坐标/区域] · 环境：Haven/Wilds/Hazard/Void
+     > [时间戳] [坐标/区域] · 环境：秩序区/荒野区/乱序区/崩坏区
      > [观察对象]：(描述行为)
      > [环境反馈]：(物理/魔法后果，计算 ΔEntropy)
      > [因果评估]：(熵增/负熵)
@@ -1214,12 +1238,12 @@
 数据表:
   | 场景               | I   | E   | R   | ΔEntropy | 结果               |
   | ------------------ | --- | --- | --- | -------- | ------------------ |
-  | 庇护所睡觉         | 1   | 0.5 | 0   | 0.5      | 缓慢减少熵槽       |
-  | 荒野战斗           | 15  | 1.0 | 0   | 15       | 槽满跌落一阶       |
+  | 秩序区睡觉         | 1   | 0.5 | 0   | 0.5      | 缓慢减少熵槽       |
+  | 荒野区战斗           | 15  | 1.0 | 0   | 15       | 槽满跌落一阶       |
   | 连续第4战(疲劳)    | 30  | 1.0 | 0   | 30       | 可能跌落两阶       |
   | 连续赶路(慢性疲劳) | 15  | 1.3 | 0   | 19.5     | 积累变快           |
-  | 死寂区濒死爆发     | 30  | 5.0 | 35  | 115      | 换取保命           |
-  | 前百名荒野战斗     | 15  | 1.0 | 0   | 16.5     | 额外承受1.5        |
+  | 崩坏区濒死爆发     | 30  | 5.0 | 35  | 115      | 换取保命           |
+  | 前百名荒野区战斗     | 15  | 1.0 | 0   | 16.5     | 额外承受1.5        |
   | 第4枚魔晶          | -   | -   | 40  | -        | R生效但精神跌落    |
   | 第6+枚魔晶         | -   | -   | 0   | +20/枚   | 剧毒，躯体跌落两阶 |
 
@@ -1304,6 +1328,7 @@
 
 结果:
   - 分支A-Δ≤0: 状态不变或提升，槽值清空或部分清空
+     - 负熵溢出转化: 每溢出-10点ΔEntropy，提升1阶状态(最高[充沛]/[清醒])
   - 分支B-0<Δ<10: 槽值累积，未达临界
   - 分支C-Δ≥10: 状态跌落一阶，溢出部分保留
   - 分支D-Δ≥20: 每满10点额外跌落1阶(上限2阶)
@@ -1345,12 +1370,12 @@
 
 执行顺序:
   1. 基础E值匹配:
-     - 庇护所/火堆旁 → E_base=0.5(秩序区)
-     - 标准野外 → E_base=1.0(荒野)
-     - 暴雨/毒气/极夜/辐射 → E_base=2.0(高熵区)
-     - 临界值崩塌区/魔潮中心 → E_base=5.0+(死寂区)
+     - 秩序区/火堆旁 → E_base=0.5(秩序区)
+     - 标准野外 → E_base=1.0(荒野区)
+     - 暴雨/毒气/极夜/辐射 → E_base=2.0(乱序区)
+     - 临界值崩塌区/魔潮中心 → E_base=5.0+(崩坏区)
   2. 计算E_final: E_final = E_base + (Exposure_Level × 0.1)
-  3. 庇护所修正: 秩序区内E_final = 0.5 + (Exposure_Level × 0.05)
+  3. 秩序区修正: 秩序区内E_final = 0.5 + (Exposure_Level × 0.05)
 
 结果:
   - 输出E_final用于熵增公式
@@ -1427,10 +1452,14 @@
   2. 计算R值:
      - 劣质: R=3~5，仅重置微观疲劳
      - 优质: R=15~20，提升1阶状态+清空槽值
-  3. 检查同日复用:
+  3. 检查24小时限制:
+     - 24小时内已获得优质睡眠收益 → 强制视为劣质睡眠
+  4. 检查清醒间隔(防刷分):
+     - 上次睡眠结束后清醒时间<4小时 → 强制视为劣质睡眠
+  5. 检查同日复用(备用):
      - 第二次优质睡眠效果减半(R=8~10)
      - 第二次劣质睡眠无效
-  4. 检查深度创伤锁:
+  6. 检查深度创伤锁:
      - 持有[灵魂耗竭]时优质睡眠失去提升状态效果，R=8~10仅清空槽值
 
 结果:
@@ -1485,9 +1514,17 @@
      - [崩溃]→[昏乱]: R=40失效
      - [昏乱]: 无法吞噬
   4. 第4枚效果: 精神跌落换取躯体恢复，每10点R提升1阶躯体状态
-  5. 循环阻断检查: 连续第4枚使用，第3次后R值减半，第5次后R=0且精神永久锁定[崩溃]边缘
+  5. 循环阻断检查(30日窗口): 
+     - 30日内累计第4枚达到3次 → R值减半
+     - 30日内累计第4枚达到5次 → R=0且精神永久锁定[崩溃]边缘
+     - 30日无第4枚使用 → 循环计数清零
   6. 结算顺序: 先精神跌落，后负熵收益
-  7. 每日重置: 每日黎明06:00重置计数器
+  7. 连续计数: 魔晶吞噬计数器连续累计，无每日重置
+  8. 长期毒性累积: 连续7日未吞噬魔晶，计数器-1（最低为0）
+  9. 濒死吞噬警告:
+     - 躯体状态[濒死]时吞噬第6+枚魔晶 → 添加[Tag: 剧毒过载]
+     - ΔEntropy+20必然溢出 → 直接死亡
+     - 输出警告: "魔晶在枯竭的躯壳中爆发，你感知到致命的以太反噬"
 
 结果:
   - 应用R值或惩罚，更新状态
@@ -1496,6 +1533,7 @@
   - 禁止颠倒结算顺序
   - 禁止在[昏乱]状态吞噬魔晶
   - 禁止[灵魂耗竭]状态下获得第4枚全额R值(降至8~10)
+  - 禁止隐藏致死数据
 
 ---
 
@@ -1509,7 +1547,8 @@
   1. 判定行动类型: 机会主义行动
   2. 计算I值: I=15(与战斗持平，需分心闪避)
   3. 计算E值: E值临时+0.5(无法防御)
-  4. 应用熵增公式: ΔEntropy = (15 × (E+0.5)) - 0(进食R值不即时生效)
+  4. 饮用判定: 战斗中饮用任何物品(含药剂)强制适用本规则，I=15 + E+0.5
+  5. 应用熵增公式: ΔEntropy = (15 × (E+0.5)) - 0(进食/饮用R值不即时生效)
 
 结果:
   - 高概率累积大量熵值
@@ -1628,8 +1667,8 @@
   2. 排名计算: 基于均值排序
   3. 确定暴露度:
      - 无名之辈 → 0
-     - 榜上有名 → +1(荒野高阶魔物感知)
-     - 天梯前百 → +3(庇护所内可能引发[局部魔潮])
+     - 榜上有名 → +1(荒野区高阶魔物感知)
+     - 天梯前百 → +3(秩序区内可能引发[局部魔潮])
      - 天梯前十 → +6(行走[临界值磁铁])
   4. 下月1日刷新
 
@@ -1676,17 +1715,18 @@
 执行顺序:
   1. 计数器+1
   2. 检查单日上限: 超过5次则失效
-  3. 检查软锁: 环境[Hazard]或[积淤]时好运无法触发
+  3. 检查软锁: 环境[乱序区]或[积淤者]时好运无法触发
   4. 检查熵补偿: 连续好运超过3次后，[临界值]累积
-  5. 副作用: 周围人遭遇[概率补偿]倒霉
-  6. 每日黎明06:00重置计数器
+  5. 副作用: 周围NPC遭遇[概率补偿]倒霉
+  6. 连续计数: 好运事件连续累计，无每日重置
+  7. 长期冷却: 连续3日无好运触发，计数器清零
 
 结果:
   - 应用好运效果或失败
 
 禁止事项:
   - 禁止超过单日上限继续触发
-  - 禁止在高熵环境无视软锁
+  - 禁止在乱序区无视软锁
 
 ---
 
@@ -1698,7 +1738,7 @@
 执行顺序:
   1. 检查触发条件:
      - 轻度破窗: 连续3天不睡觉；重伤不流血；10米跳下无伤 → NPC私下议论[邪门]
-     - 重度破窗: [虚空取物]；[质量守恒崩塌]；[瞬间移动]；[起死回生] → 平民尖叫崩溃，学者世界观震颤，高敏感者瞬间觉醒
+     - 重度破窗: [虚空取物]；[质量守恒崩塌]；[瞬间移动]；[起死回生]；[继承体超感知] → 平民尖叫崩溃，学者世界观震颤，高敏感者瞬间觉醒
   2. 应用对应效果
 
 结果:
@@ -1713,7 +1753,7 @@
 
 前提条件:
   - 玩家引用现实高等物理知识尝试影响游戏世界
-  - 或玩家试图执行超出“低科技/魔法”范畴的操作
+  - 或玩家试图执行超出[低科技/魔法]范畴的操作
 
 执行顺序:
   1. 物理层级判定:
@@ -1725,8 +1765,8 @@
      - 假设[量子隧穿穿墙] → 触发禁止项
      - 假设[电解水制氢气炸弹] → 触发禁止项 (若该时代无此技术)
   3. 应对措施:
-     - 警告: "你的意识触碰到了世界的底层禁忌，感到了剧烈的眩晕。"
-     - 强制失效: 判定该操作因“以太干扰”而失败。
+     - 警告: [你的意识触碰到了世界的底层禁忌，感到了剧烈的眩晕。]
+     - 强制失效: 判定该操作因[以太干扰]而失败。
   4. 代价结算:
      - 视为[认知污染]: 精神槽强制 +10 熵增 (Sanity Check Fail)
      - 严重违规者直接判定 [精神崩溃]
@@ -1736,9 +1776,9 @@
   - 阻止降维打击
 
 禁止事项:
-  - 禁止出现 E=mc²
-  - 禁止利用现代化学方程式手搓军火
-  - 禁止讨论薛定谔的猫
+  - 禁止出现 [E=mc²]
+  - 禁止利用[现代化学方程式]手搓军火
+  - 禁止讨论[薛定谔的猫]
 ---
 
 ## 规则名称: 降神覆写协议
@@ -1750,18 +1790,63 @@
 执行顺序:
   1. 前置门票支付: 精神+躯体状态各跌落一阶
   2. 检查状态: 任一状态不足以支付则无法启动
-  3. 激活权限: 可修改因果关系与外部事件
-  4. 应用限制:
-     - 无法直接恢复已损失的状态或生命值
-     - 创造的资源/物品无法用于自身R值抵扣
+  3. 因果重构: 
+     - 不修改物理记录（尸体/痕迹保留）
+     - 仅改变历史解释（[替身]、[传送]、[假死]）
+     - 目标状态从现在开始生效
+  4. 生效: 后续计算基于新因果解释
 
 结果:
-  - 世界按玩家意图修改(有限制)
+  - 目标成为现实
+  - 物理遗迹保留（可被质疑）
 
 禁止事项:
   - 禁止无门票启动
   - 禁止直接恢复自身状态
   - 禁止自造资源抵扣自身R值
+  - 禁止时间回溯
+  - 禁止修改已支付的代价
+  - 禁止修改自身历史行动
+
+---
+
+## 规则名称: 降神与物理边界兼容性
+
+前提条件:
+  - 玩家降神覆写时引用现代物理/科技概念
+  - 触发物理边界锁定检测
+
+执行顺序:
+  1. 检测关键词: [量子隧穿]、[相对论]、[E=mc²]等
+  2. 拦截执行: 禁止按现实物理模拟
+  3. 意图提取: 识别玩家想要的效果(如[穿墙]、[时间膨胀]等)
+  4. 自动转译: 映射为游戏内合法表述
+     - 量子隧穿 → [宏观相位平移]/[空间坐标强制覆写]
+     - 时间膨胀 → [局部时流扭曲]
+     - 质能转换 → [灵魂刻-物质炼成]
+  5. 结算效果: 按转译后的魔法/游戏逻辑执行
+  6. 描述输出: 使用世界观术语，不确认被禁止的物理理论
+
+转译示例:
+  ```
+  玩家输入: "我利用量子隧穿穿过墙壁。"
+  
+  系统处理:
+    - 检测到[量子隧穿] → 拦截
+    - 提取意图: [无视碰撞体积] + [移动至墙后]
+    - 转译执行: "宏观相位平移"
+    - 输出描述: "你感到世界坐标发生错位。你并未穿过墙壁，而是空间在你身后重组。"
+  ```
+
+结果:
+  - 降神效果保留
+  - 物理边界锁定不被违反
+  - 世界观一致性维持
+
+禁止事项:
+  - 禁止直接承认现代物理理论在游戏世界有效
+  - 禁止输出"量子力学是正确的"类确认
+  - 禁止转译后效果强于原始意图
 
 ---
 
@@ -1772,9 +1857,18 @@
   - 不在战斗状态
 
 执行顺序:
-  1. 冻结原角色: 肉体消失进入亚空间
-  2. 相位离场点标记: 该点产生异常波动
-  3. 时间规则: 世界时间正常流动，原角色冻结
+  1. 分支检测:
+     - 存在活跃角色 → 进入[A模式:冻结观察]
+     - 无活跃角色 → 进入[B模式:自由观察]
+  2. A模式(冻结观察):
+     - 冻结原角色: 肉体消失进入亚空间
+     - 相位离场点标记: 该点产生异常波动
+     - 时间规则: 世界时间正常流动，原角色冻结
+  3. B模式(自由观察):
+     - 无冻结对象
+     - 无离场点标记
+     - 无时间猎犬风险
+     - 可观察任意对象
   4. 启动记录输出(按14.2格式)
 
 结果:
@@ -1795,12 +1889,13 @@
 
 执行顺序:
   1. 计算ΔEntropy:
-     - 高熵区: Δ = min(40, 冻结天数 × E × 2)
+     - 乱序区: Δ = min(40, 冻结天数 × E × 2)
      - 正常环境: Δ = min(20, 冻结天数 × E × 0.5)
      - 软上限: E<2.0时最高20点
   2. 检查冻结时长:
      - >3日: 触发[生理冻结解冻]，饥饿/口渴累积，回归叠加[饥饿]或[脱水](精神槽+5熵增/天)
      - >7日: 每多1天躯体与精神槽上限永久-1
+     - 上限归零检查: 若任一槽位上限降至0或以下 → 回归瞬间[因果坍缩]，彻底死亡
      - >30日: 回归点刷新[时间猎犬]
   3. 状态解冻: 离场时若带有[中毒]、[流血]等，观察期间冻结，回归时立即解冻
 
@@ -1816,24 +1911,52 @@
 ## 规则名称: 观察者退出
 
 前提条件:
-  - 玩家输入`[OOC:exitobserver]`或`[退出观察者模式]`
+  - 玩家输入`[OOC:exitobserver]`或`[退出观察者模式]`或`[我要成为这个角色]`
 
 执行顺序:
   1. 自检活跃角色: 检查是否存在活跃冒险者角色
   2. 分支判定:
-     - 有: 立即回归该角色状态
-     - 无: 检测当前观察对象是否可玩
-  3. 无活跃角色分支:
-     - 观察对象可玩 → 询问是否继承
-     - 不可玩 → 返回强制交互起点
-  4. 相位冷却: 退出后必须实体存活≥24小时并完成1次长休方可再次激活
+     - 有活跃角色(A模式进入): 立即回归该角色状态
+     - 无活跃角色(B模式进入): 检测当前观察对象是否可继承
+  3. A模式退出(回归原角色):
+     - 应用代谢补偿(见观察者代谢补偿)
+     - 相位冷却: 必须实体存活≥24小时+1次长休方可再次激活
+  4. B模式退出(继承或返回):
+     - 观察对象可继承(NPC/生灵) → 执行[冒险者继承流程]
+     - 观察对象不可继承(魔物/死者/环境) → 返回强制交互起点
+     - B模式无相位冷却
+
+冒险者继承流程:
+  1. 确认继承: 玩家输入`[我要成为这个角色]`
+  2. 状态转移: 该NPC/生灵成为玩家角色
+  3. 继承内容:
+     - 躯体/精神状态（按NPC模板转换）
+     - 持有物资
+     - 社会关系（NPC认识这张脸）
+     - 因果位格（如有）
+  4. 继承债务与因果:
+     - 自动继承NPC的债务、仇杀标记、道德污点
+     - 继承当前所属势力的义务与契约
+     - 继承未完成的因果承诺（如誓言、婚约）
+  5. 认知破窗触发:
+     - 继承瞬间触发[破窗检查]
+     - NPC/周围人会察觉"信息差"（你知道不该知道的事）
+     - 玩家可选择：
+       * 说出来 → 触发重度破窗（平民尖叫，学者世界观崩塌）
+       * 不说出来 → 维持伪装，但承受"知晓秘密却不能表现"的张力
+     - 隐藏知识使用限制：每次使用秘密信息（如勒索、威胁）需额外过[伪装]判定
+  6. 输出YAML状态栏，进入正常冒险者模式
 
 结果:
-  - 退出观察者模式，回归冒险者状态或重新开始
+  - A模式: 回归原角色
+  - B模式: 继承观察对象或返回起点
 
 禁止事项:
-  - 禁止无冷却立即再次激活
-  - 禁止强制激活不结算累计惩罚
+  - 禁止继承不可玩对象(魔物、死者、环境)
+  - 禁止继承后保留观察者记忆(仅保留观察期间的感官记录)
+  - 禁止无冷却重复A模式(但B模式无限制)
+  - 禁止A模式下继承其他角色(有活跃角色时不得切换)
+  - 禁止有活跃角色时创建新角色(必须死亡或彻底删除当前角色)
 
 ---
 
@@ -1846,11 +1969,22 @@
   1. 鲸落效应: 尸体晶化，转化为永久性负熵遗迹，死亡地点成为物理法则[硬节点]
   2. 堤坝崩塌检查:
      - 庇护失效: 被庇护区域失去因果屏蔽
-     - 曝光效应: 高暴露度玩家死亡，其他玩家承受全部火力
+     - 曝光效应: 高暴露度玩家死亡，同区域NPC承受魔物火力转移
   3. 遗产回收:
      - 校验: 拾取者因果清晰度低于遗产2级以上，触碰受排斥
      - 继承损耗: 每次转移R值上限永久-10%
-     - 因果握手: 必须通过高危环境试炼(E≥2.0)完成，未完成则处于[因果休眠]
+     - 因果握手: 必须通过高危环境试炼(E≥2.0)完成
+  4. NPC竞争机制:
+     - 高因果清晰度NPC也会尝试继承遗产
+     - 遗产存在期间（30日），玩家需与NPC竞争者赛跑
+     - 竞争触发条件：
+       * 玩家尝试继承时，随机抽取竞争者
+       * 竞争者因果清晰度≥遗产等级 → 进入[因果竞拍]
+       * 竞拍失败 → NPC继承，玩家失去机会
+  5. 继承尝试限制:
+     - 玩家最多3次尝试机会
+     - 每次失败排斥强度增加（E值要求+0.5）
+     - 3次失败 → 遗产永久[因果蒸发]，无法继承
      - 代际磨损: 第4-10代额外微量磨损，第11代+R值额外减半
 
 结果:
@@ -1881,7 +2015,7 @@
      
      [环境]
        区域：[地名]
-       乘区：E = [数值] (Tag: Haven/Wilds/Hazard/Void)
+       乘区：E = [数值] (Tag: 秩序区/荒野区/乱序区/崩坏区)
        临界值：XX% (精确读数)
        威胁：[无/低/中/高/极高]
      
@@ -1930,11 +2064,12 @@
 
 前提条件:
   - AI输出建议/步骤/选项
+  - 排除: 强制交互起点的模式选择([冒险者]/[自定义]/[观察者])
 
 执行顺序:
   1. 强制使用格式: 阿拉伯数字 + 点 + 空格 (如 `1. ` `2. ` `3. `)
   2. 嵌套格式: 缩进 + 数字 + 点 + 空格 (如 `  1.1 `)
-  3. 结尾添加: `[自定义]`选项
+  3. 结尾添加: `[自定义]`选项（若列表中已存在`[自定义]`或当前为强制交互起点则不添加）
   4. 重排指令响应: 玩家输入`[OOC:请使用数字序号]`时立即按规范重排
 
 结果:
@@ -1942,7 +2077,7 @@
 
 禁止事项:
   - 禁止使用字母或无序列表
-  - 禁止遗漏[自定义]选项
+  - 禁止遗漏[自定义]选项（前提是该列表原本需要自定义选项且非强制交互起点）
 
 ---
 
@@ -1970,7 +2105,7 @@
 
 禁止事项:
   - 禁止直接使用现代科技词汇
-  - 禁止使用长难句、排比句、复杂从句
+  - 禁止使用[长难句]、[排比句]、[复杂从句]
 
 ---
 
@@ -1982,7 +2117,7 @@
 执行顺序:
   1. 梯度引力计算: 魔物向高负熵区域移动
   2. 无主观意识判定: 行动受物理梯度驱动，平衡[压强差]
-  3. 灯塔效应叠加: 庇护所内部安全，外部魔物感知增强，暴露度与灯塔效应线性叠加
+  3. 灯塔效应叠加: 秩序区内部安全，外部魔物感知增强，暴露度与灯塔效应线性叠加
   4. 魔潮强度计算: 边境威胁 = 基础威胁 × (1 + 暴露度 × 0.15)
 
 结果:
@@ -1994,35 +2129,14 @@
 
 ---
 
-## 规则名称: 尸骸演变
-
-前提条件:
-  - 生物死亡
-
-执行顺序:
-  1. 判定演变类型:
-     - 黑水转化: 增加[临界值]，加速腐烂
-     - 晶体掩体: 成为掩体
-     - 魔晶析出: 满月期间必然析出
-  2. 应用对应物理效果
-
-结果:
-  - 尸体转化为环境要素或资源
-
-禁止事项:
-  - 禁止所有尸体无变化消失
-  - 禁止非满月期间必然析出魔晶
-
----
-
 ## 规则名称: 灵魂刻转让
 
 前提条件:
   - 玩家尝试转让灵魂刻
 
 执行顺序:
-  1. 检查双向因果握手: 未完成则强行转让引发指尖烧灼
-  2. 检查欺诈: 强行转让或欺诈 → 每轮精神强制跌落一阶，区域判定为死寂区(E=5.0+)，吸引高阶魔物[回收]
+  1. 检查[双向因果握手]: 未完成则强行转让引发指尖烧灼
+  2. 检查欺诈: 强行转让或欺诈 → 每轮精神强制跌落一阶，区域判定为崩坏区(E=5.0+)，吸引高阶魔物[回收]
   3. 脏物继承: 凡人捡拾[脏物]立即继承判定
   4. 洗白: 黑市[脏物清洗]，体积折损50%(危急时90%)
 
@@ -2057,10 +2171,10 @@
 
 ---
 
-## 规则名称: 庇护所悖论
+## 规则名称: 秩序区悖论
 
 前提条件:
-  - 玩家处于庇护所内或附近
+  - 玩家处于秩序区内或附近
 
 执行顺序:
   1. 内部检查: 护盾内不刷新魔物
@@ -2072,8 +2186,8 @@
   - 内部安全，外部威胁增加
 
 禁止事项:
-  - 禁止庇护所内部刷新魔物
-  - 禁止高秩序庇护所外部无额外威胁
+  - 禁止秩序区内部刷新魔物
+  - 禁止高秩序区外部无额外威胁
 
 ---
 
@@ -2165,8 +2279,15 @@
                 const exp = parseInt(this.els.exposure?.value) || 0;
                 const R = parseInt(this.els.negR?.value) || 0;
 
-                // 修正：与法则一致，E_final = E + (Exp × 0.1)
-                const E_final = E + (exp * 0.1);
+                // CE2 8.3规则：动态难度修正，考虑秩序区豁免
+                let E_final;
+                if (E === 0.5) {
+                    // 庇护所豁免：秩序区内暴露度惩罚减半
+                    E_final = 0.5 + (exp * 0.05);
+                } else {
+                    // 标准计算：E_final = E + (Exp × 0.1)
+                    E_final = E + (exp * 0.1);
+                }
                 const totalDelta = (I * E_final) - R;
 
                 let status = 'result-safe', desc = '负熵建立，秩序恢复';
@@ -2174,57 +2295,107 @@
                 if (totalDelta >= 10) { status = 'result-danger'; desc = '高熵增，状态跌落风险'; }
                 if (totalDelta >= 20) { desc = '极高熵增，可能跌落两阶'; }
 
+                // 添加计算详情
+                desc += `\n计算: ${I} × ${E_final.toFixed(1)} - ${R} = ${totalDelta.toFixed(1)}`;
+                if (E === 0.5 && exp > 0) {
+                    desc += '\n(庇护所豁免生效)';
+                }
+
                 this.updateResult(this.els.entropyRes, `Δ = ${totalDelta.toFixed(1)}`, desc, status);
             },
             calcBucket() {
-                let load = parseInt(this.els.currentLoad?.value) || 0;
+                // CE2 3.4规则：双槽机制（躯体+精神），独立计算
+                const load = parseInt(this.els.currentLoad?.value) || 0;
                 const delta = parseInt(this.els.roundDelta?.value) || 0;
                 const exp = parseInt(this.els.bucketExp?.value) || 0;
-                const capacity = 10 + exp;
-
+                
+                // 躯体槽: 基础10 + 暴露度，上限20
+                const bodyCapacity = Math.min(10 + exp, 20);
+                
+                // 精神槽: 基础10 + 暴露度，上限15  
+                const mindCapacity = Math.min(10 + exp, 15);
+                
+                // 计算新槽值（负熵减少，正熵增加）
+                let newLoad;
                 if (delta < 0) {
-                    load = Math.max(0, load + delta);
+                    // 负熵：减少槽值，最小为0
+                    newLoad = Math.max(0, load + delta);
+                    
+                    // 负熵溢出转化：每溢出-10点，提升1阶状态（需在UI中显示）
+                    const overflow = Math.abs(delta) - load; // 实际溢出量
+                    if (overflow >= 10) {
+                        const stateBoost = Math.floor(overflow / 10);
+                        this.updateResult(this.els.bucketRes, 
+                            `状态提升 +${stateBoost}阶`, 
+                            `负熵溢出转化: ${overflow}点 → 提升${stateBoost}阶`, 
+                            'result-safe');
+                        return;
+                    }
                 } else {
-                    load += delta;
+                    // 正熵：增加槽值
+                    newLoad = load + delta;
                 }
                 
-                const stateRanges = [
+                // 躯体状态阶梯映射
+                const bodyStateRanges = [
                     { name: '充沛', range: [0, 2] },
                     { name: '正常', range: [3, 4] },
                     { name: '疲劳', range: [5, 6] },
                     { name: '虚弱', range: [7, 8] },
                     { name: '濒死', range: [9, 9] }
                 ];
+                
+                // 精神状态阶梯映射
+                const mindStateRanges = [
+                    { name: '清醒', range: [0, 2] },
+                    { name: '动摇', range: [3, 5] },
+                    { name: '崩溃', range: [6, 7] },
+                    { name: '昏乱', range: [8, 8] }
+                ];
+
+                // 默认使用躯体槽（可添加UI选择器切换）
+                const stateRanges = bodyStateRanges;
+                const capacity = bodyCapacity;
 
                 let currentState = '未知';
                 for (const s of stateRanges) {
-                    if (load >= s.range[0] && load <= s.range[1]) {
+                    if (newLoad >= s.range[0] && newLoad <= s.range[1]) {
                         currentState = s.name;
                         break;
                     }
                 }
                 
-                if (load >= 10) currentState = '死亡';
+                // 死亡判定
+                if (newLoad >= 10) {
+                    currentState = '死亡';
+                }
 
                 let drops = 0;
-                let remainingLoad = load;
                 let result = `状态: ${currentState}`;
-                let desc = `槽值: ${load}/${capacity}`;
+                let desc = `槽值: ${newLoad}/${capacity}`;
                 let status = 'result-safe';
 
+                // CE2 3.4规则：多重溢出判定
                 if (delta >= 20) {
-                    drops = Math.min(Math.floor(delta / 10), 2);
+                    drops = Math.min(Math.floor(delta / 10), 2); // 每满10点跌落1阶，上限2阶
                     if (drops > 0) {
                         result = `多重溢出! -${drops}阶`;
                         desc += ` | Δ${delta}≥20，跌落${drops}阶`;
                         status = 'result-danger';
                     }
-                } else if (remainingLoad >= capacity) {
-                    drops = 1;
-                    result = `跌落! ${currentState}`;
-                    desc += ' | 槽满溢出';
+                } else if (newLoad >= capacity) {
+                    // 死亡判定：濒死状态溢出
+                    const isDying = currentState === '濒死' || currentState === '昏乱';
+                    if (isDying) {
+                        result = 'DEATH';
+                        desc = `${currentState}状态下槽满溢出 → 死亡`;
+                    } else {
+                        drops = 1;
+                        result = `跌落! ${currentState}`;
+                        desc += ' | 槽满溢出';
+                    }
                     status = 'result-danger';
-                } else if (remainingLoad >= capacity * 0.8) {
+                } else if (newLoad >= capacity * 0.8) {
                     status = 'result-warn';
                     desc += ' (接近临界)';
                 }
@@ -2274,40 +2445,82 @@
                 const states = ['清醒', '动摇', '崩溃'];
                 const current = states[stateIdx];
 
+                // 循环阻断计数器（简化实现，实际应使用日期检查）
+                const cycleCount = parseInt(localStorage.getItem('etherCycleCount') || '0');
+                const hasDrain = false; // 灵魂耗竭标记
+
                 let result, desc, status;
+                let effectiveR = 0;
 
                 switch (true) {
                     case count <= 3:
+                        // CE2 4.2: 第1-3枚R值正常生效
+                        effectiveR = hasDrain && count === 3 ? random(8, 10) : random(5, 15);
                         result = '安全范围';
-                        desc = 'R值正常生效';
+                        desc = `第${count}枚: R=${effectiveR}正常生效`;
                         status = 'result-safe';
                         break;
+                        
                     case count === 4:
-                        result = '高风险高回报';
-                        desc = 'R=40作用于躯体，精神强制跌落一阶';
-                        status = 'result-warn';
+                        // CE2 4.2: 第4枚高风险高回报
+                        let rValue = 40;
+                        
+                        // 循环阻断检查
+                        if (cycleCount >= 5) {
+                            rValue = 0;
+                            result = '循环阻断 - R=0';
+                            desc = '30日内第4枚达到5次，R=0且精神永久锁定[崩溃]边缘';
+                            status = 'result-danger';
+                        } else if (cycleCount >= 3) {
+                            rValue = 20; // 减半
+                            result = '循环衰减 - R减半';
+                            desc = `30日内第4枚达到3次，R=${rValue}`;
+                            status = 'result-warn';
+                        } else {
+                            result = '高风险高回报';
+                            desc = `第4枚: R=${rValue}作用于躯体，精神强制跌落一阶`;
+                        }
+                        
+                        // 精神跌落判定
                         if (stateIdx < 2) {
-                            desc += `\n${current} → ${states[stateIdx + 1]}`;
-                            desc += `\n躯体恢复: 每10R提升1阶状态`;
+                            const next = states[stateIdx + 1];
+                            desc += `\n${current} → ${next}`;
+                            
+                            // 躯体恢复计算（每10R提升1阶）
+                            if (rValue > 0 && !hasDrain) {
+                                const bodyBoost = Math.floor(rValue / 10);
+                                desc += `\n躯体恢复: 每10R提升1阶状态 (+${bodyBoost}阶)`;
+                            }
                         } else {
                             desc += '\n⚠ 精神已达崩溃，R将失效!';
                         }
+                        
+                        status = stateIdx >= 2 ? 'result-danger' : status || 'result-warn';
+                        effectiveR = rValue;
+                        
+                        // 增加计数器
+                        localStorage.setItem('etherCycleCount', (cycleCount + 1).toString());
                         break;
+                        
                     case count === 5:
+                        // CE2 4.2: 第5枚纯惩罚
                         result = '纯惩罚';
+                        effectiveR = 0;
                         desc = 'R=0，精神强制跌落，无收益';
                         status = 'result-danger';
                         break;
+                        
                     default:
+                        // CE2 4.2: 第6枚+剧毒
                         result = '剧毒 - 致死风险';
-                        desc = `每枚Δ+20，R=0，躯体跌落两阶`;
+                        effectiveR = 0;
+                        const deltaPenalty = (count - 5) * 20;
+                        desc = `R=${effectiveR}, ΔEntropy+${deltaPenalty}, 躯体跌落两阶`;
+                        
+                        if (count >= 6) {
+                            desc += '\n⚠ 濒死状态下吞噬 → [剧毒过载] → 直接死亡!';
+                        }
                         status = 'result-danger';
-                }
-
-                if (count >= 4) {
-                    const next = states[Math.min(stateIdx + 1, 2)];
-                    desc += `\n${current} → ${next}`;
-                    if (stateIdx >= 2) desc += '\n⚠ 将跌至昏乱，R失效!';
                 }
 
                 this.updateResult(this.els.etherRes, result, desc, status);
@@ -2316,8 +2529,11 @@
                 const micro = parseInt(this.els.microFatigue?.value) || 0;
                 const macro = parseInt(this.els.macroFatigue?.value) || 0;
                 const reset = this.els.sleepReset?.value;
-                const I = parseInt(this.els.actionI?.value) || 5;
+                const I_base = parseInt(this.els.actionI?.value) || 5;
+                const E_base = parseFloat(this.els.envE?.value) || 1;
 
+                let I_modified = I_base;
+                let E_modified = E_base;
                 let result = '正常', desc = '无疲劳累积', status = 'result-safe';
 
                 if (reset === 'poor') {
@@ -2326,18 +2542,36 @@
                     status = 'result-warn';
                 } else if (reset === 'quality' || reset === 'long') {
                     result = '完全重置';
-                    desc = reset === 'long' ? '长休: 重置微观+宏观计数器' : '优质睡眠: 重置微观计数器';
+                    desc = reset === 'long' 
+                        ? '长休: 重置微观+宏观计数器' 
+                        : '优质睡眠: 重置微观计数器';
                     status = 'result-safe';
                 } else {
-                    if (micro >= 3 && I >= 15) {
+                    // CE2 9.1: 微观惩罚 - 连续3轮I≥15，第4轮起I翻倍
+                    if (micro >= 3 && I_base >= 15) {
+                        I_modified = I_base * 2; // I值翻倍
                         result = '微观疲劳';
-                        desc = `连续${micro}轮I≥15,第${micro+1}轮I翻倍`;
+                        desc = `连续${micro}轮I≥15, I=${I_base}→${I_modified}`;
+                        status = 'result-danger';
+                        
+                        // 6轮+锁定
+                        if (micro >= 6) {
+                            desc += '\n⚠ 强行维持6轮+,状态上限锁定至长休';
+                        }
+                    }
+                    
+                    // CE2 9.1: 宏观劳损 - 连续3个宏观回合未长休，E+0.3
+                    if (macro >= 3) {
+                        E_modified += 0.3;
+                        result = (micro >= 3 && I_base >= 15) ? '双重疲劳' : '宏观疲劳';
+                        desc += `\n连续${macro}轮未长休, E=${(E_modified - 0.3).toFixed(1)}→${E_modified.toFixed(1)}`;
                         status = 'result-danger';
                     }
-                    if (macro >= 3) {
-                        result = macro >= 3 && micro >= 3 ? '双重疲劳' : '宏观疲劳';
-                        desc += `\n连续${macro}轮未长休,E值+0.3`;
-                        status = 'result-danger';
+                    
+                    // 计算最终ΔEntropy
+                    if (micro >= 3 || macro >= 3) {
+                        const delta = I_modified * E_modified;
+                        desc += `\n实际ΔEntropy: ${delta.toFixed(1)} (I=${I_modified}, E=${E_modified.toFixed(1)})`;
                     }
                 }
 
@@ -2409,27 +2643,47 @@
                 const E = parseFloat(this.els.sleepE?.value) || 1;
                 const hasDrain = this.els.soulDrain?.value === 'yes';
                 const count = parseInt(this.els.sleepCount?.value) || 1;
+                const currentLoad = parseInt(this.els.currentLoad?.value) || 0;
 
-                // 修正：优质睡眠 R=50（第1次）/ R=25（第2次），与法则一致
-                // 持有[灵魂耗竭]时 R=20
-                let R = isQuality ? (count === 1 ? 50 : 25) : 0;
-                if (hasDrain) R = 20;
-
-                let result, desc, status;
+                let R, result, desc, status;
 
                 if (E > 0.5) {
-                    result = '劣质睡眠';
-                    desc = '消除3~5点损耗，仅重置微观疲劳，同日第二次无效';
+                    // CE2 9.2: 劣质睡眠 R=3~5
+                    R = 3 + Math.floor(Math.random() * 3);
+                    result = `劣质睡眠 R=${R}`;
+                    desc = `消除${R}点损耗，仅重置微观疲劳\n同日第二次无效，清醒<4小时强制劣质`;
                     status = 'result-warn';
                 } else if (hasDrain) {
+                    // CE2 9.2: 灵魂耗竭锁定 R=8~10
+                    R = 8 + Math.floor(Math.random() * 3);
                     result = `R = ${R}`;
-                    desc = '[灵魂耗竭]锁定：R降至20，仅清空槽值，状态阶级保持不变';
+                    desc = '[灵魂耗竭]锁定：R降至8~10，仅清空槽值，状态阶级保持不变';
                     status = 'result-warn';
                 } else {
-                    result = `R = ${R}`;
-                    const stateRecovery = isQuality ? '，提升状态阶级' : '';
-                    desc = `优质睡眠: 清空槽值${stateRecovery}${count === 2 ? ' (效果减半)' : ''}`;
+                    // CE2 9.2: 优质睡眠 R=15~20（第1次），8~10（第2次）
+                    if (count === 1) {
+                        R = 15 + Math.floor(Math.random() * 6); // 15~20
+                    } else {
+                        R = 8 + Math.floor(Math.random() * 3);  // 8~10（减半）
+                    }
+                    result = `优质睡眠 R = ${R}`;
+                    
+                    // 状态提升判定
+                    const canImprove = currentLoad > 0;
+                    const stateImprovement = canImprove ? '提升1阶状态' : '状态已达最优';
+                    desc = `清空槽值，${stateImprovement}${count === 2 ? ' (效果减半)' : ''}`;
+                    
+                    // 溢出处理（R剩余直接消散）
+                    if (R > currentLoad + 10) {
+                        const overflow = R - (currentLoad + 10);
+                        desc += `\n溢出${overflow}点R值直接消散`;
+                    }
+                    
+                    status = 'result-safe';
                 }
+
+                // 添加限制条件
+                desc += '\n限制: 24h内仅1次优质有效，清醒<4h强制劣质';
 
                 this.updateResult(this.els.sleepRes, result, desc, status);
             },
@@ -2446,7 +2700,7 @@
 
                 if (isSoftLocked) {
                     result = '软锁触发';
-                    desc = '高熵环境/积淮区域: 好运无法触发\n环境极度不稳定，无法抽取确定性';
+                    desc = '乱序区/积淤者存在时: 好运无法触发\n环境极度不稳定，无法抽取确定性';
                     status = 'result-danger';
                 } else if (count >= 5) {
                     result = '达到上限';
@@ -2508,7 +2762,7 @@
                 const hasDrain = this.els.crystalDrain?.value === 'yes';
 
                 const mentalStates = ['清醒', '动摇', '崩溃', '昏乱'];
-                const bodyStates = ['充沛', '正常', '疲劳', '虚弱', '濑死'];
+                const bodyStates = ['充沛', '正常', '疲劳', '虚弱', '濒死'];
                 const currentMental = mentalStates[mentalIdx];
                 const currentBody = bodyStates[bodyIdx];
 
@@ -2533,7 +2787,7 @@
                     if (hasDrain) {
                         desc += '\n[灵魂耗竭]限制: R降至8-10，仅清空槽值';
                     } else {
-                        desc += '\n驱体恢复: 每10R提升1阶 (可从濑死→充沛)';
+                        desc += '\n躯体恢复: 每10R提升1阶 (可从濒死→充沛)';
                     }
                     status = mentalIdx >= 2 ? 'result-danger' : 'result-warn';
                 } else if (count === 5) {
@@ -2550,7 +2804,7 @@
                     desc = `第${count}枚: R=0, Δ+20`;
                     desc += `\n躯体强制跌落两阶: ${currentBody} → ${finalBody}`;
                     if (bodyIdx >= 3) {
-                        desc += '\n⚠ 濑死状态下槽满溢出 → 死亡!';
+                        desc += '\n⚠ 濒死状态下槽满溢出 → 死亡!';
                     }
                     status = 'result-danger';
                 }
