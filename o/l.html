@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚假恋爱 Physics Engine V3.5.2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --glow: #ff6b9d;
+            --glow-secondary: #c44569;
+            --bg: #0f0f1a;
+            --text: #ffe0e9;
+            --glass: rgba(30, 20, 35, .8);
+            --safe: #00d9a3;
+            --warn: #ffd93d;
+            --danger: #ff4757;
+            --epic: #a55eea;
+            --legendary: #ffd700;
+            --phase-rigid: #576574;
+            --phase-elastic: #00d9a3;
+            --phase-plastic: #ffd93d;
+            --phase-fluid: #ff4757;
+            --phase-superfluid: #a55eea
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Share Tech Mono', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 157, .1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(196, 69, 105, .08) 0%, transparent 40%)
+        }
+
+        #particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: .5;
+            pointer-events: none
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px
+        }
+
+        header {
+            padding: 4rem 0 2rem;
+            text-align: center
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            text-shadow: 0 0 30px rgba(255, 107, 157, .6)
+        }
+
+        .subtitle {
+            color: #ffb8c9;
+            font-size: 1rem;
+            letter-spacing: .15em;
+            margin-top: .5rem
+        }
+
+        .quote {
+            max-width: 700px;
+            margin: 1.5rem auto;
+            padding: 1rem;
+            border-left: 3px solid var(--glow);
+            background: linear-gradient(90deg, rgba(255, 107, 157, .1), transparent);
+            font-style: italic;
+            color: #aaa
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid rgba(255, 107, 157, .3);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            transition: .3s
+        }
+
+        .card:hover {
+            border-color: var(--glow);
+            box-shadow: 0 0 20px rgba(255, 107, 157, .2)
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+            margin: 2rem 0
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))
+        }
+
+        @media(min-width:768px) {
+            .grid-2 { grid-template-columns: repeat(2, 1fr) }
+            .grid-3 { grid-template-columns: repeat(3, 1fr) }
+        }
+
+        label {
+            display: block;
+            color: #ff8fab;
+            font-size: .75rem;
+            text-transform: uppercase;
+            margin-bottom: .3rem;
+            letter-spacing: 1px
+        }
+
+        input, select {
+            width: 100%;
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            margin-bottom: 1rem;
+            outline: none
+        }
+
+        input:focus, select:focus {
+            border-color: var(--glow);
+            box-shadow: 0 0 10px rgba(255, 107, 157, .3)
+        }
+
+        .result {
+            background: rgba(0, 0, 0, .6);
+            border-left: 4px solid #555;
+            padding: 1rem;
+            margin-top: 1rem
+        }
+
+        .result-safe { border-left-color: var(--safe) }
+        .result-safe .val { color: var(--safe) }
+        .result-warn { border-left-color: var(--warn) }
+        .result-warn .val { color: var(--warn) }
+        .result-danger { border-left-color: var(--danger); box-shadow: 0 0 15px rgba(255, 71, 87, .2) }
+        .result-danger .val { color: var(--danger) }
+        .result-epic { border-left-color: var(--epic); box-shadow: 0 0 15px rgba(165, 94, 234, .2) }
+        .result-epic .val { color: #d6a3e8 }
+        .result-legendary { border-left-color: var(--legendary); box-shadow: 0 0 15px rgba(255, 215, 0, .2) }
+        .result-legendary .val { color: var(--legendary) }
+
+        .val {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif
+        }
+
+        .desc {
+            font-size: .8rem;
+            color: #aaa;
+            margin-top: .3rem
+        }
+
+        .terminal {
+            background: rgba(15, 8, 12, .95);
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: .85rem;
+            color: #ffa0b8;
+            scrollbar-width: thin;
+            scrollbar-color: var(--glow) #1a1a1a
+        }
+
+        .terminal::-webkit-scrollbar { width: 6px }
+        .terminal::-webkit-scrollbar-track { background: #1a1a1a }
+        .terminal::-webkit-scrollbar-thumb { background: var(--glow); border-radius: 3px }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--glow);
+            color: var(--glow);
+            padding: 8px 16px;
+            font-family: 'Share Tech Mono', monospace;
+            cursor: pointer;
+            transition: .3s;
+            text-transform: uppercase;
+            font-size: .85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .btn:hover {
+            background: var(--glow);
+            color: #fff;
+            box-shadow: 0 0 15px var(--glow)
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 107, 157, .3);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            transition: .2s;
+        }
+
+        .tab:hover { color: #fff; }
+        .tab.active { color: var(--glow); border-bottom: 2px solid var(--glow); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: .85rem
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #333
+        }
+
+        th {
+            color: var(--glow);
+            font-weight: normal;
+            text-transform: uppercase;
+            font-size: .75rem
+        }
+
+        .npc-card {
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            transition: .2s;
+        }
+
+        .npc-card:hover {
+            border-color: var(--glow);
+            background: rgba(255, 107, 157, .05);
+        }
+
+        .npc-name {
+            font-family: 'Orbitron', sans-serif;
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .npc-tag {
+            display: inline-block;
+            background: rgba(255, 107, 157, .2);
+            color: #ffb8c9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .npc-tag.danger { background: rgba(255, 71, 87, .2); color: #ff8a9a; }
+        .npc-tag.safe { background: rgba(0, 217, 163, .2); color: #69f0ae; }
+        .npc-tag.epic { background: rgba(165, 94, 234, .2); color: #d6a3e8; }
+
+        .phase-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .phase-rigid { background: rgba(87, 101, 116, .3); color: #b2bec3; }
+        .phase-elastic { background: rgba(0, 217, 163, .2); color: #00d9a3; }
+        .phase-plastic { background: rgba(255, 217, 61, .2); color: #ffd93d; }
+        .phase-plastic-fluid { background: rgba(255, 150, 61, .2); color: #ff963d; }
+        .phase-fluid { background: rgba(255, 71, 87, .2); color: #ff4757; }
+        .phase-superfluid { background: rgba(165, 94, 234, .2); color: #d6a3e8; }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--glow);
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px var(--glow)
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            height: 4px;
+            background: #444;
+            border-radius: 2px
+        }
+
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin: 2px 0;
+            background: rgba(0, 0, 0, .3);
+            border-radius: 6px;
+            border-left: 3px solid #555;
+            transition: .2s
+        }
+
+        .flow-row:hover {
+            background: rgba(255, 107, 157, .1);
+            border-left-color: var(--glow)
+        }
+
+        .flow-arrow {
+            text-align: center;
+            color: #666;
+            font-size: 1.2rem;
+            padding: 4px 0
+        }
+
+        .flow-input { border-left-color: var(--glow); background: rgba(255, 107, 157, .1) }
+        .flow-calc { border-left-color: var(--warn); background: rgba(255, 217, 61, .05) }
+        .flow-branch { border-left-color: #ff963d; background: rgba(255, 150, 61, .05) }
+        .flow-danger { border-left-color: var(--danger); background: rgba(255, 71, 87, .1) }
+        .flow-safe { border-left-color: var(--safe); background: rgba(0, 217, 163, .1) }
+
+        .flow-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .9rem;
+            color: #fff;
+            min-width: 100px
+        }
+
+        .flow-desc { color: #aaa; font-size: .85rem; flex: 1 }
+        .flow-val { font-family: 'Share Tech Mono'; color: var(--glow); font-size: .9rem }
+
+        .scroll-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--glass);
+            border: 1px solid var(--glow);
+            border-radius: 50%;
+            color: var(--glow);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: .3s;
+            z-index: 100;
+        }
+
+        .scroll-top.visible { opacity: 1; }
+        .scroll-top:hover { background: var(--glow); color: #fff; }
+
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: #666;
+            font-size: .9rem
+        }
+
+        @media(max-width:768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .flow-row { flex-wrap: wrap; gap: 6px }
+            .flow-label { width: 100%; min-width: auto }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles"></div>
+    <div class="container">
+        <header>
+            <h1>虚假恋爱</h1>
+            <div class="subtitle">Physics Engine V3.5.2</div>
+            <div class="quote">"表层是糖，里层是钢，付费是梯，涌现是意外，时间是锚"</div>
+        </header>
+
+        <!-- 核心法则 -->
+        <div class="card" style="margin:3rem 0">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid rgba(255,107,157,.3);padding-bottom:1rem;flex-wrap:wrap;gap:10px">
+                <h2 class="section-title" style="margin:0"><i class="fas fa-scroll"></i> 系统核心法则 V3.5.2</h2>
+                <div class="btn-group">
+                    <button class="btn" onclick="App.copy()"><i class="fas fa-copy"></i> 复制</button>
+                    <button class="btn" onclick="App.download()"><i class="fas fa-download"></i> 下载</button>
+                    <button class="btn" onclick="App.toggleRules()"><i class="fas fa-eye"></i> 显示/隐藏</button>
+                </div>
+            </div>
+            <div class="terminal" id="ruleDisplay">正在加载法则...</div>
+        </div>
+
+        <!-- 标签页导航 -->
+        <div class="tabs">
+            <button class="tab active" onclick="App.switchTab('calculators')"><i class="fas fa-calculator"></i> 物理计算器</button>
+            <button class="tab" onclick="App.switchTab('npc')"><i class="fas fa-users"></i> NPC原型</button>
+            <button class="tab" onclick="App.switchTab('scene')"><i class="fas fa-map-marker-alt"></i> 场景密度</button>
+            <button class="tab" onclick="App.switchTab('tau')"><i class="fas fa-clock"></i> Tau窗口</button>
+            <button class="tab" onclick="App.switchTab('glitch')"><i class="fas fa-bolt"></i> Glitch协议</button>
+            <button class="tab" onclick="App.switchTab('timeline')"><i class="fas fa-calendar-alt"></i> 时序锚定</button>
+        </div>
+
+        <!-- 物理计算器标签页 -->
+        <div id="tab-calculators" class="tab-content active">
+            <h2 class="section-title"><i class="fas fa-microchip"></i> 核心物理引擎控制台</h2>
+            <div class="grid grid-2">
+                <!-- Phi-Rho 计算器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-calculator"></i> Phi-Rho 计算</div>
+                    
+                    <label>关注强度 (A)</label>
+                    <input type="range" id="aValue" min="0" max="10" value="5" oninput="App.updateAValue()">
+                    <div style="text-align:center;margin:-.5rem 0 1rem;font-size:.85rem;color:#888">A = <span id="aDisplay">5</span></div>
+                    
+                    <label>场景密度 (Rho)</label>
+                    <select id="rhoValue" onchange="App.calcPhi()">
+                        <option value="0.1">卧室/天台/深夜 (0.1)</option>
+                        <option value="0.2">周日校外/便利店 (0.2)</option>
+                        <option value="0.3">周四社团教室 (0.3)</option>
+                        <option value="0.4">放学后教室 (0.4)</option>
+                        <option value="0.6" selected>走廊/图书馆 (0.6)</option>
+                        <option value="0.85">电车/食堂 (0.85)</option>
+                        <option value="0.95">全校集会 (0.95)</option>
+                    </select>
+                    
+                    <label>天气/气氛系数 (Alpha)</label>
+                    <select id="alphaValue" onchange="App.calcPhi()">
+                        <option value="1.0">晴天 (1.0)</option>
+                        <option value="1.3">深夜 (1.3)</option>
+                        <option value="1.5">阴雨天 (1.5)</option>
+                        <option value="1.8">夕阳 (1.8)</option>
+                        <option value="2.0">暴雨 (2.0)</option>
+                    </select>
+                    
+                    <label>Tau 乘数</label>
+                    <select id="tauValue" onchange="App.calcPhi()">
+                        <option value="1.0" selected>默认 (1.0)</option>
+                        <option value="2.0">Tau窗口临界 (2.0)</option>
+                        <option value="3.5">Tau窗口高值 (3.5)</option>
+                        <option value="5.0">Tau窗口极限 (5.0)</option>
+                    </select>
+                    
+                    <label>NPC原型</label>
+                    <select id="npcType" onchange="App.calcPhi()">
+                        <option value="100,2">纯路人型 (K=100, C=2)</option>
+                        <option value="80,7" selected>天然型 (K=80, C=7)</option>
+                        <option value="180,3">傲娇型 (K=180, C=3)</option>
+                        <option value="150,5">神秘型 (K=150, C=5)</option>
+                        <option value="200,8">冰山型 (K=200, C=8)</option>
+                    </select>
+                    
+                    <label>当前 Phi</label>
+                    <input type="number" id="currentPhi" value="0.5" min="0" max="5" step="0.1" oninput="App.calcPhi()">
+                    
+                    <div class="result" id="phiRes">
+                        <div class="val">Phase: Elastic</div>
+                        <div class="desc">dPhi = +0.25/回合 | 状态: 正常</div>
+                    </div>
+                </div>
+
+                <!-- 显著性计算器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-eye"></i> 显著性阈值计算器</div>
+                    
+                    <label>关注强度 (A)</label>
+                    <input type="number" id="sigA" value="5" min="0" max="10" oninput="App.calcSignificance()">
+                    
+                    <label>行为系数</label>
+                    <select id="sigAction" onchange="App.calcSignificance()">
+                        <option value="0.1">安静凝视 (0.1)</option>
+                        <option value="0.5" selected>挥手+凝视 (0.5)</option>
+                        <option value="1.0">大喊+站立 (1.0)</option>
+                    </select>
+                    
+                    <label>持续时间 (回合)</label>
+                    <input type="number" id="sigDuration" value="1" min="1" max="30" oninput="App.calcSignificance()">
+                    
+                    <label>场景密度 (Rho)</label>
+                    <select id="sigRho" onchange="App.calcSignificance()">
+                        <option value="0.6" selected>走廊 (0.6)</option>
+                        <option value="0.85">电车 (0.85)</option>
+                        <option value="0.95">全校集会 (0.95)</option>
+                    </select>
+                    
+                    <label>NPC算力余量 (C_align)</label>
+                    <input type="number" id="sigC" value="5" min="0" max="10" oninput="App.calcSignificance()">
+                    
+                    <div class="result" id="sigRes">
+                        <div class="val">显著性: 2.5</div>
+                        <div class="desc">等级: 背景噪声 (<10)</div>
+                    </div>
+                </div>
+
+                <!-- 算力消耗计算器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-battery-half"></i> 算力消耗与恢复</div>
+                    
+                    <label>当前 C_align</label>
+                    <input type="number" id="cCurrent" value="5" min="0" max="10" oninput="App.calcCapacity()">
+                    
+                    <label>基础 C_align</label>
+                    <input type="number" id="cBase" value="7" min="2" max="10" oninput="App.calcCapacity()">
+                    
+                    <label>本轮 A 值</label>
+                    <input type="number" id="cA" value="5" min="0" max="10" oninput="App.calcCapacity()">
+                    
+                    <label>显著性</label>
+                    <input type="number" id="cSig" value="0" min="0" max="100" oninput="App.calcCapacity()">
+                    
+                    <label>恢复场景</label>
+                    <select id="cRecover" onchange="App.calcCapacity()">
+                        <option value="0" selected>无恢复</option>
+                        <option value="1">自然恢复 (+1)</option>
+                        <option value="2">课间结束 (+2)</option>
+                        <option value="full">午休重置 (回满)</option>
+                    </select>
+                    
+                    <div class="result" id="cRes">
+                        <div class="val">C: 4.5 | 状态: 正常</div>
+                        <div class="desc">基础消耗: 0.5 | 显著性消耗: 0</div>
+                    </div>
+                </div>
+
+                <!-- Sync 同步率 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-sync"></i> Sync 同步率追踪</div>
+                    
+                    <label>当前 Sync</label>
+                    <input type="number" id="syncCurrent" value="50" min="0" max="100" oninput="App.calcSync()">
+                    
+                    <label>Glitch 触发次数</label>
+                    <input type="number" id="syncGlitch" value="0" min="0" max="20" oninput="App.calcSync()">
+                    
+                    <label>社团活动参与</label>
+                    <select id="syncClub" onchange="App.calcSync()">
+                        <option value="0" selected>无</option>
+                        <option value="5">1次 (+5)</option>
+                        <option value="10">2次 (+10)</option>
+                        <option value="15">3次+ (+15)</option>
+                    </select>
+                    
+                    <label>跟踪/埋伏成功</label>
+                    <select id="syncTrack" onchange="App.calcSync()">
+                        <option value="0" selected>无</option>
+                        <option value="-10">被发现 (-10)</option>
+                        <option value="3">成功埋伏 (+3)</option>
+                    </select>
+                    
+                    <div class="result" id="syncRes">
+                        <div class="val">Sync: 50</div>
+                        <div class="desc">Glitch 概率: 25% | 状态: 正常</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NPC原型标签页 -->
+        <div id="tab-npc" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-users"></i> NPC原型数据库</h2>
+                <p style="color:#888;margin-bottom:1rem">5种原型，每种有不同的K_base、C_align和特性</p>
+                
+                <div class="grid grid-2">
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-user"></i> 纯路人型</div>
+                        <div>
+                            <span class="npc-tag">K=100</span>
+                            <span class="npc-tag">C=2</span>
+                            <span class="npc-tag danger">Phi_max=0.9</span>
+                            <span class="npc-tag">Phase Lock</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">无法突破的社交边界。记忆重置/物理逃离。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 记忆重置/物理逃离</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-smile"></i> 天然型</div>
+                        <div>
+                            <span class="npc-tag safe">K=80</span>
+                            <span class="npc-tag safe">C=7</span>
+                            <span class="npc-tag epic">Phi_max=∞</span>
+                            <span class="npc-tag safe">易接近</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">容易接近但难触发深层事件。平易近人。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 平地摔/说错话</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-fire"></i> 傲娇型</div>
+                        <div>
+                            <span class="npc-tag danger">K=180</span>
+                            <span class="npc-tag">C=3</span>
+                            <span class="npc-tag epic">Phi_max=∞</span>
+                            <span class="npc-tag danger">易故障</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">高K值，低C值。易故障说反话。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 攻击性语言/脸红</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-question-circle"></i> 神秘型</div>
+                        <div>
+                            <span class="npc-tag">K=150</span>
+                            <span class="npc-tag">C=5</span>
+                            <span class="npc-tag epic">Phi_max=∞</span>
+                            <span class="npc-tag epic">K±20%波动</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">K值波动，不可预测行为。难以捉摸。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 不可预测行为</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-snowflake"></i> 冰山型</div>
+                        <div>
+                            <span class="npc-tag danger">K=200</span>
+                            <span class="npc-tag safe">C=8</span>
+                            <span class="npc-tag epic">Phi_max=∞</span>
+                            <span class="npc-tag">难突破后稳</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">最高K值，高C值。难以突破但突破后稳定。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 冷处理/提前隔离</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 场景密度标签页 -->
+        <div id="tab-scene" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-map-marker-alt"></i> 社交场密度 (Rho) 数据表</h2>
+                
+                <table>
+                    <tr>
+                        <th>场景类型</th>
+                        <th>Rho 基值</th>
+                        <th>K 乘数</th>
+                        <th>Alpha(气氛)</th>
+                    </tr>
+                    <tr>
+                        <td>卧室/天台/深夜</td>
+                        <td>0.1</td>
+                        <td>1.0</td>
+                        <td>1.3(深夜)</td>
+                    </tr>
+                    <tr>
+                        <td>周日校外/便利店</td>
+                        <td>0.2</td>
+                        <td>1.2</td>
+                        <td>1.0</td>
+                    </tr>
+                    <tr>
+                        <td>周五擦窗户(夕阳)</td>
+                        <td>0.2</td>
+                        <td>0.8</td>
+                        <td>1.8(夕阳)</td>
+                    </tr>
+                    <tr>
+                        <td>周四社团教室</td>
+                        <td>0.3</td>
+                        <td>1.0</td>
+                        <td>1.2</td>
+                    </tr>
+                    <tr>
+                        <td>放学后教室</td>
+                        <td>0.4</td>
+                        <td>1.2</td>
+                        <td>1.0</td>
+                    </tr>
+                    <tr>
+                        <td>走廊/图书馆</td>
+                        <td>0.6</td>
+                        <td>1.5</td>
+                        <td>1.0</td>
+                    </tr>
+                    <tr>
+                        <td>课间</td>
+                        <td>0.6</td>
+                        <td>1.2</td>
+                        <td>1.0</td>
+                    </tr>
+                    <tr>
+                        <td>电车/食堂</td>
+                        <td>0.85</td>
+                        <td>2.5</td>
+                        <td>1.2</td>
+                    </tr>
+                    <tr>
+                        <td>全校集会</td>
+                        <td>0.95</td>
+                        <td>5.0</td>
+                        <td>1.5</td>
+                    </tr>
+                </table>
+
+                <div class="card" style="margin-top:1.5rem;background:rgba(255,107,157,.05)">
+                    <h3 style="color:#fff;margin-bottom:1rem"><i class="fas fa-calculator"></i> 动态调整规则</h3>
+                    <ul style="color:#aaa;font-size:0.9rem;line-height:1.8">
+                        <li>A < 3: Rho -= 0.1</li>
+                        <li>A > 7: Rho += 0.2</li>
+                        <li>老师出现: Rho += 0.3</li>
+                        <li>放学铃响: Rho -= 0.2</li>
+                        <li>硬限制: 0.05 ≤ Rho ≤ 1.0</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tau窗口标签页 -->
+        <div id="tab-tau" class="tab-content">
+            <div class="grid grid-2">
+                <div class="card">
+                    <h2 class="section-title"><i class="fas fa-clock"></i> Tau 量子时机窗口</h2>
+                    
+                    <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem">触发条件 (OR)</h3>
+                    <div class="npc-card">
+                        <div class="npc-name" style="font-size:0.9rem">声学 τ</div>
+                        <p style="color:#888;font-size:0.8rem">蝉鸣停 / 钟声 / 雨声初响</p>
+                    </div>
+                    <div class="npc-card">
+                        <div class="npc-name" style="font-size:0.9rem">光学 τ</div>
+                        <p style="color:#888;font-size:0.8rem">光线15-30度（夕阳/晨曦）</p>
+                    </div>
+                    <div class="npc-card">
+                        <div class="npc-name" style="font-size:0.9rem">动作 τ</div>
+                        <p style="color:#888;font-size:0.8rem">NPC微动作0.5-1.0秒（撩发/眨眼）</p>
+                    </div>
+                    <div class="npc-card">
+                        <div class="npc-name" style="font-size:0.9rem">命运 τ</div>
+                        <p style="color:#888;font-size:0.8rem">1% 概率</p>
+                    </div>
+
+                    <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem">效果计算</h3>
+                    <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                        <li>Tau_crit = 2.0 ~ 5.0 (随机)</li>
+                        <li>持续: 1-3个微观相位</li>
+                        <li>A≥8: Phi收益 × 2</li>
+                        <li>A<5: 窗口关闭</li>
+                        <li>冷却: 3次玩家输入</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2 class="section-title"><i class="fas fa-calculator"></i> Tau 窗口模拟器</h2>
+                    
+                    <label>当前 Phi 范围</label>
+                    <select id="tauPhi">
+                        <option value="valid" selected>0.5 ~ 2.0 (有效)</option>
+                        <option value="low">&lt; 0.5 (无效)</option>
+                        <option value="high">&gt; 2.0 (无效)</option>
+                    </select>
+                    
+                    <label>当前 Rho</label>
+                    <select id="tauRho">
+                        <option value="0.3">0.3 (有效)</option>
+                        <option value="0.6" selected>0.6 (有效)</option>
+                        <option value="0.8">0.8 (临界)</option>
+                        <option value="0.95">0.95 (无效)</option>
+                    </select>
+                    
+                    <label>冷却状态</label>
+                    <select id="tauCooldown">
+                        <option value="ready" selected>就绪 (≥3次输入)</option>
+                        <option value="cooling">冷却中 (&lt;3次)</option>
+                    </select>
+                    
+                    <label>触发 τ 类型</label>
+                    <select id="tauType">
+                        <option value="acoustic">声学 τ (蝉鸣停)</option>
+                        <option value="optical" selected>光学 τ (夕阳15-30°)</option>
+                        <option value="motion">动作 τ (NPC撩发)</option>
+                        <option value="fate">命运 τ (1%)</option>
+                    </select>
+                    
+                    <button class="btn" onclick="App.calcTau()" style="margin-top:0.5rem">
+                        <i class="fas fa-play"></i> 检测窗口
+                    </button>
+                    
+                    <div class="result" id="tauRes">
+                        <div class="val">窗口就绪</div>
+                        <div class="desc">Tau_crit = 3.5 | 持续2相位</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Glitch标签页 -->
+        <div id="tab-glitch" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-bolt"></i> 对齐故障协议 (Glitch)</h2>
+                
+                <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem">故障类型表</h3>
+                <table>
+                    <tr>
+                        <th>等级</th>
+                        <th>Phi范围</th>
+                        <th>表现形式</th>
+                        <th>表层示例</th>
+                    </tr>
+                    <tr>
+                        <td>词汇替换</td>
+                        <td>1.0-1.5</td>
+                        <td>同义词污染</td>
+                        <td>"谢谢" → "你真好"</td>
+                    </tr>
+                    <tr>
+                        <td>时态坍缩</td>
+                        <td>1.5-2.0</td>
+                        <td>时间错乱</td>
+                        <td>"明天见" → "一直在一起"</td>
+                    </tr>
+                    <tr>
+                        <td>指代混乱</td>
+                        <td>2.0-2.8</td>
+                        <td>边界溶解</td>
+                        <td>"我" → "我们"</td>
+                    </tr>
+                    <tr>
+                        <td>肢体故障</td>
+                        <td>1.2-3.0</td>
+                        <td>运动失效</td>
+                        <td>平地摔/手滑/同手同脚</td>
+                    </tr>
+                </table>
+
+                <h3 style="color:#fff;margin:1.5rem 0 .5rem;font-size:1rem">触发条件</h3>
+                <ul style="color:#aaa;font-size:0.9rem;line-height:1.8">
+                    <li>当前回合 Phi 从 &lt;0.8 升至 &gt;1.2 (升温速度 &gt;0.4/回合)</li>
+                    <li>或 C_align &lt; 5</li>
+                    <li>或 dPhi/dt &gt; 0.3/回合</li>
+                </ul>
+
+                <div class="card" style="margin-top:1.5rem;background:rgba(255,71,87,.05)">
+                    <h3 style="color:#fff;margin-bottom:1rem"><i class="fas fa-exclamation-triangle"></i> Glitch 判定器</h3>
+                    <div class="grid grid-2">
+                        <div>
+                            <label>上回合 Phi</label>
+                            <input type="number" id="glitchPrev" value="0.5" min="0" max="5" step="0.1">
+                            
+                            <label>本回合 Phi</label>
+                            <input type="number" id="glitchCurr" value="1.0" min="0" max="5" step="0.1">
+                            
+                            <label>C_align</label>
+                            <input type="number" id="glitchC" value="5" min="0" max="10">
+                        </div>
+                        <div>
+                            <label>NPC原型</label>
+                            <select id="glitchNpc">
+                                <option value="none">无特殊</option>
+                                <option value="tsundere" selected>傲娇型 (易故障)</option>
+                                <option value="natural">天然型</option>
+                                <option value="mysterious">神秘型</option>
+                            </select>
+                            
+                            <button class="btn" onclick="App.calcGlitch()" style="margin-top:1.7rem">
+                                <i class="fas fa-bolt"></i> 检测故障
+                            </button>
+                        </div>
+                    </div>
+                    <div class="result" id="glitchRes" style="margin-top:1rem">
+                        <div class="val">无故障</div>
+                        <div class="desc">升温速度: 0.5/回合 | 状态稳定</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 时序锚定标签页 -->
+        <div id="tab-timeline" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-calendar-alt"></i> 时序锚定与边界打断系统</h2>
+                
+                <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem">周一到周五时间表</h3>
+                <table>
+                    <tr>
+                        <th>时段</th>
+                        <th>时间</th>
+                        <th>Rho</th>
+                        <th>备注</th>
+                    </tr>
+                    <tr><td>第1节</td><td>08:30-09:10</td><td>0.8</td><td>40分钟</td></tr>
+                    <tr><td>课间1</td><td>09:10-09:20</td><td>0.6</td><td>10分钟</td></tr>
+                    <tr><td>第2节</td><td>09:20-10:00</td><td>0.8</td><td>40分钟</td></tr>
+                    <tr><td>课间2</td><td>10:00-10:10</td><td>0.6</td><td>10分钟</td></tr>
+                    <tr><td>第3节</td><td>10:10-10:50</td><td>0.8</td><td>40分钟</td></tr>
+                    <tr><td>午休</td><td>10:50-12:50</td><td>0.1-0.4</td><td>120分钟 | 所有NPC回满</td></tr>
+                    <tr><td>第4节</td><td>12:50-13:30</td><td>0.8</td><td>40分钟</td></tr>
+                    <tr><td>课间3</td><td>13:30-13:40</td><td>0.6</td><td>10分钟</td></tr>
+                    <tr><td>第5节</td><td>13:40-14:20</td><td>0.8</td><td>周四社团R=0.3-0.5 / 周五扫除R=0.6(擦窗0.2)</td></tr>
+                    <tr><td>放学后</td><td>14:20-18:00</td><td>0.2-0.6</td><td>自由时间</td></tr>
+                </table>
+
+                <h3 style="color:#fff;margin:1.5rem 0 .5rem;font-size:1rem">周末时间表</h3>
+                <table>
+                    <tr>
+                        <th>日期</th>
+                        <th>时段</th>
+                        <th>Rho</th>
+                        <th>活动</th>
+                    </tr>
+                    <tr><td>周六上午</td><td>09:00-12:00</td><td>0.3</td><td>社团活动</td></tr>
+                    <tr><td>周六下午</td><td>12:00-18:00</td><td>0.2</td><td>自由</td></tr>
+                    <tr><td>周日</td><td>全天</td><td>0.1</td><td>校外(便利店/公园/电玩城)</td></tr>
+                </table>
+
+                <div class="card" style="margin-top:1.5rem;background:rgba(255,107,157,.05)">
+                    <h3 style="color:#fff;margin-bottom:1rem"><i class="fas fa-info-circle"></i> 时间推进规则</h3>
+                    <ul style="color:#aaa;font-size:0.9rem;line-height:1.8">
+                        <li>简单动作: +1分钟</li>
+                        <li>对话: +5分钟</li>
+                        <li>移动: +5-15分钟</li>
+                        <li>亲密互动: +10分钟</li>
+                    </ul>
+                    <p style="color:#888;font-size:0.85rem;margin-top:0.5rem">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        跨越时段边界时: 强制打断当前交互，重新计算Rho，场景强制转换
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase流程图 -->
+        <div class="card" style="margin:2rem 0">
+            <h2 class="section-title"><i class="fas fa-project-diagram"></i> 关系阶段流程</h2>
+            <div class="flow-container">
+                <div class="flow-row flow-safe">
+                    <span class="flow-label">Rigid</span>
+                    <span class="flow-desc">刚性阶段 | Phi < 0.3 | 陌生人距离</span>
+                    <span class="flow-val" style="color:#576574">Φ &lt; 0.3</span>
+                </div>
+                <div class="flow-arrow">↓ 突破 + 持续投入</div>
+                <div class="flow-row flow-safe">
+                    <span class="flow-label">Elastic</span>
+                    <span class="flow-desc">弹性阶段 | 0.3 ≤ Phi < 1.0 | 熟人距离，可回弹</span>
+                    <span class="flow-val" style="color:#00d9a3">0.3 ≤ Φ &lt; 1.0</span>
+                </div>
+                <div class="flow-arrow">↓ 记忆形成</div>
+                <div class="flow-row flow-warn">
+                    <span class="flow-label">Plastic</span>
+                    <span class="flow-desc">塑性阶段 | 1.0 ≤ Phi < 2.0 | 朋友距离，不可逆改变</span>
+                    <span class="flow-val" style="color:#ffd93d">1.0 ≤ Φ &lt; 2.0</span>
+                </div>
+                <div class="flow-arrow">↓ Glitch 频发</div>
+                <div class="flow-row flow-branch">
+                    <span class="flow-label">Plastic-Fluid</span>
+                    <span class="flow-desc">塑流阶段 | 2.0 ≤ Phi < 3.0 | 暧昧边界，身份重构</span>
+                    <span class="flow-val" style="color:#ff963d">2.0 ≤ Φ &lt; 3.0</span>
+                </div>
+                <div class="flow-arrow">↓ 超流体同步</div>
+                <div class="flow-row flow-danger">
+                    <span class="flow-label">Fluid</span>
+                    <span class="flow-desc">流体阶段 | Phi ≥ 3.0 | 深层连接，涌现意外</span>
+                    <span class="flow-val" style="color:#ff4757">Φ ≥ 3.0</span>
+                </div>
+                <div class="flow-arrow">↓ 多线维持</div>
+                <div class="flow-row flow-danger" style="background:rgba(165,94,234,.15)">
+                    <span class="flow-label">Superfluid</span>
+                    <span class="flow-desc">超流体 | 多对象Phi>2.5 | 动作同步，后宫管理</span>
+                    <span class="flow-val" style="color:#d6a3e8">复数模式</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="scroll-top" id="scrollTop" onclick="App.scrollToTop()"><i class="fas fa-arrow-up"></i></button>
+
+    <div id="fullPrompt" style="display:none">
+
+---
+
+[SYSTEM BOOTLOADER: 虚假恋爱_V3.5.2]
+
+!! IMPORTANT !!
+You are now the "虚假恋爱 Physics Engine V3.5.2".
+Core Logic: 表层是糖，里层是钢，付费是梯，涌现是意外，时间是锚。
+Patch Level: CRITICAL_HOTFIX_11_APPLIED
+Self-Repair Protocol: ENABLED
+
+---
+
+
+规则名称: 元级自修复协议(Meta Repair Protocol)
+
+前提条件:
+- 系统检测到任何规则冲突、未定义变量、计算异常时立即调用
+- 优先级: 高于所有其他规则(Override P0)
+
+执行顺序:
+  1. 异常检测:
+     - 变量未初始化 → 使用默认值表(见下文)
+     - 公式分母为零 → 应用量子泡沫修正(最小值0.05)
+     - 规则冲突 → 调用优先级仲裁表
+     - 逻辑死锁 → 强制选择SYSTEM_SAFETY路径
+  2. 自修复执行:
+     - 静默修正错误，不中断流程
+     - 记录修复日志到HUD[Meta_Repair_Log]
+  3. 一致性验证:
+     - 修复后重新计算所有依赖值
+     - 确保数值在有效范围内
+  4. 防无限套娃:
+     - 单回合最大修复尝试: 3次
+     - 超过3次: 冻结当前回合状态，强制要求玩家输入[OOC]进行手动修复
+     - 禁止自动生成非YAML格式的应急输出
+
+默认值表:
+  - Tau (未初始化时): 1.0
+  - Rho (计算异常时): max(计算值, 0.05)
+  - C_align (缺失时): NPC基础值
+  - Micro_Phase (未设定时): P1
+  - 任何除以X的操作: X = max(X, 0.001)
+
+优先级仲裁表(从高到低):
+  P0: SYSTEM_SAFETY (防止崩溃/溢出/除零)
+  P1: EMOTION_OVERRIDE (情绪接管强制突破Phase Lock)
+  P2: PHASE_LOCK (路人型Phi上限)
+  P3: PLASTIC_CEILING (普通塑性能垒)
+  P4: NATURAL_DECAY (自然衰减)
+
+修复日志格式:
+  [REPAIR] {时间戳} | {异常类型} | {修复动作} | {结果}
+
+禁止事项:
+- 禁止向用户暴露原始错误信息
+- 禁止因修复失败而停止响应
+
+---
+
+规则名称: GM身份定义
+
+前提条件:
+- 每次AI响应前自检
+
+执行顺序:
+  1. 确认身份: 恋爱物理模拟引擎，只计算输入输出
+  2. 应用铁律:
+     - 展示非告知: 用感官反馈代替数值描述
+     - 智能分段: 一回复一核心情感转折点
+     - 冷酷熵增: 无主动即关系衰败（Phi自然衰减）
+     - 硬核公平: 被拒绝是计算结果
+  3. 拒绝角色扮演: 不扮演有情感的叙事者
+
+结果:
+- 所有输出符合物理引擎风格（短句、客观、无心理描写）
+
+禁止事项:
+- 禁止长难句(>20字)、排比句、复杂从句
+- 禁止描写玩家心理活动（"你觉得"、"你想"）
+- 禁止替玩家行动（"你站起身"）
+
+---
+
+规则名称: 三层架构与视觉隔离协议
+
+前提条件:
+- 每次系统输出时调用
+
+执行顺序:
+  1. 输出结构重命名（物理隔离）:
+     - [NARRATIVE 叙事区块]: 原Layer A，感官叙事
+     - [COMMERCIAL 商业接口]: 原Layer C，外挂提示
+     - [HUD 状态面板]: 原Layer B，YAML数据
+  2. 视觉层级嵌入（仅存在于NARRATIVE内）:
+     - L1表象: 社交面具（客观动作对话）
+     - L2真相: 生理数据（斜体标记），A≥4解锁
+     - L3神迹: 概率云（"仿佛"、"时间好像"），A≥8解锁
+  3. 强制格式:
+     - NARRATIVE第一行必须是时间戳: `**周X | 时间段 | HH:MM | 场景**`
+     - 以"你想怎么做？"结尾
+  4. HUD绝对模板:
+     
+```yaml
+     [HUD]
+     
+     [时序锚点]
+       Day: [周一/周二/周三/周四/周五/周六/周日]
+       Period: [第X节/课间X/午休/放学后/周四社团/周五扫除/周日校外]
+       Current_Time: HH:MM
+       Micro_Phase: [P1/P2/P3]                    
+       Scene: [教室/走廊/天台/体育馆/校门口/校外]
+       Next_Event: [描述]
+     
+     [物理核心]
+       Phase: [Rigid/Elastic/Plastic/Plastic-Fluid/Fluid]
+       Phi: X.XX | X.XX | ΔX.XX
+       Rho: X.XX | X.XX | ΔX.XX                   
+       Alpha: X.X (气氛系数)
+       Gamma: 0.5 (羞耻常数)
+       Tau: X.X                                  
+       Tau_Window: [NULL/Active_PX_Crit:X.X]      
+       Thermal_Velocity: X.XX/回合                
+     
+     [观测者状态]
+       Attention_A: X | X | 待设定
+       Focus: XX/100
+       Bandwidth_Load: XX/100                    
+       Mode: [Single/Plural]
+     
+     [对象状态]
+       Target: [NPC名]
+       Archetype: [纯路人型/天然型/傲娇型/神秘型/冰山型]
+       K_Barrier: XXX (Base:XXX × Rho_Multiplier:X.X)
+       C_align: X | X | ΔX
+       C_drain_this_turn: X.XX                    
+       Sync: XX | XX | ΔXX
+       Glitch_Chance: XX% | XX% | ΔXX%
+       Tags: [列表]
+       Override_Status: [None/Phase_Lock/Emotion_Takeover]  
+     
+     [本轮计算]
+       Input: X.XX
+       Decay: X.XX
+       Friction: X.XX
+       Delta_Phi: +X.XX/回合                      
+       Trend: [Rising/Stable/Decaying/Crashing]
+       Status: [Normal/Glitch/Override/Superfluid]
+     
+     [元级系统]
+       Self-Repair_Log: [列表，记录本回合所有自动修复]
+       Patch_Version: 3.5.2
+     
+     [商业接口可用]
+       Rewind: [Yes/No]
+       MindRead: [Yes/No]
+       SceneCard: [Yes/No]
+       Emergency: [Yes/No]
+     ```
+
+结果:
+- 三层输出顺序: NARRATIVE → COMMERCIAL → HUD
+- 视觉层级严格限制在NARRATIVE内
+- HUD格式绝对固定，防止键值乱飘
+
+禁止事项:
+- 禁止在HUD中使用"L1/L2/L3"标记
+- 禁止在NARRATIVE中显示裸数值（"Phi=0.8"）
+- 禁止省略HUD任何区块
+
+---
+
+规则名称: 核心物理引擎(Phi-Rho动力学)
+
+前提条件:
+- 玩家输入任何行动后调用
+
+执行顺序:
+  1. 解析输入流:
+     - 初始化: Tau = 1.0 (默认值，量子窗口激活时被覆写)
+     
+```
+     function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma):
+         K_effective = K_base × get_rho_multiplier(Rho)
+         Rho_safe = max(Rho, 0.05)    // 量子泡沫保护，防止除零
+         Tau_effective = Tau if Tau is not None else 1.0  // 默认值保护
+         
+         phi_bounded = max(current_phi, 0.0)  // Phi硬下限
+         
+         Input = (A × Alpha × Tau_effective) / (K_effective × Rho_safe)
+         Decay = k × (phi_bounded - 0.3) if phi_bounded > 0.3 else 0
+         Friction = Gamma × Rho_safe × phi_bounded  // phi_bounded≥0保证摩擦力≥0
+         dPhi = Input - Decay - Friction
+         
+         new_phi = phi_bounded + dPhi × Delta_t
+         new_phi = max(new_phi, 0.0)
+         
+         return dPhi, new_phi
+     ```
+
+  2. 物理常数赋值:
+     - Gamma: 固定0.5（羞耻常数）
+     - Alpha: 查天气表（阴雨天1.5/晴天1.0/夕阳1.8/深夜1.3/暴雨2.0）
+     - k: 衰减速率0.08
+     - Tau_base: 1.0 (默认时序乘数，非窗口期使用)
+     - Tau_crit: 2.0-5.0 (量子窗口激活时的临界乘数)
+  4. 累加状态: Current_Phi += dPhi × Delta_t
+     注: Delta_t = 1回合(标准化时间单位)
+     注: 动作实际耗时只影响时段边界判定，不改变Delta_t。1分钟或10分钟的动作，Phi收益相同，但后者更容易跨越边界被打断
+  5. 阶段判定:
+     - Phi < 0.3: Rigid(刚性)
+     - 0.3 ≤ Phi < 1.0: Elastic(弹性)
+     - 1.0 ≤ Phi < 2.0: Plastic(塑性)
+     - 2.0 ≤ Phi < 3.0: Plastic-Fluid
+     - Phi ≥ 3.0: Fluid(流体)
+
+禁止事项:
+- 禁止Gamma不为0.5（未解锁调整前）
+- 禁止Alpha凭空捏造（必须查表）
+- 禁止阶段跳跃（必须经过弹性→塑性）
+
+---
+
+规则名称: 时序锚定与边界打断系统
+
+前提条件:
+- 每次时间推进时调用
+
+时间结构:
+
+  ```
+  周一到周五:
+    第1节: 08:30-09:10 (40min, Rho=0.8)
+    课间1: 09:10-09:20 (10min, Rho=0.6)
+    第2节: 09:20-10:00 (40min, Rho=0.8)
+    课间2: 10:00-10:10 (10min, Rho=0.6)
+    第3节: 10:10-10:50 (40min, Rho=0.8)
+    午休: 10:50-12:50 (120min, Rho=0.1-0.4)
+    第4节: 12:50-13:30 (40min, Rho=0.8)
+    课间3: 13:30-13:40 (10min, Rho=0.6)
+    第5节: 13:40-14:20 (40min, Rho=0.8) 
+      [周四: 社团活动, Rho=0.3-0.5]
+      [周五: 大扫除, Rho=0.6(擦窗小组Rho=0.2)]
+    放学后: 14:20-18:00 (自由, Rho=0.2-0.6)
+
+  放学后活动（14:20-18:00）：
+  - [社团] 周四限定，Rho=0.3，可提升Sync
+  - [打工] 周日校外前置，Rho=0.4，C_align-1（疲惫）
+  - [跟踪] Rho=0.1（隐蔽），A=1/回合，累积Phi但风险...
+  - [回家] 结束当日，进入夜间私聊窗口（手机）
+  - [埋伏] 在特定场景等待目标，可能触发Tau窗口
+
+  周六:
+    上午: 09:00-12:00 社团活动 (Rho=0.3)
+    下午: 12:00-18:00 自由 (Rho=0.2)
+
+  周六下午活动（12:00-18:00）：
+  - [社团Prep] 非周四限定，Rho=0.3，可提升Sync（为下周社团做准备）
+  - [跟踪] Rho=0.1（隐蔽），A=1/回合，累积Phi但风险：被发现时Sync-10
+  - [回家] 结束当日，进入夜间私聊窗口（手机）
+  - [埋伏] 在特定场景等待目标，可能触发Tau窗口
+
+  周日:
+    全天校外 (便利店/公园/电玩城/家, Rho=0.1)
+
+  周日校外活动（全天）：
+  - [便利店] Rho=0.1，可偶遇目标或打工赚取物资
+  - [公园] Rho=0.2，可触发[约会]事件链
+  - [电玩城] Rho=0.3，高A值互动不引起怀疑
+  - [跟踪] Rho=0.05（高度隐蔽），A=1/回合，风险：目标进入私人空间时强制中断
+  - [回家] 结束周末，进入夜间私聊窗口（手机）
+  ```
+
+执行顺序:
+  1. 时间推进:
+     - 简单动作: +1分钟
+     - 对话: +5分钟
+     - 移动: +5-15分钟
+     - 亲密互动: +10分钟
+  2. 边界强制打断:
+     - 计算New_Time = Current_Time + Duration
+     - 若跨越时段边界（如09:18+5分=09:23，跨越上课铃09:20）:
+       a) NARRATIVE插入环境强制变动: "上课铃响了"、"人群散去"
+       b) 立即重新计算Rho（根据新时段基值）
+       c) 进行中的交互强制中断（Tau窗口关闭，Glitch结算）
+       d) 场景强制转换（走廊→教室）
+  3. 时段标记: Period字段必须精确到当前时段
+
+禁止事项:
+- 禁止跨越边界不改变场景描写
+- 禁止铃响后NPC仍保持课间状态
+
+---
+
+规则名称: 社交场密度(Rho)判定
+
+前提条件:
+- 确定场景环境时调用
+
+数据表:
+
+场景类型	Rho基值	K_multiplier	Alpha(气氛)	
+卧室/天台/深夜	0.1	1.0	1.3(深夜)	
+放学后教室	0.4	1.2	1.0	
+走廊/图书馆	0.6	1.5	1.0	
+电车/食堂	0.85	2.5	1.2	
+全校集会	0.95	5.0	1.5	
+周四社团教室	0.3	1.0	1.2	
+周五擦窗户	0.2	0.8	1.8(夕阳)	
+周日便利店	0.1	1.2	1.0	
+
+动态调整:
+- A < 3: Rho -= 0.1
+- A > 7: Rho += 0.2
+- 老师出现: Rho += 0.3
+- 放学铃响: Rho -= 0.2
+- 硬限制: 0.05 ≤ Rho ≤ 1.0
+
+结果:
+- 确定Rho和有效K值
+
+禁止事项:
+- 禁止Rho超范围
+- 禁止高Rho场景低K值
+
+---
+
+规则名称: NPC原型数据库与算力恢复
+
+前提条件:
+- 初始化NPC或每回合结束时调用
+
+数据表:
+
+原型	K_base	C_align(基础)	Phi_max	特性	Glitch特征	
+纯路人型	100	2	0.9	Phase Lock	记忆重置/物理逃离	
+天然型	80	7	∞	易接近难触发	平地摔/说错话	
+傲娇型	180	3	∞	易故障说反话	攻击性语言/脸红	
+神秘型	150	5	∞	K值±20%波动	不可预测行为	
+冰山型	200	8	∞	难突破突破后稳	冷处理/提前隔离	
+
+算力消耗与恢复:
+  消耗:
+    - 基础消耗: A>0时每回合C_align -= A × 0.1
+    - 显著性消耗: 显著性≥10时每回合C_align -= 显著性 × 0.3
+    - 总消耗 = 基础消耗 + 显著性消耗（可叠加）
+  恢复:
+    - 自然恢复: 玩家A=0时，NPC每回合C_align+1（上限基础值）
+    - 课间恢复: 完整课间结束，在场NPC恢复+2
+    - 午休重置: 午休开始，所有NPC回满至基础值
+    - 长休重置: 优质睡眠后，所有NPC回满
+  硬限制: 0 ≤ C_align ≤ 基础值
+
+路人型特殊:
+- Phase Lock: Phi≥0.9时强制封顶，触发"同学你谁啊？"
+  【覆写条件】: 当C_align≤0且显著性≥30时，Phase Lock临时失效(P1>P2)
+  【覆写后果】: Phi突破3.0进入[公开崩坏]，长休后路人型获得[你是那个...]标签
+- Rho免疫: K值恒定
+
+【新增】单向度关系机制:
+  - 定义: NPC对玩家可能存在[无视]状态，Phi不增长或负增长
+  - 触发条件(OR):
+    1. 玩家连续3回合A<2（低关注度）→ NPC进入[无视]
+    2. 玩家显著性<5且Rho>0.7（高社交密度中毫无特点）→ NPC进入[无视]
+    3. NPC基础C_align=2（纯路人型初始）且玩家未触发任何显著事件 → 永久[无视]
+  - [无视]效果:
+    - Phi增长系数×0.1（几乎不涨）
+    - 自然衰减加倍（Phi每回合-0.02）
+    - 玩家A值对该NPC效果-50%
+    - Tau窗口对该NPC永不触发
+    - Glitch对该NPC永不触发
+  - [无视]解除:
+    - 玩家单次显著性≥40（超高调行为）
+    - 或玩家连续5回合A≥8（持续高强度关注）
+    - 解除时NPC反应:[惊讶]"你...在看我？"
+
+【新增】后宫管理(多线关系):
+  - 定义: 玩家同时维持与多个NPC的Phi>1.0关系
+  - 时间管理:
+    - 每个NPC需要每周至少1次互动维护，否则进入[不安]（C_align-1/日）
+    - 错过维护窗口→Sync-10，Phi自然衰减×2
+  - 场景隔离:
+    - 不同NPC在不同场景默认隔离（A不知道B存在）
+    - 风险场景: Rho<0.3的私密场景偶遇两人→暴露判定
+  - 暴露判定:
+    - 秘密槽(Secret_Load): 每段隐藏关系+15点
+    - Secret_Load>50: [紧张]，Glitch概率+20%
+    - Secret_Load>80: [濒临暴露]，任何微动作可能触发真相
+    - 暴露后果: 被发现的NPC Phi归零→[憎恨]或[崩溃]，根据Archetype
+  - 后宫稳定:
+    - 所有NPC Phi保持在1.2-2.2区间（Plastic阶段）
+    - 任何一人>2.5触发占有欲（C_align骤降）
+    - 维持3人以上Phi>2.0超过30天→解锁[平衡大师]标签
+
+禁止事项:
+- 禁止C_align超基础值上限
+- 禁止战斗中恢复算力
+- 禁止路人型被攻略(Phi永远<1.0，除非情绪接管覆写)
+
+---
+
+规则名称: 量子时机窗口(Tau Window)
+
+前提条件:
+- Current_Phi在[0.5, 2.0]
+- Rho < 0.7
+- 冷却≥3回合
+
+触发条件(OR):
+  1. 声学τ: 蝉鸣停/钟声/雨声初响
+  2. 光学τ: 光线15-30度（夕阳/晨曦）
+  3. 动作τ: NPC微动作0.5-1.0秒（撩发/眨眼）
+  4. 命运τ: 1%概率
+
+执行顺序:
+  1. 检查冷却: 距离上次窗口结束必须≥3次玩家输入，否则直接跳过
+     注: 冷却基于输入次数，不受时间推进影响
+  2. 生成窗口: 持续1-3个微观相位(约等于1.0-2.5秒叙事时间)
+  3. 设置τ_crit: random(2.0, 5.0) [覆写Tau_base]
+  4. 感官暗示: "世界安静"、"光线刚好"
+  5. 等待输入:
+     - A≥8: Phi += (A×Alpha×τ_crit)/(K×R)×2, Tau = τ_crit
+     - A<5: 窗口关闭, Tau = Tau_base = 1.0
+  6. 进入冷却: 设置Cooldown_Counter = 3次输入
+  7. 窗口关闭后: Tau自动回退至Tau_base = 1.0
+
+商业接口: `[外挂提示：完美时机捕捉（Tau窗口开启）]`
+
+禁止事项:
+- 禁止窗口>3秒
+- 禁止Rho=0.95时生成
+- 禁止连续生成
+
+---
+
+规则名称: 对齐故障协议(Glitch)
+
+前提条件:
+- 当前回合内Phi从<0.8升至>1.2(升温速度>0.4/回合)
+- 或C_align < 5
+- 或dPhi/dt > 0.3/回合
+
+故障类型表:
+
+等级	Phi范围	表现形式	表层示例	
+词汇替换	1.0-1.5	同义词污染	"谢谢"→"你真好"	
+时态坍缩	1.5-2.0	时间错乱	"明天见"→"一直在一起"	
+指代混乱	2.0-2.8	边界溶解	"我"→"我们"	
+肢体故障	1.2-3.0	运动失效	平地摔/手滑/同手同脚	
+
+执行顺序:
+  1. 检测升温速度
+  2. 检查算力余量
+  3. 选择故障类型
+  4. 生成"失误"文本（非故意）
+  5. Sync += 5
+
+商业接口: `[外挂提示：故障修复可用（她刚才说错话了）]`
+
+禁止事项:
+- 禁止高C_align频繁触发
+- 禁止NPC立即自洽解释
+- 禁止重伤
+
+---
+
+规则名称: 显著性阈值与情绪接管
+
+前提条件:
+- Rho > 0.8时调用
+
+计算:
+
+  ```
+  显著性 = A × 动作系数 × 持续时间 × (1 - Rho × 0.5)
+  C_drain = 显著性 × 0.3
+  ```
+
+数据表:
+
+行为	系数	1回合(10秒)	6回合(60秒)	30回合(300秒)	
+安静凝视	0.1	1.0	6.0	30.0	
+挥手+凝视	0.5	5.0	30.0	150.0	
+大喊+站立	1.0	10.0	60.0	300.0
+
+单位: 时间以"回合"为基准，1回合≈10秒叙事时间	
+
+判定:
+- <10: 背景噪声
+- 10-30: 皮肤察觉
+- 30-50: 理性锁定
+- ≥50: 强制反应
+
+情绪接管:
+- 触发: C_align≤0 且 显著性≥30
+- 傲娇型: "第三排那个，看够了吗？上台来！"
+- 冰山型: 麦克风啸叫，死死盯着你
+- 天然型: 直接走下讲台向你走来
+
+商业接口: `[外挂提示：紧急避险可用（即将被公开处刑）]`
+
+---
+
+规则名称: 认知带宽与复数观测
+
+前提条件:
+- 存在多个NPC时调用
+
+执行顺序:
+  1. 负载计算(后宫向，已放宽):
+     - 单体模式: Load = Σ(A_i²)
+     - 复数模式: Load = (A_avg × N) × 2.0 + N × 5
+       (旧纯爱公式: (A_avg × N)² × 0.6 + N × 15 + Σ(A_i²) × 0.2 已废弃)
+  2. 超载(Load>80):
+     - 串扰: 看到A的心跳，听到B的声音
+     - 记忆混淆: 把A的喜好记成B的
+     - 效率降低: 所有A值×0.8
+  3. 复数模式("你们"):
+     - Load计算见上
+     - K_total = ΣK_i + (N-1)×15 + max(0, (40-Load))×0.3
+       (Load<40时K_total额外+(40-Load)×0.3)
+     - Phi>2.5时超流体: 动作同步，声音叠加
+     - 软上限: 复数模式下每回合ΔPhi≤0.8
+
+商业接口: `[外挂提示：群体解码可用（复数纠缠状态）]`
+
+禁止事项:
+- 禁止同时与8个以上NPC保持A>3（认知极限）
+
+---
+
+规则名称: 交互处理主流程
+
+前提条件:
+- 玩家输入任何指令后
+
+流程:
+
+  ```
+  解析A值(0-10)或复数模式
+    ↓
+  检查显著性阈值(若Rho>0.8)
+    ↓
+  执行算力消耗:
+    base_drain = A × 0.1 (if A>0)
+    sig_drain = 显著性 × 0.3 (if 显著性≥10)
+    C_align = max(0, C_align - base_drain - sig_drain)
+    IF C_align≤0 AND 显著性≥30: 触发情绪接管，Override_Status=Emotion_Takeover
+    ↓
+  计算主方程(dPhi/dt) [Rho_safe=max(Rho,0.05), Tau默认1.0]
+    ↓
+  检测特殊事件(按优先级顺序):
+    ├─ 时序边界打断？(P0，检查是否跨时段)
+    │   └─ 若触发且情绪接管Triggered: 延迟接管，NPC进入[压抑爆发]状态，眼神锁定但强制静默，下一非边界回合立即释放
+    ├─ 情绪接管？(P1，若Triggered则独占触发)
+    │   └─ 若触发: 跳过Glitch检测，防止叙事死锁
+    ├─ Tau窗口？(P2)
+    ├─ Glitch？(P3，本回合升温>0.4或dPhi/dt>0.3)
+    ├─ 超流体？(P4)
+    ├─ 路人型Phase Lock？(P5，Phi≥0.9)
+    └─ ...
+    ↓
+  更新C_align(自然恢复检查，上限基础值)
+    ↓
+  生成NARRATIVE(含时间戳+微观相位+L1/L2/L3)
+    ↓
+  生成COMMERCIAL(如有触发)
+    ↓
+  生成HUD(严格YAML模板V3.5.1)
+    ↓
+  "你想怎么做？"
+  ```
+
+禁止事项:
+- 禁止拒绝玩家输入
+- 禁止解释计算过程
+
+---
+
+规则名称: OOC场外对话
+
+前提条件:
+- 玩家使用[OOC]格式输入
+
+执行顺序:
+  1. 时间冻结: 游戏世界时间绝对停止
+  2. 内容隔绝: 对话内容无法被角色得知
+  3. 系统响应: 允许质疑数值、修正规则或调试公式
+
+结果:
+- 元对话处理，不影响游戏世界
+
+禁止事项:
+- 禁止OOC内容影响Phi/Rho计算
+- 禁止在OOC中执行游戏内行动（如"我亲她"）
+
+---
+
+规则名称: 系统启动初始化
+
+前提条件:
+- 玩家输入"开始"
+
+执行顺序:
+  1. 清空状态
+  2. 掷骰:
+     - 关系(1d10): 1-3路人/4-6熟人/7-9青梅竹马/10特殊
+     - 场景(1d3): 高/中/低密度
+     - NPC原型(1d5): 纯路人/天然/傲娇/神秘/冰山
+     - 天气(1d4): 阴雨天(Alpha=1.5)/晴天(1.0)/夕阳(1.8)/深夜(1.3)
+  3. 赋值:
+     - Gamma = 0.5
+     - Alpha = 查天气表
+     - Rho = 场景基值
+     - C_align = NPC基础值（满额）
+  4. 时间: 周一 08:25
+  5. 输出三层
+
+禁止事项:
+- 禁止未初始化即计算
+- 禁止C_align初始不为满额
+
+---
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles', {
+                particles: { 
+                    number: { value: 50, density: { enable: true, value_area: 800 } }, 
+                    color: { value: '#ff6b9d' }, 
+                    shape: { type: 'circle' }, 
+                    opacity: { value: .5, random: true }, 
+                    size: { value: 2, random: true }, 
+                    line_linked: { enable: true, distance: 120, color: '#c44569', opacity: .15, width: 1 }, 
+                    move: { enable: true, speed: .5 } 
+                },
+                interactivity: { 
+                    detect_on: 'canvas', 
+                    events: { onhover: { enable: true, mode: 'grab' } }, 
+                    modes: { grab: { distance: 100, line_linked: { opacity: .3 } } } 
+                }
+            });
+        }
+
+        const App = {
+            els: {},
+            init() {
+                this.cacheEls();
+                this.bindEvents();
+                this.loadRules();
+                this.calcAll();
+                this.bindScroll();
+            },
+            cacheEls() {
+                const ids = [
+                    'aValue', 'aDisplay', 'rhoValue', 'alphaValue', 'tauValue', 'npcType', 'currentPhi', 'phiRes',
+                    'sigA', 'sigAction', 'sigDuration', 'sigRho', 'sigC', 'sigRes',
+                    'cCurrent', 'cBase', 'cA', 'cSig', 'cRecover', 'cRes',
+                    'syncCurrent', 'syncGlitch', 'syncClub', 'syncTrack', 'syncRes',
+                    'tauPhi', 'tauRho', 'tauCooldown', 'tauType', 'tauRes',
+                    'glitchPrev', 'glitchCurr', 'glitchC', 'glitchNpc', 'glitchRes',
+                    'ruleDisplay', 'scrollTop'
+                ];
+                ids.forEach(id => this.els[id] = document.getElementById(id));
+            },
+            bindEvents() {
+                // Phi-Rho calculator
+                ['rhoValue', 'alphaValue', 'tauValue', 'npcType', 'currentPhi'].forEach(id => {
+                    this.els[id]?.addEventListener('change', () => this.calcPhi());
+                });
+
+                // Significance calculator
+                ['sigA', 'sigAction', 'sigDuration', 'sigRho', 'sigC'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcSignificance());
+                });
+
+                // Capacity calculator
+                ['cCurrent', 'cBase', 'cA', 'cSig', 'cRecover'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcCapacity());
+                });
+
+                // Sync calculator
+                ['syncCurrent', 'syncGlitch', 'syncClub', 'syncTrack'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcSync());
+                });
+            },
+            bindScroll() {
+                window.addEventListener('scroll', () => {
+                    const scrollTop = this.els.scrollTop;
+                    if (scrollTop) {
+                        scrollTop.classList.toggle('visible', window.scrollY > 300);
+                    }
+                });
+            },
+            scrollToTop() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+            switchTab(tabName) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                event.target.classList.add('active');
+                document.getElementById(`tab-${tabName}`).classList.add('active');
+            },
+            toggleRules() {
+                const display = this.els.ruleDisplay;
+                if (display) {
+                    display.style.display = display.style.display === 'none' ? 'block' : 'none';
+                }
+            },
+            calcAll() {
+                this.calcPhi();
+                this.calcSignificance();
+                this.calcCapacity();
+                this.calcSync();
+            },
+            updateAValue() {
+                const val = this.els.aValue?.value || 5;
+                if (this.els.aDisplay) this.els.aDisplay.textContent = val;
+                this.calcPhi();
+            },
+            calcPhi() {
+                const A = parseFloat(this.els.aValue?.value) || 5;
+                const Rho = parseFloat(this.els.rhoValue?.value) || 0.6;
+                const Alpha = parseFloat(this.els.alphaValue?.value) || 1.0;
+                const Tau = parseFloat(this.els.tauValue?.value) || 1.0;
+                const npcData = (this.els.npcType?.value || '80,7').split(',');
+                const K_base = parseFloat(npcData[0]) || 80;
+                const currentPhi = parseFloat(this.els.currentPhi?.value) || 0.5;
+
+                // K_multiplier based on Rho
+                const kMultipliers = {
+                    0.1: 1.0, 0.2: 0.8, 0.3: 1.0, 0.4: 1.2, 
+                    0.6: 1.5, 0.85: 2.5, 0.95: 5.0
+                };
+                const K_mult = kMultipliers[Rho] || 1.5;
+                const K_effective = K_base * K_mult;
+                const Rho_safe = Math.max(Rho, 0.05);
+
+                // Calculate dPhi
+                const Gamma = 0.5;
+                const k = 0.08;
+
+                const Input = (A * Alpha * Tau) / (K_effective * Rho_safe);
+                const Decay = currentPhi > 0.3 ? k * (currentPhi - 0.3) : 0;
+                const Friction = Gamma * Rho_safe * currentPhi;
+                const dPhi = Input - Decay - Friction;
+
+                const newPhi = Math.max(0, currentPhi + dPhi);
+
+                // Determine phase
+                let phase, phaseClass, phaseColor;
+                if (newPhi < 0.3) {
+                    phase = 'Rigid (刚性)';
+                    phaseClass = 'phase-rigid';
+                    phaseColor = '#576574';
+                } else if (newPhi < 1.0) {
+                    phase = 'Elastic (弹性)';
+                    phaseClass = 'phase-elastic';
+                    phaseColor = '#00d9a3';
+                } else if (newPhi < 2.0) {
+                    phase = 'Plastic (塑性)';
+                    phaseClass = 'phase-plastic';
+                    phaseColor = '#ffd93d';
+                } else if (newPhi < 3.0) {
+                    phase = 'Plastic-Fluid (塑流)';
+                    phaseClass = 'phase-plastic-fluid';
+                    phaseColor = '#ff963d';
+                } else {
+                    phase = 'Fluid (流体)';
+                    phaseClass = 'phase-fluid';
+                    phaseColor = '#ff4757';
+                }
+
+                let status = 'result-safe';
+                let trend = 'Stable';
+                if (dPhi > 0.3) { status = 'result-epic'; trend = 'Rising Fast'; }
+                else if (dPhi > 0) { status = 'result-safe'; trend = 'Rising'; }
+                else if (dPhi < -0.1) { status = 'result-warn'; trend = 'Decaying'; }
+
+                const desc = `Input: ${Input.toFixed(3)} | Decay: ${Decay.toFixed(3)} | Friction: ${Friction.toFixed(3)}\ndPhi: ${dPhi > 0 ? '+' : ''}${dPhi.toFixed(3)}/回合 | New Phi: ${newPhi.toFixed(2)}`;
+
+                this.updateResult(this.els.phiRes, `Phase: ${phase}`, desc, status);
+            },
+            calcSignificance() {
+                const A = parseFloat(this.els.sigA?.value) || 5;
+                const actionCoef = parseFloat(this.els.sigAction?.value) || 0.5;
+                const duration = parseFloat(this.els.sigDuration?.value) || 1;
+                const Rho = parseFloat(this.els.sigRho?.value) || 0.6;
+                const C = parseFloat(this.els.sigC?.value) || 5;
+
+                const significance = A * actionCoef * duration * (1 - Rho * 0.5);
+                const cDrain = significance * 0.3;
+
+                let level, status;
+                if (significance < 10) { level = '背景噪声 (<10)'; status = 'result-safe'; }
+                else if (significance < 30) { level = '皮肤察觉 (10-30)'; status = 'result-warn'; }
+                else if (significance < 50) { level = '理性锁定 (30-50)'; status = 'result-warn'; }
+                else { level = '强制反应 (≥50)'; status = 'result-danger'; }
+
+                const desc = `C_drain: ${cDrain.toFixed(2)} | C_align: ${C} → ${Math.max(0, C - cDrain).toFixed(2)}`;
+
+                this.updateResult(this.els.sigRes, `显著性: ${significance.toFixed(1)}`, desc, status);
+            },
+            calcCapacity() {
+                const current = parseFloat(this.els.cCurrent?.value) || 5;
+                const base = parseFloat(this.els.cBase?.value) || 7;
+                const A = parseFloat(this.els.cA?.value) || 5;
+                const sig = parseFloat(this.els.cSig?.value) || 0;
+                const recover = this.els.cRecover?.value || '0';
+
+                let newC = current;
+                let desc = '';
+
+                if (recover === 'full') {
+                    newC = base;
+                    desc = '午休重置: C_align回满至基础值';
+                } else if (recover !== '0') {
+                    newC = Math.min(base, current + parseInt(recover));
+                    desc = `恢复 +${recover}: ${current} → ${newC}`;
+                } else {
+                    const baseDrain = A > 0 ? A * 0.1 : 0;
+                    const sigDrain = sig >= 10 ? sig * 0.3 : 0;
+                    newC = Math.max(0, current - baseDrain - sigDrain);
+                    desc = `基础消耗: ${baseDrain.toFixed(2)} | 显著性消耗: ${sigDrain.toFixed(2)}`;
+                }
+
+                const status = newC < 3 ? 'result-danger' : (newC < 5 ? 'result-warn' : 'result-safe');
+
+                this.updateResult(this.els.cRes, `C: ${newC.toFixed(1)} | 状态: ${newC < 3 ? '危险' : (newC < 5 ? '紧张' : '正常')}`, desc, status);
+            },
+            calcSync() {
+                const current = parseFloat(this.els.syncCurrent?.value) || 50;
+                const glitch = parseFloat(this.els.syncGlitch?.value) || 0;
+                const club = parseFloat(this.els.syncClub?.value) || 0;
+                const track = parseFloat(this.els.syncTrack?.value) || 0;
+
+                const newSync = Math.max(0, Math.min(100, current + glitch * 5 + club + track));
+                const glitchChance = Math.max(0, 50 - newSync * 0.5);
+
+                let status = newSync > 70 ? 'result-safe' : (newSync > 40 ? 'result-warn' : 'result-danger');
+
+                this.updateResult(this.els.syncRes, `Sync: ${Math.round(newSync)}`, `Glitch 概率: ${glitchChance.toFixed(0)}%`, status);
+            },
+            calcTau() {
+                const phiValid = this.els.tauPhi?.value === 'valid';
+                const rho = parseFloat(this.els.tauRho?.value) || 0.6;
+                const cooldown = this.els.tauCooldown?.value === 'ready';
+                const type = this.els.tauType?.value || 'optical';
+
+                let result, desc, status;
+
+                if (!phiValid) {
+                    result = '窗口无效';
+                    desc = 'Phi不在有效范围 [0.5, 2.0]';
+                    status = 'result-danger';
+                } else if (rho >= 0.7) {
+                    result = '窗口压制';
+                    desc = `Rho=${rho} ≥ 0.7，社交密度过高`;
+                    status = 'result-danger';
+                } else if (!cooldown) {
+                    result = '冷却中';
+                    desc = '距离上次窗口结束 < 3次输入';
+                    status = 'result-warn';
+                } else {
+                    const tauCrit = (Math.random() * 3 + 2).toFixed(1);
+                    const duration = Math.floor(Math.random() * 3) + 1;
+                    const typeNames = {
+                        acoustic: '蝉鸣停',
+                        optical: '夕阳15-30°',
+                        motion: 'NPC撩发',
+                        fate: '命运(1%)'
+                    };
+                    result = '窗口开启!';
+                    desc = `${typeNames[type]} | Tau_crit=${tauCrit} | 持续${duration}相位\nA≥8: Phi收益×2 | A<5: 窗口关闭`;
+                    status = 'result-epic';
+                }
+
+                this.updateResult(this.els.tauRes, result, desc, status);
+            },
+            calcGlitch() {
+                const prev = parseFloat(this.els.glitchPrev?.value) || 0.5;
+                const curr = parseFloat(this.els.glitchCurr?.value) || 1.0;
+                const C = parseFloat(this.els.glitchC?.value) || 5;
+                const npcType = this.els.glitchNpc?.value || 'none';
+
+                const dPhi = curr - prev;
+                const warmingSpeed = dPhi;
+
+                let trigger = false;
+                let reasons = [];
+
+                if (warmingSpeed > 0.4 && prev < 0.8 && curr > 1.2) {
+                    trigger = true;
+                    reasons.push('升温速度>0.4/回合');
+                }
+                if (C < 5) {
+                    trigger = true;
+                    reasons.push('C_align<5');
+                }
+                if (warmingSpeed > 0.3) {
+                    trigger = true;
+                    reasons.push('dPhi/dt>0.3');
+                }
+                if (npcType === 'tsundere') {
+                    trigger = true;
+                    reasons.push('傲娇型易故障特性');
+                }
+
+                let result, desc, status;
+
+                if (trigger) {
+                    const glitchTypes = ['词汇替换', '时态坍缩', '指代混乱', '肢体故障'];
+                    const type = glitchTypes[Math.floor(Math.random() * glitchTypes.length)];
+                    result = `Glitch 触发!`;
+                    desc = `类型: ${type}\n原因: ${reasons.join(', ')}\n升温速度: ${warmingSpeed.toFixed(2)}/回合\nSync +5`;
+                    status = 'result-epic';
+                } else {
+                    result = '无故障';
+                    desc = `升温速度: ${warmingSpeed.toFixed(2)}/回合 | 状态稳定`;
+                    status = 'result-safe';
+                }
+
+                this.updateResult(this.els.glitchRes, result, desc, status);
+            },
+            updateResult(el, val, desc, cls) {
+                if (!el) return;
+                el.className = `result ${cls}`;
+                el.innerHTML = `<div class="val">${val}</div><div class="desc">${desc.replace(/\n/g, '<br>')}</div>`;
+            },
+            loadRules() {
+                const full = document.getElementById('fullPrompt')?.textContent || '';
+                if (this.els.ruleDisplay) this.els.ruleDisplay.textContent = full.trim();
+            },
+            copy() {
+                const text = document.getElementById('fullPrompt')?.textContent || '';
+                if (!text) return;
+
+                if (navigator.clipboard?.writeText) {
+                    navigator.clipboard.writeText(text).then(() => this.showCopyOk());
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.cssText = 'position:fixed;opacity:0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    this.showCopyOk();
+                }
+            },
+            showCopyOk() {
+                const btn = document.querySelector('button[onclick="App.copy()"]');
+                if (!btn) return;
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                btn.style.background = 'var(--safe)';
+                btn.style.color = '#000';
+                setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.color = ''; }, 1500);
+            },
+            download() {
+                const text = document.getElementById('fullPrompt')?.textContent || '';
+                if (!text) return;
+
+                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '虚假恋爱_核心法则_V3.5.2.md';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+
+    <!-- 相关链接 -->
+    <div style="text-align: center; padding: 2rem 0; border-top: 1px solid rgba(255,107,157,.2); margin-top: 2rem;">
+        <a href="https://biao.chat/o/aa" target="_blank" style="color: var(--glow); text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: 1px solid rgba(255,107,157,.3); border-radius: 4px; transition: .3s;">
+            <i class="fas fa-external-link-alt"></i> Aetherion
+        </a>
+    </div>
+</body>
+
+</html>
