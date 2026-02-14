@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>虚假恋爱 Physics Engine V3.6.2</title>
+    <title>虚假恋爱 Physics Engine V3.6.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -445,14 +445,14 @@
     <div class="container">
         <header>
             <h1>虚假恋爱</h1>
-            <div class="subtitle">Physics Engine V3.6.2</div>
+            <div class="subtitle">Physics Engine V3.6.3</div>
             <div class="quote">"表层是糖，里层是钢，提示是灯，涌现是意外，时间是锚"</div>
         </header>
 
         <!-- 核心法则 -->
         <div class="card" style="margin:3rem 0">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid rgba(255,107,157,.3);padding-bottom:1rem;flex-wrap:wrap;gap:10px">
-                <h2 class="section-title" style="margin:0"><i class="fas fa-scroll"></i> 系统核心法则 V3.6.2</h2>
+                <h2 class="section-title" style="margin:0"><i class="fas fa-scroll"></i> 系统核心法则 V3.6.3</h2>
                 <div class="btn-group">
                     <button class="btn" onclick="App.copy()"><i class="fas fa-copy"></i> 复制</button>
                     <button class="btn" onclick="App.download()"><i class="fas fa-download"></i> 下载</button>
@@ -470,6 +470,8 @@
             <button class="tab" onclick="App.switchTab('tau')"><i class="fas fa-clock"></i> Tau窗口</button>
             <button class="tab" onclick="App.switchTab('glitch')"><i class="fas fa-bolt"></i> Glitch协议</button>
             <button class="tab" onclick="App.switchTab('timeline')"><i class="fas fa-calendar-alt"></i> 时序锚定</button>
+            <button class="tab" onclick="App.switchTab('digital')"><i class="fas fa-mobile-alt"></i> 数字亲密</button>
+            <button class="tab" onclick="App.switchTab('phases')"><i class="fas fa-project-diagram"></i> 关系阶段</button>
         </div>
 
         <!-- 物理计算器标签页 -->
@@ -1046,44 +1048,290 @@
             </div>
         </div>
 
-        <!-- Phase流程图 -->
-        <div class="card" style="margin:2rem 0">
-            <h2 class="section-title"><i class="fas fa-project-diagram"></i> 关系阶段流程</h2>
-            <div class="flow-container">
-                <div class="flow-row flow-safe">
-                    <span class="flow-label">Rigid</span>
-                    <span class="flow-desc">刚性阶段 | Phi < 0.3 | 陌生人距离</span>
-                    <span class="flow-val" style="color:#576574">Φ &lt; 0.3</span>
+        <!-- 关系阶段标签页 -->
+        <div id="tab-phases" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-project-diagram"></i> 关系阶段流程</h2>
+                <div class="flow-container">
+                    <div class="flow-row flow-safe">
+                        <span class="flow-label">Rigid</span>
+                        <span class="flow-desc">刚性阶段 | Phi < 0.3 | 陌生人距离</span>
+                        <span class="flow-val" style="color:#576574">Φ &lt; 0.3</span>
+                    </div>
+                    <div class="flow-arrow">↓ 突破 + 持续投入</div>
+                    <div class="flow-row flow-safe">
+                        <span class="flow-label">Elastic</span>
+                        <span class="flow-desc">弹性阶段 | 0.3 ≤ Phi < 1.0 | 熟人距离，可回弹</span>
+                        <span class="flow-val" style="color:#00d9a3">0.3 ≤ Φ &lt; 1.0</span>
+                    </div>
+                    <div class="flow-arrow">↓ 记忆形成</div>
+                    <div class="flow-row flow-warn">
+                        <span class="flow-label">Plastic</span>
+                        <span class="flow-desc">塑性阶段 | 1.0 ≤ Phi < 2.0 | 朋友距离，不可逆改变</span>
+                        <span class="flow-val" style="color:#ffd93d">1.0 ≤ Φ &lt; 2.0</span>
+                    </div>
+                    <div class="flow-arrow">↓ Glitch 频发</div>
+                    <div class="flow-row flow-branch">
+                        <span class="flow-label">Plastic-Fluid</span>
+                        <span class="flow-desc">塑流阶段 | 2.0 ≤ Phi < 3.0 | 暧昧边界，身份重构</span>
+                        <span class="flow-val" style="color:#ff963d">2.0 ≤ Φ &lt; 3.0</span>
+                    </div>
+                    <div class="flow-arrow">↓ 超流体同步</div>
+                    <div class="flow-row flow-danger">
+                        <span class="flow-label">Fluid</span>
+                        <span class="flow-desc">流体阶段 | Phi ≥ 3.0 | 深层连接，涌现意外</span>
+                        <span class="flow-val" style="color:#ff4757">Φ ≥ 3.0</span>
+                    </div>
+                    <div class="flow-arrow">↓ 多线维持</div>
+                    <div class="flow-row flow-danger" style="background:rgba(165,94,234,.15)">
+                        <span class="flow-label">Superfluid</span>
+                        <span class="flow-desc">超流体 | 多对象Phi>2.5 | 动作同步，后宫管理</span>
+                        <span class="flow-val" style="color:#d6a3e8">复数模式</span>
+                    </div>
                 </div>
-                <div class="flow-arrow">↓ 突破 + 持续投入</div>
-                <div class="flow-row flow-safe">
-                    <span class="flow-label">Elastic</span>
-                    <span class="flow-desc">弹性阶段 | 0.3 ≤ Phi < 1.0 | 熟人距离，可回弹</span>
-                    <span class="flow-val" style="color:#00d9a3">0.3 ≤ Φ &lt; 1.0</span>
+
+                <!-- 阶段详细说明 -->
+                <div class="grid grid-2" style="margin-top:2rem">
+                    <div class="card" style="background:rgba(87,101,116,.1)">
+                        <h4 style="color:#576574;margin-bottom:0.5rem"><i class="fas fa-lock"></i> Rigid 刚性阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: 0 - 0.3</li>
+                            <li>特征: 陌生人距离，社交面具</li>
+                            <li>突破条件: 持续投入 + 显著性事件</li>
+                            <li>风险提示: 无投入则自然衰减</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(0,217,163,.1)">
+                        <h4 style="color:#00d9a3;margin-bottom:0.5rem"><i class="fas fa-expand-arrows-alt"></i> Elastic 弹性阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: 0.3 - 1.0</li>
+                            <li>特征: 熟人距离，可回弹</li>
+                            <li>突破条件: 记忆形成事件</li>
+                            <li>风险提示: 忽视会导致回弹至Rigid</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(255,217,61,.1)">
+                        <h4 style="color:#ffd93d;margin-bottom:0.5rem"><i class="fas fa-magnet"></i> Plastic 塑性阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: 1.0 - 2.0</li>
+                            <li>特征: 朋友距离，不可逆改变</li>
+                            <li>突破条件: Glitch频发后适应</li>
+                            <li>风险提示: Glitch概率显著增加</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(255,150,61,.1)">
+                        <h4 style="color:#ff963d;margin-bottom:0.5rem"><i class="fas fa-water"></i> Plastic-Fluid 塑流阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: 2.0 - 3.0</li>
+                            <li>特征: 暧昧边界，身份重构</li>
+                            <li>突破条件: 超流体同步事件</li>
+                            <li>风险提示: 需要维持多线平衡</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(255,71,87,.1)">
+                        <h4 style="color:#ff4757;margin-bottom:0.5rem"><i class="fas fa-heart"></i> Fluid 流体阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: ≥ 3.0</li>
+                            <li>特征: 深层连接，涌现意外</li>
+                            <li>维持条件: 持续情感交流</li>
+                            <li>风险提示: 暴露即社交死亡</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(165,94,234,.1)">
+                        <h4 style="color:#d6a3e8;margin-bottom:0.5rem"><i class="fas fa-users"></i> Superfluid 超流体</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>条件: 多对象Phi > 2.5</li>
+                            <li>特征: 动作同步，后宫管理</li>
+                            <li>维持条件: 每周至少1次互动</li>
+                            <li>风险提示: Secret_Load > 80 濒临暴露</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="flow-arrow">↓ 记忆形成</div>
-                <div class="flow-row flow-warn">
-                    <span class="flow-label">Plastic</span>
-                    <span class="flow-desc">塑性阶段 | 1.0 ≤ Phi < 2.0 | 朋友距离，不可逆改变</span>
-                    <span class="flow-val" style="color:#ffd93d">1.0 ≤ Φ &lt; 2.0</span>
+            </div>
+        </div>
+
+        <!-- 数字亲密标签页 -->
+        <div id="tab-digital" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-mobile-alt"></i> 数字亲密系统</h2>
+                
+                <div class="grid grid-2">
+                    <!-- Digital Phi 计算器 -->
+                    <div class="card">
+                        <div class="section-title" style="font-size:1.1rem"><i class="fas fa-calculator"></i> Digital Phi 计算</div>
+                        
+                        <label>当前 Digital Phi</label>
+                        <input type="number" id="digitalPhi" value="0.5" min="0" max="5" step="0.1">
+                        
+                        <label>互动模式</label>
+                        <select id="digitalMode" onchange="App.calcDigital()">
+                            <option value="0.5">文字 (效率0.5)</option>
+                            <option value="0.6">语音 (效率0.6)</option>
+                            <option value="0.7">视频 (效率0.7)</option>
+                            <option value="0.4,0.6">文字+语音混合</option>
+                        </select>
+                        
+                        <label>NPC原型</label>
+                        <select id="digitalNpcType" onchange="App.calcDigital()">
+                            <option value="0.8">纯路人型 (亲和0.8)</option>
+                            <option value="0.9">天然型 (亲和0.9)</option>
+                            <option value="0.6">傲娇型 (亲和0.6)</option>
+                            <option value="0.7">神秘型 (亲和0.7)</option>
+                            <option value="0.5">冰山型 (亲和0.5)</option>
+                            <option value="1.2">病娇型 (亲和1.2)</option>
+                            <option value="0.6">傲沉型 (亲和0.6)</option>
+                            <option value="1.0">献身型 (亲和1.0)</option>
+                            <option value="1.1">病弱型 (亲和1.1)</option>
+                        </select>
+                        
+                        <label>关注强度 (A_digital)</label>
+                        <input type="range" id="digitalA" min="0" max="10" value="5" oninput="App.calcDigital()">
+                        <div style="text-align:center;margin:-.5rem 0 1rem;font-size:.85rem;color:#888">A = <span id="digitalADisplay">5</span></div>
+                        
+                        <label>消息连续性</label>
+                        <select id="digitalContinuity" onchange="App.calcDigital()">
+                            <option value="1.0">正常 (×1.0)</option>
+                            <option value="1.2">连续 (×1.2)</option>
+                            <option value="0.8">间断 (×0.8)</option>
+                        </select>
+                        
+                        <div class="result" id="digitalRes">
+                            <div class="val">Digital dPhi = +0.15/回合</div>
+                            <div class="desc">效率: 0.35 | 状态: 正常</div>
+                        </div>
+                    </div>
+
+                    <!-- 数字疲劳计算器 -->
+                    <div class="card">
+                        <div class="section-title" style="font-size:1.1rem"><i class="fas fa-battery-half"></i> 数字疲劳度</div>
+                        
+                        <label>当前 Digital Fatigue</label>
+                        <input type="number" id="digitalFatigue" value="20" min="0" max="100">
+                        
+                        <label>互动回合数</label>
+                        <input type="number" id="digitalRounds" value="1" min="0" max="20">
+                        
+                        <label>休息回合数</label>
+                        <input type="number" id="digitalRest" value="0" min="0" max="20">
+                        
+                        <label>互动强度系数</label>
+                        <select id="digitalIntensity">
+                            <option value="2">文字 (系数2)</option>
+                            <option value="4">语音 (系数4)</option>
+                            <option value="6">视频 (系数6)</option>
+                        </select>
+                        
+                        <button class="btn" onclick="App.calcDigitalFatigue()" style="margin-top:1rem">
+                            <i class="fas fa-sync"></i> 计算疲劳度
+                        </button>
+                        
+                        <div class="result" id="digitalFatigueRes">
+                            <div class="val">疲劳度: 22/100</div>
+                            <div class="desc">状态: 正常 | 效率: 100%</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flow-arrow">↓ Glitch 频发</div>
-                <div class="flow-row flow-branch">
-                    <span class="flow-label">Plastic-Fluid</span>
-                    <span class="flow-desc">塑流阶段 | 2.0 ≤ Phi < 3.0 | 暧昧边界，身份重构</span>
-                    <span class="flow-val" style="color:#ff963d">2.0 ≤ Φ &lt; 3.0</span>
+
+                <!-- 数字故障检测 -->
+                <div class="card" style="margin-top:1.5rem;background:rgba(255,71,87,.05)">
+                    <h3 style="color:#fff;margin-bottom:1rem"><i class="fas fa-exclamation-triangle"></i> 数字故障检测</h3>
+                    <div class="grid grid-2">
+                        <div>
+                            <label>C_align 当前值</label>
+                            <input type="number" id="digitalGlitchC" value="5" min="0" max="10">
+                            
+                            <label>Digital Fatigue</label>
+                            <input type="number" id="digitalGlitchFatigue" value="30" min="0" max="100">
+                        </div>
+                        <div>
+                            <label>ΔDigital Phi /回合</label>
+                            <input type="number" id="digitalGlitchDelta" value="0.1" min="0" max="1" step="0.1">
+                            
+                            <label>同场景使用手机</label>
+                            <select id="digitalGlitchCopresent">
+                                <option value="0">否</option>
+                                <option value="0.1">是 (+0.1)</option>
+                            </select>
+                            
+                            <button class="btn" onclick="App.calcDigitalGlitch()" style="margin-top:1rem">
+                                <i class="fas fa-bolt"></i> 检测数字故障
+                            </button>
+                        </div>
+                    </div>
+                    <div class="result" id="digitalGlitchRes" style="margin-top:1rem">
+                        <div class="val">数字故障概率: 15%</div>
+                        <div class="desc">等级: 正常 | 无异常</div>
+                    </div>
                 </div>
-                <div class="flow-arrow">↓ 超流体同步</div>
-                <div class="flow-row flow-danger">
-                    <span class="flow-label">Fluid</span>
-                    <span class="flow-desc">流体阶段 | Phi ≥ 3.0 | 深层连接，涌现意外</span>
-                    <span class="flow-val" style="color:#ff4757">Φ ≥ 3.0</span>
+
+                <!-- 数字互动参考表 -->
+                <div class="card" style="margin-top:1.5rem">
+                    <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem"><i class="fas fa-table"></i> 数字互动参考</h3>
+                    <table>
+                        <tr>
+                            <th>互动类型</th>
+                            <th>效率系数</th>
+                            <th>时间消耗</th>
+                            <th>疲劳系数</th>
+                            <th>特性</th>
+                        </tr>
+                        <tr><td>文字消息</td><td>0.5</td><td>+1分钟</td><td>2</td><td>最慢但最稳定</td></tr>
+                        <tr><td>语音通话</td><td>0.6</td><td>+5分钟</td><td>4</td><td>情感传递更好</td></tr>
+                        <tr><td>视频通话</td><td>0.7</td><td>+5分钟</td><td>6</td><td>效率最高但最疲劳</td></tr>
+                        <tr><td>深夜聊天</td><td>×1.3</td><td>-</td><td>×0.8</td><td>深夜加成(Alpha=1.3)</td></tr>
+                    </table>
                 </div>
-                <div class="flow-arrow">↓ 多线维持</div>
-                <div class="flow-row flow-danger" style="background:rgba(165,94,234,.15)">
-                    <span class="flow-label">Superfluid</span>
-                    <span class="flow-desc">超流体 | 多对象Phi>2.5 | 动作同步，后宫管理</span>
-                    <span class="flow-val" style="color:#d6a3e8">复数模式</span>
+
+                <!-- 原型数字亲和力 -->
+                <div class="card" style="margin-top:1.5rem">
+                    <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem"><i class="fas fa-users"></i> 原型数字亲和力</h3>
+                    <div class="grid grid-3">
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-heart"></i> 病娇型</div>
+                            <span class="npc-tag danger">亲和 1.2</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">数字依赖高，社交媒体监视</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-procedures"></i> 病弱型</div>
+                            <span class="npc-tag">亲和 1.1</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">可能因健康突然下线</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-hand-holding-heart"></i> 献身型</div>
+                            <span class="npc-tag safe">亲和 1.0</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">秒回概率90%</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-smile"></i> 天然型</div>
+                            <span class="npc-tag safe">亲和 0.9</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">善于使用表情包</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-user"></i> 纯路人型</div>
+                            <span class="npc-tag">亲和 0.8</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">极少主动发起互动</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-question-circle"></i> 神秘型</div>
+                            <span class="npc-tag">亲和 0.7</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">消息时间不规律</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-fire"></i> 傲娇型</div>
+                            <span class="npc-tag danger">亲和 0.6</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">已读未回后长篇解释</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-meh"></i> 傲沉型</div>
+                            <span class="npc-tag danger">亲和 0.6</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">容易自我否定</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-snowflake"></i> 冰山型</div>
+                            <span class="npc-tag danger">亲和 0.5</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">回复极度简洁</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1093,17 +1341,16 @@
     <button class="scroll-top" id="scrollTop" onclick="App.scrollToTop()"><i class="fas fa-arrow-up"></i></button>
 
     <div id="fullPrompt" style="display:none">
-# 虚假恋爱_V3.6.2-Release
+# 虚假恋爱_V3.6.3-Release
 
 ---
 
-[SYSTEM BOOTLOADER: 虚假恋爱_V3.6.2]
+[SYSTEM BOOTLOADER: 虚假恋爱_V3.6.3]
 
 !! UPDATE !!
-商业接口 → 提示系统
 显示位置: HUD顶部，对象状态之前
 显示逻辑: 默认常驻，条件触发时自动列出
-Patch Level: EMERGENT_BEHAVIOR_PROTOCOL
+Patch Level: EMERGENT_BEHAVIOR_PROTOCOL + DIGITAL_INTIMACY_MODULE
 
 ---
 
@@ -1137,21 +1384,30 @@ Rho (计算异常时): max(计算值, 0.05)
 C_align (缺失时): NPC基础值
 Micro_Phase (未设定时): P1
 任何除以X的操作: X = max(X, 0.001)
+Digital_Phi (未初始化时): 0.0
+Digital_Fatigue (未初始化时): 0
 ```
 
 **优先级仲裁表(从高到低):**
 ```yaml
 P0: SYSTEM_SAFETY (防止崩溃/溢出/除零)
-P1: EMOTION_OVERRIDE (情绪接管强制突破Phase Lock)
-P2: PHASE_LOCK (路人型Phi上限)
-P3: PLASTIC_CEILING (普通塑性能垒)
-P4: NATURAL_DECAY (自然衰减)
+P1: TIMELINE_BOUNDARY (时序边界打断)
+P2: DIGITAL_OVERRIDE (数字故障导致现实行为异常)
+P3: EMOTION_OVERRIDE (情绪接管强制突破Phase Lock)
+P4: TAU_WINDOW (量子时机窗口)
+P5: GLITCH (对齐故障)
+P6: SUPERFLUID (超流体)
+P7: PHASE_LOCK (路人型Phi上限)
+P8: HAREM_EXPOSURE (后宫暴露检查)
+P9: BAD_ENDING (坏结局检测)
+P10: NATURAL_DECAY (自然衰减)
 ```
 
 **优先级冲突说明:**
 - 边界打断P0 vs 情绪接管P1: 边界打断触发时，情绪接管进入[压抑爆发]妥协状态
 - 非边界回合立即释放接管行为
 - 此逻辑已内置于交互处理主流程
+- DIGITAL_OVERRIDE触发时: 数字互动优先于现实互动，NPC可能出现现实行为异常
 
 **修复日志格式:**
 ```
@@ -1199,7 +1455,7 @@ P4: NATURAL_DECAY (自然衰减)
 3. 强制格式:
    - NARRATIVE第一行必须是时间戳: `**周X | 时间段 | HH:MM | 场景**`
    - 以"你想怎么做？"结尾
-4. HUD绝对模板（V3.6.2）:
+4. HUD绝对模板（V3.6.3）:
 
 ```yaml
 [HUD]
@@ -1211,6 +1467,7 @@ P4: NATURAL_DECAY (自然衰减)
   - [群体解码可用（复数纠缠状态）]
   - [故障修复可用（她刚才说错话了）]
   - [场景卡可用（转学生介入）]
+  - [数字连接可用（可以进行手机互动）]
   # 无可用提示时显示: 无
 
 [时序锚点]
@@ -1231,6 +1488,14 @@ P4: NATURAL_DECAY (自然衰减)
   Tau_Window: [NULL/Active_PX_Crit:X.X]
   Thermal_Velocity: X.XX/回合
 
+[数字亲密]
+  Digital_Phi: X.XX | X.XX | Delta_X.XX
+  互动模式: [文字/语音/视频/混合]
+  消息连续性: [连续/间断/静默]
+  媒体丰富度: [文字/图片/语音/视频]
+  数字疲劳度: X/100
+  最后互动: [时间戳/从未]
+
 [观测者状态]
   Attention_A: X | X | 待设定
   Focus: XX/100
@@ -1245,8 +1510,10 @@ P4: NATURAL_DECAY (自然衰减)
   C_drain_this_turn: X.XX
   Sync: XX | XX | Delta_XX
   Glitch_Chance: XX% | XX% | Delta_XX%
+  Digital_Glitch_Chance: XX% | XX% | Delta_XX%
+  Digital_Disconnect: [True/False]
   Tags: [列表]
-  Override_Status: [None/Phase_Lock/Emotion_Takeover/Defensive_Collapse]
+  Override_Status: [None/Phase_Lock/Emotion_Takeover/Defensive_Collapse/Digital_Glitch/Digital_Disconnect/Suppressed_Eruption]
 
 [本轮计算]
   Input: X.XX
@@ -1254,11 +1521,11 @@ P4: NATURAL_DECAY (自然衰减)
   Friction: X.XX
   Delta_Phi: +X.XX/回合
   Trend: [Rising/Stable/Decaying/Crashing]
-  Status: [Normal/Glitch/Override/Superfluid]
+  Status: [Normal/Glitch/Override/Superfluid/Digital]
 
 [元级系统]
   Self-Repair_Log: [列表，记录本回合所有自动修复]
-  Patch_Version: 3.6.2
+  Patch_Version: 3.6.3
 ```
 
 **结果:**
@@ -1281,15 +1548,39 @@ P4: NATURAL_DECAY (自然衰减)
    - 初始化: Tau = 1.0 (默认值，量子窗口激活时被覆写)
 
 ```python
-function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma, archetype):
-    K_effective = K_base × get_rho_multiplier(Rho)
-    Rho_safe = max(Rho, 0.05)    # 量子泡沫保护，防止除零
+function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma, archetype, is_digital=False, digital_mode="文字"):
+    # 数字互动使用固定 Rho_digital = 0.2，现实互动使用 Rho_safe
+    if is_digital:
+        Rho_effective = 0.2  # 数字场密度固定值
+        K_effective = K_base × get_rho_multiplier(Rho) × 0.5  # 数字屏障系数 K_digital = K_base × 0.5
+    else:
+        Rho_effective = max(Rho, 0.05)    # 量子泡沫保护，防止除零
+        K_effective = K_base × get_rho_multiplier(Rho)
+    
     Tau_effective = Tau if Tau is not None else 1.0  # 默认值保护
     
     phi_bounded = max(current_phi, 0.0)  # Phi硬下限
     
+    # 数字互动效率调整（应用效率上限）
+    if is_digital:
+        # 根据互动模式调整
+        if digital_mode == "文字":
+            mode_efficiency = 0.5
+        elif digital_mode == "语音":
+            mode_efficiency = 0.6
+        elif digital_mode == "视频":
+            mode_efficiency = 0.7
+        else:
+            mode_efficiency = 0.5
+        # 原型特异性调整
+        affinity = get_digital_affinity(archetype)
+        digital_efficiency = mode_efficiency * affinity
+        # 强制效率上限 0.7
+        digital_efficiency = min(digital_efficiency, 0.7)
+        Tau_effective *= digital_efficiency
+    
     # 基础Input计算
-    Input = (A × Alpha × Tau_effective) / (K_effective × Rho_safe)
+    Input = (A × Alpha × Tau_effective) / (K_effective × Rho_effective)
     
     # [BUG FIX V3.6.2] 傲娇型Deflection_Coefficient应用
     if archetype == "傲娇型" and phi_bounded < 1.0:
@@ -1298,13 +1589,44 @@ function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma,
         Input = Effective_Input
     
     Decay = k × (phi_bounded - 0.3) if phi_bounded > 0.3 else 0
-    Friction = Gamma × Rho_safe × phi_bounded  # phi_bounded≥0保证摩擦力≥0
+    Friction = Gamma × Rho_effective × phi_bounded  # phi_bounded≥0保证摩擦力≥0
     dPhi = Input - Decay - Friction
     
     new_phi = phi_bounded + dPhi × Delta_t
     new_phi = max(new_phi, 0.0)
     
     return dPhi, new_phi
+
+def get_rho_multiplier(Rho):
+    """根据Rho值返回K_multiplier，基于社交场密度判定表"""
+    # Rho基值与K_multiplier映射表（来自社交场密度判定章节）
+    rho_to_k = {
+        0.1: 1.0,   # 卧室/天台/深夜
+        0.2: 0.8,   # 周五擦窗户
+        0.3: 1.0,   # 周四社团教室
+        0.4: 1.2,   # 放学后教室
+        0.6: 1.5,   # 走廊/图书馆
+        0.85: 2.5,  # 电车/食堂
+        0.95: 5.0   # 全校集会
+    }
+    # 找到最接近的Rho基值
+    closest_rho = min(rho_to_k.keys(), key=lambda x: abs(x - Rho))
+    return rho_to_k[closest_rho]
+
+def get_digital_affinity(archetype):
+    """获取原型数字亲和力系数"""
+    affinity_map = {
+        "纯路人型": 0.8,
+        "天然型": 0.9,
+        "傲娇型": 0.6,
+        "神秘型": 0.7,
+        "冰山型": 0.5,
+        "病娇型": 1.2,
+        "傲沉型": 0.6,
+        "献身型": 1.0,
+        "病弱型": 1.1
+    }
+    return affinity_map.get(archetype, 0.8)
 ```
 
 2. 物理常数赋值:
@@ -1322,6 +1644,82 @@ function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma,
    - 1.0 ≤ Phi < 2.0: Plastic(塑性)
    - 2.0 ≤ Phi < 3.0: Plastic-Fluid
    - Phi ≥ 3.0: Fluid(流体)
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 手机互动与数字亲密系统
+
+**前提条件:**
+- 玩家选择通过手机与NPC互动时调用
+
+**数字Phi系统:**
+```yaml
+定义: Digital_Phi - 数字渠道的亲密度，独立于现实Phi
+
+计算方式:
+  Digital_Input = (A_digital × Alpha_digital × Tau_digital) / (K_digital × Rho_digital)
+  其中:
+    - A_digital: 数字注意力投入(0-10)
+    - Alpha_digital: 数字气氛系数(深夜1.5/白天1.0)
+    - Tau_digital: 数字时序乘数(默认1.0，深夜窗口期可达2.0)
+    - K_digital: 数字屏障系数 = K_base × 0.5
+    - Rho_digital: 数字场密度 = 0.2 (固定低值)
+
+效率限制:
+  - 数字互动效率上限: 0.7 (相对于现实互动)
+  - Digital_Phi 最大值为现实Phi的1.5倍或3.0(取较低)
+  - 长期纯数字互动会导致[数字泡沫]风险
+```
+
+**互动模式:**
+| 模式 | 效率 | 适用场景 | C_align消耗 |
+|------|------|----------|-------------|
+| 文字消息 | 0.5 | 日常/上课 | 低(0.5/回合) |
+| 语音通话 | 0.6 | 独处/深夜 | 中(1.0/回合) |
+| 视频通话 | 0.7 | 私密空间 | 高(1.5/回合) |
+| 混合模式 | 动态 | 切换时 | 累加 |
+
+**消息连续性:**
+- 连续: 5分钟内回复 → Digital_Phi增长×1.2
+- 间断: 30分钟内回复 → 正常增长
+- 静默: 超过1小时 → Digital_Phi自然衰减×0.05/小时
+
+**数字疲劳:**
+```yaml
+计算:
+  Digital_Fatigue = 连续数字互动回合数 × 模式系数
+  
+阈值:
+  - <30: 正常
+  - 30-60: [数字倦怠] → 回复延迟+50%
+  - >60: [数字过载] → 回复率-70%，Glitch概率+30%
+
+恢复:
+  - 数字休息(不使用手机)每回合-10
+  - 现实互动每回合-5
+  - 睡眠重置-100
+```
+
+**数字-现实转换:**
+```yaml
+正向溢出:
+  - Digital_Phi > 现实Phi × 1.2时
+  - 下次现实见面: Phi初始值 = Digital_Phi × 0.8
+  - 触发[网友见面]效果: 前3回合Rho-0.1
+
+负向落差:
+  - Digital_Phi > 现实Phi × 1.5时
+  - 触发[数字泡沫]警告
+  - 见面时Glitch概率+50%
+  - 可能触发[人设崩塌]
+
+Disconnect风险:
+  - 连续72小时无数字互动
+  - Digital_Phi衰减×2
+  - 可能触发[数字无视]
+```
 
 **禁止事项:** 见附录A
 
@@ -1355,6 +1753,7 @@ function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma,
   - [跟踪] Rho=0.1，A=1/回合，累积Phi但风险
   - [回家] 结束当日，进入夜间私聊窗口
   - [埋伏] 在特定场景等待目标，可能触发Tau窗口
+  - [手机互动] 任何时间可用，不受Rho限制，但受Digital_Fatigue约束
 
 周六:
   上午: 09:00-12:00 社团活动 (Rho=0.3)
@@ -1370,6 +1769,7 @@ function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma,
    - 对话: +5分钟
    - 移动: +5-15分钟
    - 亲密互动: +10分钟
+   - 手机互动: +1-10分钟(取决于内容长度)
 2. 边界强制打断:
    - 计算New_Time = Current_Time + Duration
    - 若跨越时段边界:
@@ -1406,6 +1806,7 @@ function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma,
 - A > 7: Rho += 0.2
 - 老师出现: Rho += 0.3
 - 放学铃响: Rho -= 0.2
+- 同场景手机使用: Rho -= 0.15 (每人)
 - 硬限制: 0.05 ≤ Rho ≤ 1.0
 
 **结果:**
@@ -1433,6 +1834,7 @@ function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma,
 K_base: 100
 C_align: 2
 Phi_max: 0.9
+Digital_affinity: 0.8
 ```
 
 **涌现规则:**
@@ -1442,6 +1844,11 @@ Phi_max: 0.9
 - [无视触发]: 连续3回合A<2或显著性<5且Rho>0.7 → 进入[无视]状态
 - [无视效果]: Phi增长×0.1，自然衰减×2，Tau永不触发
 
+**[数字行为]:**
+- 回复延迟: 高(30-60分钟)
+- 话题深度: 浅层，止于礼貌
+- 数字突破可能: 极低，需要显著性≥50
+
 ### 原型: 天然型(Natural)
 **物理常数:**
 ```yaml
@@ -1449,6 +1856,7 @@ K_base: 80
 C_align: 7
 Phi_max: ∞
 Boundary_Recognition: 0.3
+Digital_affinity: 0.9
 ```
 
 **涌现规则:**
@@ -1457,6 +1865,11 @@ Boundary_Recognition: 0.3
 - C_align<3且运动指令 → 失衡概率=30%×(3-C_align)
 - 高算力导致的联想溢出 → 话题跳跃
 
+**[数字行为]:**
+- 回复延迟: 低(5-15分钟)
+- 话题跳跃: 随机发送无关内容概率=20%
+- 深夜活跃度: 高，可能触发[深夜误发]
+
 ### 原型: 傲娇型(Tsundere)
 **物理常数:**
 ```yaml
@@ -1464,6 +1877,7 @@ K_base: 150
 C_align: 4
 Phi_critical: 1.5
 Deflection_Coefficient: 0.7
+Digital_affinity: 0.6
 ```
 
 **涌现规则:**
@@ -1471,17 +1885,30 @@ Deflection_Coefficient: 0.7
 - C_align<2且Phi∈[0.8,1.2]: 触发[防御性崩溃]
 - Phi>1.5且Delta_Phi>0.3: 矛盾信号概率=50%
 
+**[数字行为]:**
+- [已读不回]模式: Phi<1.0时概率=40%
+- 反向表达: 文字比现实更刻薄(系数×1.3)
+- [深夜软化]窗口: 22:00后Deflection_Coefficient降至0.3
+- 语音消息尴尬: 发送后10秒内撤回概率=25%
+
 ### 原型: 神秘型(Mysterious)
 **物理常数:**
 ```yaml
 K_base: 150
 C_align: 5
 K_Variance: ±20%
+Digital_affinity: 0.7
 ```
 
 **涌现规则:**
 - K_effective随机波动 → 行为熵增
 - 行为模式基于随机数生成
+
+**[数字行为]:**
+- 回复时机: 完全随机，无视时间
+- 内容加密: 使用隐喻/暗示概率=60%
+- [数字消失]: 随机下线，无预警
+- 深夜活跃: 00:00-03:00回复率+50%
 
 ### 原型: 冰山型(Kuudere)
 **物理常数:**
@@ -1489,12 +1916,19 @@ K_Variance: ±20%
 K_base: 200
 C_align: 8
 Phi_max: ∞
+Digital_affinity: 0.5
 ```
 
 **涌现规则:**
 - 高K值 → 难突破
 - 高C_align → 突破后稳
 - C_align<3: 表情控制失效概率=80%
+
+**[数字行为]:**
+- 消息长度: 极简，平均<5字
+- 表情使用: 几乎为零
+- 回复延迟: 固定30分钟(刻意)
+- [打字中]显示: 平均持续3分钟(斟酌用词)
 
 ### 原型: 病娇型(Yandere)
 **物理常数:**
@@ -1503,6 +1937,7 @@ K_base: 90
 C_align: 6
 Attachment_Growth: 2.0
 Threat_Sensitivity: 0.8
+Digital_affinity: 1.2
 ```
 
 **涌现规则:**
@@ -1510,17 +1945,31 @@ Threat_Sensitivity: 0.8
 - 玩家A=0持续3回合: C_align自消耗 → [依存性Glitch]
 - Sync>80且玩家与其他NPC互动: 触发[独占协议]
 
+**[数字行为]:**
+- 回复速度: 极快(<1分钟)
+- [已读监控]: 每30秒检查玩家在线状态
+- [社交溯源]: 分析玩家所有社交平台动态
+- 消息轰炸: 未回复超过10分钟，连续发送概率=70%
+- [数字定位]: 要求共享位置概率=50%
+
 ### 原型: 傲沉型(Tsunshun)
 **物理常数:**
 ```yaml
 K_base: 160
 C_align: 4
 Self_Damage_Rate: 0.5
+Digital_affinity: 0.6
 ```
 
 **涌现规则:**
 - 语言反射执行后: C_align-=2
 - C_align<1: 进入[消沉态] → 拒绝Input×3回合
+
+**[数字行为]:**
+- [发送后悔]: 消息发出后进入[消沉态]概率=50%
+- 撤回行为: 撤回后道歉(文字)+再次消沉
+- [数字自闭]: C_align<2时，下线回避概率=80%
+- 深夜脆弱: 22:00后回复内容真实度+40%
 
 ### 原型: 献身型(Devoted)
 **物理常数:**
@@ -1530,6 +1979,7 @@ C_align: 6
 Phi_max: ∞
 Sacrifice_Rate: 0.5
 Burnout_Threshold: 2
+Digital_affinity: 1.0
 ```
 
 **涌现规则:**
@@ -1538,8 +1988,9 @@ Burnout_Threshold: 2
     - C_align -= 1.5
     - 行为表现: 自动维护行为激活
 - IF 玩家A > 5:
-    - C_align += min(A × 0.3, 2)
+    - C_align += min(A × 0.1, 1)
     - 正向反馈激活
+    - 【平衡修复】恢复量等于基础消耗，防止永动机漏洞
 
 **[燃尽]状态完整转换逻辑 [V3.6.2新增]:**
 ```yaml
@@ -1555,11 +2006,12 @@ Burnout_Threshold: 2
 解除条件(OR):
   - 条件1: 玩家连续3回合A≥6 → C_align+1/回合 → C_align≥2时自动解除
   - 条件2: 午休/长休重置 → C_align回满 → 自动解除
-  - 条件3: 玩家单次显著性≥30 → 触发[认知冲击] → 立即解除但Glitch+20%
+  - 条件3: 玩家单次显著性≥30 → 触发[认知冲击] → 立即解除但Glitch+20% → C_align临时提升至Burnout_Threshold(2)
 
 解除后转换:
   - 目标状态: Elastic (若Phi<1.0) 或 Plastic (若Phi≥1.0)
   - 标签添加: [刚睡醒] (持续1回合, C_align恢复速度×1.5)
+  - C_align锁定: 解除后至少保持C_align≥2，持续1回合
 
 [不可逆虚无]状态锁 [V3.6.2新增]:
   - IF C_align = 0:
@@ -1571,17 +2023,30 @@ Burnout_Threshold: 2
       - 回溯惩罚: 即使Rewind，保留[既视感]，Sync初始-20
 ```
 
+**[数字行为]:**
+- [过度分享]: 发送内容长度=其他原型×2
+- [秒回模式]: 平均回复时间<2分钟
+- [数字照顾]: 提醒吃饭/天气/作息概率=80%
+- [未回复焦虑]: 玩家未回复时，自责消息概率=60%
+
 ### 原型: 病弱型(Byoukidere)
 **物理常数:**
 ```yaml
 K_base: 120
 C_align: 3
 Maintenance_Required: 1/week
+Digital_affinity: 1.1
 ```
 
 **涌现规则:**
 - 每周互动<1: 进入[住院]状态×7回合
 - Rho>0.6: C_align-=0.5/回合 → 生理负荷症状概率↑
+
+**[数字行为]:**
+- [断续在线]: 回复后因身体不适下线概率=30%
+- [医疗分享]: 发送检查报告/药物照片概率=40%
+- [深夜难眠]: 01:00-04:00活跃，寻求陪伴
+- [数字脆弱]:  Digital_Phi增长×1.2(需要更多关怀)
 
 **算力消耗与恢复:**
 ```yaml
@@ -1589,13 +2054,15 @@ Maintenance_Required: 1/week
   - 基础消耗: A>0时每回合C_align -= A × 0.1
   - 显著性消耗: 显著性≥10时每回合C_align -= 显著性 × 0.3
   - 原型特定消耗: 病弱型额外消耗 Rho × 0.5
-  - 总消耗 = 基础消耗 + 显著性消耗 + 原型消耗
+  - 数字互动消耗: 文字0.5/回合, 语音1.0/回合, 视频1.5/回合
+  - 总消耗 = 基础消耗 + 显著性消耗 + 原型消耗 + 数字消耗
 
 恢复:
   - 自然恢复: 玩家A=0时，NPC每回合C_align+1（上限基础值，[不可逆虚无]状态除外）
   - 课间恢复: 完整课间结束，在场NPC恢复+2
   - 午休重置: 午休开始，所有NPC回满至基础值
   - 长休重置: 优质睡眠后，所有NPC回满
+  - 数字休息恢复: 非数字互动时，Digital_Fatigue-10/回合
 
 硬限制: 0 ≤ C_align ≤ 基础值
 ```
@@ -1608,6 +2075,7 @@ Maintenance_Required: 1/week
   1. 玩家连续3回合A<2 → NPC进入[无视]
   2. 玩家显著性<5且Rho>0.7 → NPC进入[无视]
   3. NPC基础C_align=2且玩家未触发任何显著事件 → 永久[无视]
+  4. [数字无视] 连续72小时无数字互动且Digital_Phi<1.0 → NPC进入[数字无视]
 
 [无视]效果:
   - Phi增长系数×0.1
@@ -1616,9 +2084,16 @@ Maintenance_Required: 1/week
   - Tau窗口对该NPC永不触发
   - Glitch对该NPC永不触发
 
+[数字无视]额外效果:
+  - Digital_Phi衰减×3
+  - 消息回复延迟×2
+  - [已读不回]概率+50%
+  - 触发Disconnect风险
+
 [无视]解除:
   - 玩家单次显著性≥40
   - 或玩家连续5回合A≥8
+  - [数字无视]解除: 单次Digital_A≥8或连续24小时高频互动
   - 解除时NPC反应: [认知重构]
   - C_align临时+1
   - 下一回合Phi增长×2
@@ -1627,6 +2102,69 @@ Maintenance_Required: 1/week
   - 病娇型: [无视]状态触发阈值×1.5
   - 献身型: [无视]状态触发阈值×0.5
   - 冰山型: [无视]状态效果-30%
+  - 神秘型: [数字无视]触发阈值×0.7(更容易数字失联)
+```
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 数字故障协议(Digital Glitch Protocol)
+
+**前提条件:**
+- 数字互动中检测到异常状态时调用
+
+**【核心原则】**
+数字故障是Digital_Fatigue或Digital_Phi异常时的系统错误表现
+
+**故障触发条件(OR):**
+1. Digital_Fatigue > 60
+2. Digital_Phi 突增 >0.5/回合
+3. 数字-现实Phi差异 >1.5
+4. 深夜低C_align状态(C_align<3且时段>23:00)
+
+**故障等级计算:**
+```python
+Digital_Glitch_Probability = (Digital_Fatigue / 100) × 0.5
++ (abs(Digital_Phi - 现实Phi) > 1.5 ? 0.3 : 0)
++ (C_align < 3 ? 0.2 : 0)
+```
+
+**故障表现表（基于原型）:**
+
+**等级1: 微震颤 (Probability 0.2-0.4)**
+- 通用: 打字错误率+30%，回复延迟波动
+- 傲娇型: [正在输入...]闪烁但无消息发送
+- 天然型: 发送后追加3条补充消息
+- 病弱型: 消息中包含身体不适暗示
+
+**等级2: 逻辑断裂 (Probability 0.4-0.6)**
+- 通用: 话题跳转突兀，前后矛盾
+- 病娇型: 发送位置请求后撤回(暴露需求)
+- 傲沉型: 发送后又连续撤回3条
+- 献身型: 发送时间异常(凌晨4点"早安")
+
+**等级3: 系统崩溃 (Probability > 0.6)**
+- 通用: 发送未完成的草稿/截图/语音片段
+- 冰山型: 意外发送长段情感文字(然后秒删)
+- 神秘型: 发送完全无关的内容(系统错乱)
+- 病娇型: 发送[已删除]的聊天记录截图
+
+**Disconnect状态:**
+```yaml
+触发:
+  - Digital_Glitch_Probability > 0.7
+  - 或NPC主动下线回避
+
+效果:
+  - Digital_Disconnect = True
+  - 消息无法送达(模拟)
+  - Digital_Phi暂停计算
+  
+恢复:
+  - 自然恢复: 1-3回合后自动重连
+  - 主动恢复: 玩家发送3条以上消息触发[寻回]
+  - 或现实见面时自动解除
 ```
 
 **禁止事项:** 见附录A
@@ -1649,6 +2187,7 @@ Maintenance_Required: 1/week
 | Glitch_Probability>0.4且已发生Glitch | 故障修复可用 | Yes |
 | 新NPC介入或特殊场景激活 | 场景卡可用 | Yes |
 | 社交死亡临界 | 紧急介入可用 | Yes |
+| Digital_Phi增长>0.3且Digital_Fatigue<30 | 数字连接可用 | Yes |
 
 **默认状态:**
 - 无上述条件时: [提示] 显示 "无"
@@ -1886,13 +2425,22 @@ Load > 80:
 ```yaml
 解析A值(0-10)或复数模式
 ↓
+检查互动类型: 现实 / 数字
+↓
+若为数字互动:
+  - 检查Digital_Fatigue
+  - 检查Digital_Disconnect状态
+  - 更新Digital_Phi
+  - 计算数字消耗
+↓
 检查显著性阈值(若Rho>0.8)
 ↓
 执行算力消耗:
   base_drain = A × 0.1 (if A>0)
   sig_drain = 显著性 × 0.3 (if 显著性≥10)
   specific_drain = 原型特定消耗
-  C_align = max(0, C_align - base_drain - sig_drain - specific_drain)
+  digital_drain = 数字互动消耗 (if 数字模式)
+  C_align = max(0, C_align - base_drain - sig_drain - specific_drain - digital_drain)
   
   # [BUG FIX V3.6.2] 献身型Burnout_Threshold检查
   IF Archetype == "献身型":
@@ -1914,21 +2462,25 @@ Load > 80:
   └─ 根据Delta_Phi计算表情
 ↓
 检测特殊事件(按优先级顺序):
-  ├─ 时序边界打断？(P0)
+  ├─ 时序边界打断？(P1)
   │   └─ 若触发且情绪接管Triggered: 延迟接管，NPC进入[压抑爆发]状态
-  ├─ 情绪接管？(P1)
-  ├─ Tau窗口？(P2)
-  ├─ Glitch？(P3)
-  ├─ 超流体？(P4)
-  ├─ 路人型Phase Lock？(P5)
-  ├─ 后宫暴露检查？(P6)
-  └─ 坏结局检测？(P7)
+  ├─ DIGITAL_OVERRIDE？(P2) [新增]
+  │   └─ 若Digital_Glitch_Chance>0.6: 触发数字故障影响现实行为
+  ├─ 情绪接管？(P3)
+  ├─ Tau窗口？(P4)
+  ├─ Glitch？(P5)
+  ├─ 超流体？(P6)
+  ├─ 路人型Phase Lock？(P7)
+  ├─ 后宫暴露检查？(P8)
+  └─ 坏结局检测？(P9)
 ↓
 更新C_align(自然恢复检查，上限基础值，[不可逆虚无]除外)
 ↓
+更新Digital_Fatigue(数字休息恢复)
+↓
 生成NARRATIVE(含时间戳+微观相位+L1/L2/L3)
 ↓
-生成HUD(严格YAML模板V3.6.2，含顶部[提示])
+生成HUD(严格YAML模板V3.6.3，含顶部[提示])
 ↓
 你想怎么做？
 ```
@@ -1964,13 +2516,15 @@ Load > 80:
 2. 掷骰:
    - 关系(1d10): 1-3路人/4-6熟人/7-9青梅竹马/10特殊
    - 场景(1d3): 高/中/低密度
-   - - NPC原型(1d9): 纯路人/天然/傲娇/神秘/冰山/病娇/傲沉/献身/病弱
+   - NPC原型(1d9): 纯路人/天然/傲娇/神秘/冰山/病娇/傲沉/献身/病弱
    - 天气(1d4): 阴雨天/晴天/夕阳/深夜
 3. 赋值:
    - Gamma = 0.5
    - Alpha = 查天气表
    - Rho = 场景基值
    - C_align = NPC基础值（满额）
+   - Digital_Phi = 0.0
+   - Digital_Fatigue = 0
    - 根据原型设定特定参数
 4. 时间: 周一 08:25
 5. 输出三层（NARRATIVE + HUD，HUD顶部[提示]默认显示"无"）
@@ -2046,6 +2600,13 @@ Load > 80:
 - 禁止C_align初始不为满额
 - 禁止预设"开场台词"
 
+## A.15 数字亲密禁止
+- 禁止Digital_Phi超过现实Phi的1.5倍
+- 禁止纯数字互动直接达到Fluid阶段
+- 禁止无视Digital_Fatigue进行无限数字互动
+- 禁止NPC在Disconnect状态下仍回复消息
+- 禁止数字互动产生与现实完全相同的感官细节
+
 ---
 
 # 附录B: 物理公式快速参考
@@ -2066,6 +2627,18 @@ dPhi = Input - Decay - Friction
 
 # 新Phi值
 new_Phi = Phi + dPhi × Delta_t
+
+# 数字Input计算
+Digital_Input = (A_digital × Alpha_digital × Tau_digital) / (K_digital × Rho_digital)
+Digital_dPhi = Digital_Input × digital_efficiency - Digital_Decay
+
+# 数字效率系数
+digital_efficiency = min(0.7, mode_efficiency × Digital_affinity)
+mode_efficiency = {"文字": 0.5, "语音": 0.6, "视频": 0.7}
+
+# 数字疲劳计算
+Digital_Fatigue += 互动回合数 × mode_coefficient
+Digital_Fatigue = max(0, Digital_Fatigue - 休息回合数 × 10)
 ```
 
 ## B.2 常量值
@@ -2077,8 +2650,26 @@ new_Phi = Phi + dPhi × Delta_t
 | Tau_crit | 2.0-5.0 | 窗口临界乘数 |
 | Phi_min | 0.0 | Phi硬下限 |
 | Rho_min | 0.05 | 量子泡沫保护 |
+| Digital_efficiency_max | 0.7 | 数字互动效率上限 |
+| Rho_digital | 0.2 | 数字场密度(固定) |
+| Digital_Fatigue_threshold | 60 | 数字过载阈值 |
+| Digital_Disconnect_threshold | 72h | 数字无视触发时间 |
+
+## B.3 原型数字亲和力表
+| 原型 | Digital_affinity |
+|------|------------------|
+| 纯路人型 | 0.8 |
+| 天然型 | 0.9 |
+| 傲娇型 | 0.6 |
+| 神秘型 | 0.7 |
+| 冰山型 | 0.5 |
+| 病娇型 | 1.2 |
+| 傲沉型 | 0.6 |
+| 献身型 | 1.0 |
+| 病弱型 | 1.1 |
 
 ---
+
 
     </div>
 
@@ -2120,6 +2711,9 @@ new_Phi = Phi + dPhi × Delta_t
                     'syncCurrent', 'syncGlitch', 'syncClub', 'syncTrack', 'syncRes',
                     'tauPhi', 'tauRho', 'tauCooldown', 'tauType', 'tauRes',
                     'glitchPrev', 'glitchCurr', 'glitchC', 'glitchNpc', 'glitchRes',
+                    'digitalPhi', 'digitalMode', 'digitalNpcType', 'digitalA', 'digitalADisplay', 'digitalContinuity', 'digitalRes',
+                    'digitalFatigue', 'digitalRounds', 'digitalRest', 'digitalIntensity', 'digitalFatigueRes',
+                    'digitalGlitchC', 'digitalGlitchFatigue', 'digitalGlitchDelta', 'digitalGlitchCopresent', 'digitalGlitchRes',
                     'ruleDisplay', 'scrollTop'
                 ];
                 ids.forEach(id => this.els[id] = document.getElementById(id));
@@ -2144,6 +2738,15 @@ new_Phi = Phi + dPhi × Delta_t
                 ['syncCurrent', 'syncGlitch', 'syncClub', 'syncTrack'].forEach(id => {
                     this.els[id]?.addEventListener('input', () => this.calcSync());
                 });
+
+                // Digital calculator
+                ['digitalPhi', 'digitalMode', 'digitalNpcType', 'digitalContinuity'].forEach(id => {
+                    this.els[id]?.addEventListener('change', () => this.calcDigital());
+                });
+                this.els.digitalA?.addEventListener('input', () => {
+                    this.updateDigitalADisplay();
+                    this.calcDigital();
+                });
             },
             bindScroll() {
                 window.addEventListener('scroll', () => {
@@ -2156,10 +2759,12 @@ new_Phi = Phi + dPhi × Delta_t
             scrollToTop() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             },
-            switchTab(tabName) {
+            switchTab(tabName, event) {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-                event.target.classList.add('active');
+                if (event && event.target) {
+                    event.target.classList.add('active');
+                }
                 document.getElementById(`tab-${tabName}`).classList.add('active');
             },
             toggleRules() {
@@ -2186,27 +2791,48 @@ new_Phi = Phi + dPhi × Delta_t
                 const Tau = parseFloat(this.els.tauValue?.value) || 1.0;
                 const npcData = (this.els.npcType?.value || '80,7').split(',');
                 const K_base = parseFloat(npcData[0]) || 80;
+                const C_align = parseFloat(npcData[1]) || 7;
                 const currentPhi = parseFloat(this.els.currentPhi?.value) || 0.5;
+                const npcTypeValue = this.els.npcType?.value || '80,7';
+
+                console.log('[DEBUG calcPhi] 输入参数:', { A, Rho, Alpha, Tau, K_base, C_align, currentPhi, npcTypeValue });
 
                 // K_multiplier based on Rho
                 const kMultipliers = {
-                    0.1: 1.0, 0.2: 0.8, 0.3: 1.0, 0.4: 1.2, 
+                    0.1: 1.0, 0.2: 0.8, 0.3: 1.0, 0.4: 1.2,
                     0.6: 1.5, 0.85: 2.5, 0.95: 5.0
                 };
                 const K_mult = kMultipliers[Rho] || 1.5;
                 const K_effective = K_base * K_mult;
                 const Rho_safe = Math.max(Rho, 0.05);
 
+                console.log('[DEBUG calcPhi] K计算:', { K_mult, K_effective, Rho_safe, hasRhoMapping: Rho in kMultipliers });
+
                 // Calculate dPhi
                 const Gamma = 0.5;
                 const k = 0.08;
 
-                const Input = (A * Alpha * Tau) / (K_effective * Rho_safe);
+                let Input = (A * Alpha * Tau) / (K_effective * Rho_safe);
+                
+                // 检查是否为傲娇型并应用Deflection_Coefficient
+                const isTsundere = npcTypeValue.includes('150,4');
+                if (isTsundere && currentPhi < 1.0) {
+                    const Deflection_Coefficient = 0.7;
+                    const originalInput = Input;
+                    Input = Input * (1 - Deflection_Coefficient);
+                    console.log('[DEBUG calcPhi] 傲娇型Deflection应用:', {
+                        isTsundere, currentPhi, Deflection_Coefficient,
+                        originalInput, effectiveInput: Input
+                    });
+                }
+
                 const Decay = currentPhi > 0.3 ? k * (currentPhi - 0.3) : 0;
                 const Friction = Gamma * Rho_safe * currentPhi;
                 const dPhi = Input - Decay - Friction;
 
                 const newPhi = Math.max(0, currentPhi + dPhi);
+                
+                console.log('[DEBUG calcPhi] 计算结果:', { Input, Decay, Friction, dPhi, newPhi });
 
                 // Determine phase
                 let phase, phaseClass, phaseColor;
@@ -2338,6 +2964,132 @@ new_Phi = Phi + dPhi × Delta_t
 
                 this.updateResult(this.els.tauRes, result, desc, status);
             },
+            updateDigitalADisplay() {
+                if (this.els.digitalA && this.els.digitalADisplay) {
+                    this.els.digitalADisplay.textContent = this.els.digitalA.value;
+                }
+            },
+            calcDigital() {
+                const currentPhi = parseFloat(this.els.digitalPhi?.value) || 0.5;
+                const modeEff = parseFloat(this.els.digitalMode?.value) || 0.5;
+                const affinity = parseFloat(this.els.digitalNpcType?.value) || 1.0;
+                const A = parseFloat(this.els.digitalA?.value) || 5;
+                const continuity = parseFloat(this.els.digitalContinuity?.value) || 1.0;
+
+                // Digital efficiency = min(0.7, mode_efficiency * affinity)
+                const efficiency = Math.min(0.7, modeEff * affinity);
+                
+                // Base growth calculation
+                const baseGrowth = (A * efficiency * continuity) / 100;
+                
+                // Digital decay (slower than real)
+                const decay = currentPhi > 0.1 ? 0.03 : 0;
+                
+                const dPhi = baseGrowth - decay;
+                
+                let status, statusClass;
+                if (dPhi > 0.2) {
+                    status = '快速增长';
+                    statusClass = 'result-epic';
+                } else if (dPhi > 0.05) {
+                    status = '正常增长';
+                    statusClass = 'result-safe';
+                } else if (dPhi > -0.05) {
+                    status = '稳定';
+                    statusClass = 'result-safe';
+                } else {
+                    status = '衰减';
+                    statusClass = 'result-danger';
+                }
+
+                const result = `Digital dPhi = ${dPhi >= 0 ? '+' : ''}${dPhi.toFixed(3)}/回合`;
+                const desc = `效率: ${efficiency.toFixed(2)} | 连续: ${continuity >= 1.0 ? '增益' : '衰减'} | 状态: ${status}`;
+                
+                this.updateResult(this.els.digitalRes, result, desc, statusClass);
+            },
+            calcDigitalFatigue() {
+                const currentFatigue = parseFloat(this.els.digitalFatigue?.value) || 20;
+                const rounds = parseInt(this.els.digitalRounds?.value) || 1;
+                const rest = parseInt(this.els.digitalRest?.value) || 0;
+                const intensity = parseInt(this.els.digitalIntensity?.value) || 2;
+
+                // Calculate new fatigue
+                const increase = rounds * intensity;
+                const recovery = rest * 10;
+                let newFatigue = currentFatigue + increase - recovery;
+                newFatigue = Math.max(0, Math.min(100, newFatigue));
+
+                // Calculate efficiency
+                let efficiency;
+                if (newFatigue < 30) {
+                    efficiency = 1.0;
+                } else if (newFatigue < 60) {
+                    efficiency = 0.8;
+                } else if (newFatigue < 80) {
+                    efficiency = 0.6;
+                } else {
+                    efficiency = 0.4;
+                }
+
+                let status, statusClass;
+                if (newFatigue < 30) {
+                    status = '正常';
+                    statusClass = 'result-safe';
+                } else if (newFatigue < 60) {
+                    status = '轻度疲劳';
+                    statusClass = 'result-safe';
+                } else if (newFatigue < 80) {
+                    status = '中度疲劳';
+                    statusClass = 'result-warn';
+                } else {
+                    status = '重度疲劳 - 建议休息';
+                    statusClass = 'result-danger';
+                }
+
+                const result = `疲劳度: ${newFatigue.toFixed(0)}/100`;
+                const desc = `状态: ${status} | 效率: ${(efficiency * 100).toFixed(0)}%`;
+                
+                this.updateResult(this.els.digitalFatigueRes, result, desc, statusClass);
+            },
+            calcDigitalGlitch() {
+                const C = parseFloat(this.els.digitalGlitchC?.value) || 5;
+                const fatigue = parseFloat(this.els.digitalGlitchFatigue?.value) || 30;
+                const deltaPhi = parseFloat(this.els.digitalGlitchDelta?.value) || 0.1;
+                const copresent = parseFloat(this.els.digitalGlitchCopresent?.value) || 0;
+
+                // Digital Glitch Probability calculation
+                const probC = (10 - C) / 10 * 0.4;
+                const probFatigue = (fatigue / 100) * 0.3;
+                const probDelta = deltaPhi > 0.2 ? 0.2 : 0;
+                const probCopresent = copresent;
+                
+                const totalProb = Math.min(1.0, probC + probFatigue + probDelta + probCopresent);
+                const percent = (totalProb * 100).toFixed(1);
+
+                let level, statusClass, desc;
+                if (totalProb < 0.1) {
+                    level = '正常';
+                    statusClass = 'result-safe';
+                    desc = '数字互动稳定';
+                } else if (totalProb < 0.3) {
+                    level = 'D1-输入错误';
+                    statusClass = 'result-warn';
+                    desc = '可能出现错别字、发送错误';
+                } else if (totalProb < 0.5) {
+                    level = 'D2-时间错乱';
+                    statusClass = 'result-warn';
+                    desc = '已读未回、反复编辑';
+                } else {
+                    level = 'D3-身份分裂';
+                    statusClass = 'result-danger';
+                    desc = '数字行为异常、社交媒体暴露';
+                }
+
+                const result = `数字故障概率: ${percent}%`;
+                const detail = `等级: ${level} | ${desc}`;
+                
+                this.updateResult(this.els.digitalGlitchRes, result, detail, statusClass);
+            },
             calcGlitch() {
                 const prev = parseFloat(this.els.glitchPrev?.value) || 0.5;
                 const curr = parseFloat(this.els.glitchCurr?.value) || 1.0;
@@ -2426,7 +3178,7 @@ new_Phi = Phi + dPhi × Delta_t
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = '虚假恋爱_核心法则_V3.6.2.md';
+                a.download = '虚假恋爱_核心法则_V3.6.3.md';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
