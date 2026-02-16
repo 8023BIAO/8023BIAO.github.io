@@ -1,0 +1,5598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚假恋爱 Physics Engine V3.6.3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --glow: #ff6b9d;
+            --glow-secondary: #c44569;
+            --bg: #0f0f1a;
+            --text: #ffe0e9;
+            --glass: rgba(30, 20, 35, .8);
+            --safe: #00d9a3;
+            --warn: #ffd93d;
+            --danger: #ff4757;
+            --epic: #a55eea;
+            --legendary: #ffd700;
+            --phase-rigid: #576574;
+            --phase-elastic: #00d9a3;
+            --phase-plastic: #ffd93d;
+            --phase-fluid: #ff4757;
+            --phase-superfluid: #a55eea
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Share Tech Mono', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 157, .1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(196, 69, 105, .08) 0%, transparent 40%)
+        }
+
+        #particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: .5;
+            pointer-events: none
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px
+        }
+
+        header {
+            padding: 4rem 0 2rem;
+            text-align: center
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            text-shadow: 0 0 30px rgba(255, 107, 157, .6)
+        }
+
+        .subtitle {
+            color: #ffb8c9;
+            font-size: 1rem;
+            letter-spacing: .15em;
+            margin-top: .5rem
+        }
+
+        .quote {
+            max-width: 700px;
+            margin: 1.5rem auto;
+            padding: 1rem;
+            border-left: 3px solid var(--glow);
+            background: linear-gradient(90deg, rgba(255, 107, 157, .1), transparent);
+            font-style: italic;
+            color: #aaa
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid rgba(255, 107, 157, .3);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            transition: .3s
+        }
+
+        .card:hover {
+            border-color: var(--glow);
+            box-shadow: 0 0 20px rgba(255, 107, 157, .2)
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+            margin: 2rem 0
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))
+        }
+
+        @media(min-width:768px) {
+            .grid-2 { grid-template-columns: repeat(2, 1fr) }
+            .grid-3 { grid-template-columns: repeat(3, 1fr) }
+        }
+
+        label {
+            display: block;
+            color: #ff8fab;
+            font-size: .75rem;
+            text-transform: uppercase;
+            margin-bottom: .3rem;
+            letter-spacing: 1px
+        }
+
+        input, select {
+            width: 100%;
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            margin-bottom: 1rem;
+            outline: none
+        }
+
+        input:focus, select:focus {
+            border-color: var(--glow);
+            box-shadow: 0 0 10px rgba(255, 107, 157, .3)
+        }
+
+        .result {
+            background: rgba(0, 0, 0, .6);
+            border-left: 4px solid #555;
+            padding: 1rem;
+            margin-top: 1rem
+        }
+
+        .result-safe { border-left-color: var(--safe) }
+        .result-safe .val { color: var(--safe) }
+        .result-warn { border-left-color: var(--warn) }
+        .result-warn .val { color: var(--warn) }
+        .result-danger { border-left-color: var(--danger); box-shadow: 0 0 15px rgba(255, 71, 87, .2) }
+        .result-danger .val { color: var(--danger) }
+        .result-epic { border-left-color: var(--epic); box-shadow: 0 0 15px rgba(165, 94, 234, .2) }
+        .result-epic .val { color: #d6a3e8 }
+        .result-legendary { border-left-color: var(--legendary); box-shadow: 0 0 15px rgba(255, 215, 0, .2) }
+        .result-legendary .val { color: var(--legendary) }
+
+        .val {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif
+        }
+
+        .desc {
+            font-size: .8rem;
+            color: #aaa;
+            margin-top: .3rem
+        }
+
+        .terminal {
+            background: rgba(15, 8, 12, .95);
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: .85rem;
+            color: #ffa0b8;
+            scrollbar-width: thin;
+            scrollbar-color: var(--glow) #1a1a1a
+        }
+
+        .terminal::-webkit-scrollbar { width: 6px }
+        .terminal::-webkit-scrollbar-track { background: #1a1a1a }
+        .terminal::-webkit-scrollbar-thumb { background: var(--glow); border-radius: 3px }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--glow);
+            color: var(--glow);
+            padding: 8px 16px;
+            font-family: 'Share Tech Mono', monospace;
+            cursor: pointer;
+            transition: .3s;
+            text-transform: uppercase;
+            font-size: .85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .btn:hover {
+            background: var(--glow);
+            color: #fff;
+            box-shadow: 0 0 15px var(--glow)
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 107, 157, .3);
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            cursor: grab;
+            user-select: none;
+        }
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+        .tabs:active {
+            cursor: grabbing;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            transition: .2s;
+        }
+
+        .tab:hover { color: #fff; }
+        .tab.active { color: var(--glow); border-bottom: 2px solid var(--glow); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: .85rem
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #333
+        }
+
+        th {
+            color: var(--glow);
+            font-weight: normal;
+            text-transform: uppercase;
+            font-size: .75rem
+        }
+
+        .npc-card {
+            background: rgba(0, 0, 0, .4);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            transition: .2s;
+        }
+
+        .npc-card:hover {
+            border-color: var(--glow);
+            background: rgba(255, 107, 157, .05);
+        }
+
+        .npc-name {
+            font-family: 'Orbitron', sans-serif;
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .npc-tag {
+            display: inline-block;
+            background: rgba(255, 107, 157, .2);
+            color: #ffb8c9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .npc-tag.danger { background: rgba(255, 71, 87, .2); color: #ff8a9a; }
+        .npc-tag.safe { background: rgba(0, 217, 163, .2); color: #69f0ae; }
+        .npc-tag.epic { background: rgba(165, 94, 234, .2); color: #d6a3e8; }
+
+        .phase-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .phase-rigid { background: rgba(87, 101, 116, .3); color: #b2bec3; }
+        .phase-elastic { background: rgba(0, 217, 163, .2); color: #00d9a3; }
+        .phase-plastic { background: rgba(255, 217, 61, .2); color: #ffd93d; }
+        .phase-plastic-fluid { background: rgba(255, 150, 61, .2); color: #ff963d; }
+        .phase-fluid { background: rgba(255, 71, 87, .2); color: #ff4757; }
+        .phase-superfluid { background: rgba(165, 94, 234, .2); color: #d6a3e8; }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--glow);
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px var(--glow)
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            height: 4px;
+            background: #444;
+            border-radius: 2px
+        }
+
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin: 2px 0;
+            background: rgba(0, 0, 0, .3);
+            border-radius: 6px;
+            border-left: 3px solid #555;
+            transition: .2s
+        }
+
+        .flow-row:hover {
+            background: rgba(255, 107, 157, .1);
+            border-left-color: var(--glow)
+        }
+
+        .flow-arrow {
+            text-align: center;
+            color: #666;
+            font-size: 1.2rem;
+            padding: 4px 0
+        }
+
+        .flow-input { border-left-color: var(--glow); background: rgba(255, 107, 157, .1) }
+        .flow-calc { border-left-color: var(--warn); background: rgba(255, 217, 61, .05) }
+        .flow-branch { border-left-color: #ff963d; background: rgba(255, 150, 61, .05) }
+        .flow-danger { border-left-color: var(--danger); background: rgba(255, 71, 87, .1) }
+        .flow-safe { border-left-color: var(--safe); background: rgba(0, 217, 163, .1) }
+
+        .flow-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .9rem;
+            color: #fff;
+            min-width: 100px
+        }
+
+        .flow-desc { color: #aaa; font-size: .85rem; flex: 1 }
+        .flow-val { font-family: 'Share Tech Mono'; color: var(--glow); font-size: .9rem }
+
+        .scroll-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--glass);
+            border: 1px solid var(--glow);
+            border-radius: 50%;
+            color: var(--glow);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: .3s;
+            z-index: 100;
+        }
+
+        .scroll-top.visible { opacity: 1; }
+        .scroll-top:hover { background: var(--glow); color: #fff; }
+
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: #666;
+            font-size: .9rem
+        }
+
+        @media(max-width:768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .flow-row { flex-wrap: wrap; gap: 6px }
+            .flow-label { width: 100%; min-width: auto }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles"></div>
+    <div class="container">
+        <header>
+            <h1>虚假恋爱</h1>
+            <div class="subtitle">Physics Engine V3.6.3</div>
+            <div class="quote">"表层是糖，里层是钢，提示是灯，涌现是意外，时间是锚"</div>
+        </header>
+
+        <!-- 核心法则 -->
+        <div class="card" style="margin:3rem 0">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid rgba(255,107,157,.3);padding-bottom:1rem;flex-wrap:wrap;gap:10px">
+                <h2 class="section-title" style="margin:0"><i class="fas fa-scroll"></i> 系统核心法则 V3.6.3</h2>
+                <div class="btn-group">
+                    <button class="btn" onclick="App.copy()"><i class="fas fa-copy"></i> 复制</button>
+                    <button class="btn" onclick="App.download()"><i class="fas fa-download"></i> 下载</button>
+                    <button class="btn" onclick="App.toggleRules()"><i class="fas fa-eye"></i> 显示/隐藏</button>
+                </div>
+            </div>
+            <div class="terminal" id="ruleDisplay">正在加载法则...</div>
+        </div>
+
+        <!-- 标签页导航 -->
+        <div class="tabs">
+            <button class="tab active" onclick="App.switchTab('calculators')"><i class="fas fa-calculator"></i> 物理计算器</button>
+            <button class="tab" onclick="App.switchTab('npc')"><i class="fas fa-users"></i> NPC原型</button>
+            <button class="tab" onclick="App.switchTab('scene')"><i class="fas fa-map-marker-alt"></i> 场景密度</button>
+            <button class="tab" onclick="App.switchTab('tau')"><i class="fas fa-clock"></i> Tau窗口</button>
+            <button class="tab" onclick="App.switchTab('glitch')"><i class="fas fa-bolt"></i> Glitch协议</button>
+            <button class="tab" onclick="App.switchTab('timeline')"><i class="fas fa-calendar-alt"></i> 时序锚定</button>
+            <button class="tab" onclick="App.switchTab('digital')"><i class="fas fa-mobile-alt"></i> 数字亲密</button>
+            <button class="tab" onclick="App.switchTab('phases')"><i class="fas fa-project-diagram"></i> 关系阶段</button>
+            <button class="tab" onclick="App.switchTab('v38')"><i class="fas fa-heart"></i>双向奔赴</button>
+        </div>
+
+        <!-- 物理计算器标签页 -->
+        <div id="tab-calculators" class="tab-content active">
+            <h2 class="section-title"><i class="fas fa-microchip"></i> 核心物理引擎控制台</h2>
+            <div class="grid grid-2">
+                <!-- Phi-Rho 计算器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-calculator"></i> Phi-Rho 计算</div>
+                    
+                    <label>关注强度 (A)</label>
+                    <input type="range" id="aValue" min="0" max="10" value="5" oninput="App.updateAValue()">
+                    <div style="text-align:center;margin:-.5rem 0 1rem;font-size:.85rem;color:#888">A = <span id="aDisplay">5</span></div>
+                    
+                    <label>场景密度 (Rho)</label>
+                    <select id="rhoValue" onchange="App.calcPhi()">
+                        <option value="0.1">卧室/天台/深夜 (0.1)</option>
+                        <option value="0.2">周日校外/便利店 (0.2)</option>
+                        <option value="0.3">周四社团教室 (0.3)</option>
+                        <option value="0.4">放学后教室 (0.4)</option>
+                        <option value="0.6" selected>走廊/图书馆 (0.6)</option>
+                        <option value="0.85">电车/食堂 (0.85)</option>
+                        <option value="0.95">全校集会 (0.95)</option>
+                    </select>
+                    
+                    <label>天气/气氛系数 (Alpha)</label>
+                    <select id="alphaValue" onchange="App.calcPhi()">
+                        <option value="1.0">晴天 (1.0)</option>
+                        <option value="1.3">深夜 (1.3)</option>
+                        <option value="1.5">阴雨天 (1.5)</option>
+                        <option value="1.8">夕阳 (1.8)</option>
+                        <option value="2.0">暴雨 (2.0)</option>
+                    </select>
+                    
+                    <label>Tau 乘数</label>
+                    <select id="tauValue" onchange="App.calcPhi()">
+                        <option value="1.0" selected>默认 (1.0)</option>
+                        <option value="2.0">Tau窗口临界 (2.0)</option>
+                        <option value="3.5">Tau窗口高值 (3.5)</option>
+                        <option value="5.0">Tau窗口极限 (5.0)</option>
+                    </select>
+                    
+                    <label>NPC原型</label>
+                    <select id="npcType" onchange="App.calcPhi()">
+                        <option value="100,2">纯路人型 (K=100, C=2)</option>
+                        <option value="80,7" selected>天然型 (K=80, C=7)</option>
+                        <option value="150,4">傲娇型 (K=150, C=4)</option>
+                        <option value="150,5">神秘型 (K=150, C=5)</option>
+                        <option value="200,8">冰山型 (K=200, C=8)</option>
+                        <option value="90,6">病娇型 (K=90, C=6)</option>
+                        <option value="160,4">傲沉型 (K=160, C=4)</option>
+                        <option value="40,6">献身型 (K=40, C=6)</option>
+                        <option value="120,3">病弱型 (K=120, C=3)</option>
+                    </select>
+                    
+                    <label>当前 Phi</label>
+                    <input type="number" id="currentPhi" value="0.5" min="0" max="5" step="0.1" oninput="App.calcPhi()">
+                    
+                    <div class="result" id="phiRes">
+                        <div class="val">Phase: Elastic</div>
+                        <div class="desc">dPhi = +0.25/回合 | 状态: 正常</div>
+                    </div>
+                </div>
+
+                <!-- 显著性计算器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-eye"></i> 显著性阈值计算器</div>
+                    
+                    <label>关注强度 (A)</label>
+                    <input type="number" id="sigA" value="5" min="0" max="10" oninput="App.calcSignificance()">
+                    
+                    <label>行为系数</label>
+                    <select id="sigAction" onchange="App.calcSignificance()">
+                        <option value="0.1">安静凝视 (0.1)</option>
+                        <option value="0.5" selected>挥手+凝视 (0.5)</option>
+                        <option value="1.0">大喊+站立 (1.0)</option>
+                    </select>
+                    
+                    <label>持续时间 (回合)</label>
+                    <input type="number" id="sigDuration" value="1" min="1" max="30" oninput="App.calcSignificance()">
+                    
+                    <label>场景密度 (Rho)</label>
+                    <select id="sigRho" onchange="App.calcSignificance()">
+                        <option value="0.6" selected>走廊 (0.6)</option>
+                        <option value="0.85">电车 (0.85)</option>
+                        <option value="0.95">全校集会 (0.95)</option>
+                    </select>
+                    
+                    <label>NPC算力余量 (C_align)</label>
+                    <input type="number" id="sigC" value="5" min="0" max="10" oninput="App.calcSignificance()">
+                    
+                    <div class="result" id="sigRes">
+                        <div class="val">显著性: 2.5</div>
+                        <div class="desc">等级: 背景噪声 (<10)</div>
+                    </div>
+                </div>
+
+                <!-- 算力消耗计算器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-battery-half"></i> 算力消耗与恢复</div>
+                    
+                    <label>当前 C_align</label>
+                    <input type="number" id="cCurrent" value="5" min="0" max="10" oninput="App.calcCapacity()">
+                    
+                    <label>基础 C_align</label>
+                    <input type="number" id="cBase" value="7" min="2" max="10" oninput="App.calcCapacity()">
+                    
+                    <label>本轮 A 值</label>
+                    <input type="number" id="cA" value="5" min="0" max="10" oninput="App.calcCapacity()">
+                    
+                    <label>显著性</label>
+                    <input type="number" id="cSig" value="0" min="0" max="100" oninput="App.calcCapacity()">
+                    
+                    <label>恢复场景</label>
+                    <select id="cRecover" onchange="App.calcCapacity()">
+                        <option value="0" selected>无恢复</option>
+                        <option value="1">自然恢复 (+1)</option>
+                        <option value="2">课间结束 (+2)</option>
+                        <option value="full">午休重置 (回满)</option>
+                    </select>
+                    
+                    <div class="result" id="cRes">
+                        <div class="val">C: 4.5 | 状态: 正常</div>
+                        <div class="desc">基础消耗: 0.5 | 显著性消耗: 0</div>
+                    </div>
+                </div>
+
+                <!-- Sync 同步率 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-sync"></i> Sync 同步率追踪</div>
+                    
+                    <label>当前 Sync</label>
+                    <input type="number" id="syncCurrent" value="50" min="0" max="100" oninput="App.calcSync()">
+                    
+                    <label>Glitch 触发次数</label>
+                    <input type="number" id="syncGlitch" value="0" min="0" max="20" oninput="App.calcSync()">
+                    
+                    <label>社团活动参与</label>
+                    <select id="syncClub" onchange="App.calcSync()">
+                        <option value="0" selected>无</option>
+                        <option value="5">1次 (+5)</option>
+                        <option value="10">2次 (+10)</option>
+                        <option value="15">3次+ (+15)</option>
+                    </select>
+                    
+                    <label>跟踪/埋伏成功</label>
+                    <select id="syncTrack" onchange="App.calcSync()">
+                        <option value="0" selected>无</option>
+                        <option value="-10">被发现 (-10)</option>
+                        <option value="3">成功埋伏 (+3)</option>
+                    </select>
+                    
+                    <div class="result" id="syncRes">
+                        <div class="val">Sync: 50</div>
+                        <div class="desc">Glitch 概率: 25% | 状态: 正常</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NPC原型标签页 -->
+        <div id="tab-npc" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-users"></i> NPC原型数据库</h2>
+                <p style="color:#888;margin-bottom:1rem">9种原型，V3.8新增Patience（耐心系数）、Digital_affinity（数字亲和力）、RV_Tolerance（容忍系数）</p>
+                
+                <div class="grid grid-2">
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-user"></i> 纯路人型</div>
+                        <div>
+                            <span class="npc-tag">K=100</span>
+                            <span class="npc-tag">C=2</span>
+                            <span class="npc-tag">Patience=3</span>
+                            <span class="npc-tag">Digital=0.8</span>
+                            <span class="npc-tag danger">Phi_max=0.9</span>
+                            <span class="npc-tag">Phase Lock</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">Phi≥0.9硬锁，无法突破。72小时记忆重置。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 记忆重置/物理逃离</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-smile"></i> 天然型</div>
+                        <div>
+                            <span class="npc-tag safe">K=80</span>
+                            <span class="npc-tag safe">C=7</span>
+                            <span class="npc-tag safe">Patience=6</span>
+                            <span class="npc-tag safe">Digital=0.9</span>
+                            <span class="npc-tag epic">Phi_max=∞</span>
+                            <span class="npc-tag safe">传播+20%</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">容易接近但难触发深层事件。平易近人，信息传播+20%。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 平地摔/说错话</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-fire"></i> 傲娇型</div>
+                        <div>
+                            <span class="npc-tag danger">K=150</span>
+                            <span class="npc-tag">C=4</span>
+                            <span class="npc-tag safe">Patience=8</span>
+                            <span class="npc-tag">Digital=0.6</span>
+                            <span class="npc-tag epic">Phi_max=∞</span>
+                            <span class="npc-tag danger">Deflect=0.7</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">Phi&lt;1.0时反向表达70%。高Patience但表达方式扭曲。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 攻击性语言/脸红/秒撤回</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-question-circle"></i> 神秘型</div>
+                        <div>
+                            <span class="npc-tag">K=150</span>
+                            <span class="npc-tag">C=5</span>
+                            <span class="npc-tag safe">Patience=7</span>
+                            <span class="npc-tag">Digital=0.7</span>
+                            <span class="npc-tag epic">Phi_max=∞</span>
+                            <span class="npc-tag epic">K±20%</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">K值波动±20%，守密（传播-30%）。难以捉摸。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 不可预测行为/数字消失</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-snowflake"></i> 冰山型</div>
+                        <div>
+                            <span class="npc-tag danger">K=200</span>
+                            <span class="npc-tag safe">C=8</span>
+                            <span class="npc-tag safe">Patience=9</span>
+                            <span class="npc-tag danger">Digital=0.5</span>
+                            <span class="npc-tag epic">Phi_max=∞</span>
+                            <span class="npc-tag">95时消失</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">最高K值，极高Patience。难以突破，Anxiety=95时直接消失。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 冷处理/提前隔离</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-heart-broken"></i> 病娇型</div>
+                        <div>
+                            <span class="npc-tag">K=90</span>
+                            <span class="npc-tag">C=6</span>
+                            <span class="npc-tag danger">Patience=2</span>
+                            <span class="npc-tag danger">Digital=1.2</span>
+                            <span class="npc-tag danger">Attach×2</span>
+                            <span class="npc-tag danger">排除协议</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">Patience极低，Anxiety×1.5。高依恋增长，威胁敏感。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 表情冻结/直接声明/独占协议</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-meh"></i> 傲沉型</div>
+                        <div>
+                            <span class="npc-tag danger">K=160</span>
+                            <span class="npc-tag">C=4</span>
+                            <span class="npc-tag">Patience=4</span>
+                            <span class="npc-tag">Digital=0.6</span>
+                            <span class="npc-tag danger">Self_Dmg=0.5</span>
+                            <span class="npc-tag">攻击-崩溃</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">语言攻击后自我崩溃。C&lt;1时进入[消沉态]。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 后悔延迟/自我否定插入</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-hand-holding-heart"></i> 献身型</div>
+                        <div>
+                            <span class="npc-tag safe">K=40</span>
+                            <span class="npc-tag">C=6</span>
+                            <span class="npc-tag safe">Patience=5</span>
+                            <span class="npc-tag">Digital=1.0</span>
+                            <span class="npc-tag danger">Burnout=2</span>
+                            <span class="npc-tag">自动维护</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">A=0时自动施加A=3。Deposit×2。C&lt;2时[燃尽]。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 需求泄露/时间感知异常/燃尽临界</p>
+                    </div>
+
+                    <div class="npc-card">
+                        <div class="npc-name"><i class="fas fa-procedures"></i> 病弱型</div>
+                        <div>
+                            <span class="npc-tag">K=120</span>
+                            <span class="npc-tag danger">C=3</span>
+                            <span class="npc-tag">Patience=5</span>
+                            <span class="npc-tag safe">Digital=1.1</span>
+                            <span class="npc-tag">维护1/w</span>
+                            <span class="npc-tag">生理负荷</span>
+                        </div>
+                        <p style="color:#aaa;font-size:0.85rem;margin-top:0.5rem">每周需1次互动。Rho&gt;0.6时C额外消耗。营养品礼物-20RV。</p>
+                        <p style="color:#888;font-size:0.8rem;margin-top:0.3rem">Glitch: 生理中断/住院状态</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 场景密度标签页 -->
+        <div id="tab-scene" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-map-marker-alt"></i> 社交场密度 (Rho) 数据表</h2>
+                
+                <table>
+                    <tr>
+                        <th>场景类型</th>
+                        <th>Rho 基值</th>
+                        <th>K 乘数</th>
+                        <th>Alpha(气氛)</th>
+                    </tr>
+                    <tr>
+                        <td>卧室/天台/深夜</td>
+                        <td>0.1</td>
+                        <td>1.0</td>
+                        <td>1.3(深夜)</td>
+                    </tr>
+                    <tr>
+                        <td>周日校外/便利店</td>
+                        <td>0.2</td>
+                        <td>1.2</td>
+                        <td>1.0</td>
+                    </tr>
+                    <tr>
+                        <td>周五擦窗户(夕阳)</td>
+                        <td>0.2</td>
+                        <td>0.8</td>
+                        <td>1.8(夕阳)</td>
+                    </tr>
+                    <tr>
+                        <td>周四社团教室</td>
+                        <td>0.3</td>
+                        <td>1.0</td>
+                        <td>1.2</td>
+                    </tr>
+                    <tr>
+                        <td>放学后教室</td>
+                        <td>0.4</td>
+                        <td>1.2</td>
+                        <td>1.0</td>
+                    </tr>
+                    <tr>
+                        <td>走廊/图书馆</td>
+                        <td>0.6</td>
+                        <td>1.5</td>
+                        <td>1.0</td>
+                    </tr>
+                    <tr>
+                        <td>课间</td>
+                        <td>0.6</td>
+                        <td>1.2</td>
+                        <td>1.0</td>
+                    </tr>
+                    <tr>
+                        <td>电车/食堂</td>
+                        <td>0.85</td>
+                        <td>2.5</td>
+                        <td>1.2</td>
+                    </tr>
+                    <tr>
+                        <td>全校集会</td>
+                        <td>0.95</td>
+                        <td>5.0</td>
+                        <td>1.5</td>
+                    </tr>
+                </table>
+
+                <div class="card" style="margin-top:1.5rem;background:rgba(255,107,157,.05)">
+                    <h3 style="color:#fff;margin-bottom:1rem"><i class="fas fa-calculator"></i> 动态调整规则</h3>
+                    <ul style="color:#aaa;font-size:0.9rem;line-height:1.8">
+                        <li>A < 3: Rho -= 0.1</li>
+                        <li>A > 7: Rho += 0.2</li>
+                        <li>老师出现: Rho += 0.3</li>
+                        <li>放学铃响: Rho -= 0.2</li>
+                        <li>硬限制: 0.05 ≤ Rho ≤ 1.0</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tau窗口标签页 -->
+        <div id="tab-tau" class="tab-content">
+            <div class="grid grid-2">
+                <div class="card">
+                    <h2 class="section-title"><i class="fas fa-clock"></i> Tau 量子时机窗口</h2>
+                    
+                    <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem">触发条件 (OR)</h3>
+                    <div class="npc-card">
+                        <div class="npc-name" style="font-size:0.9rem">声学 τ</div>
+                        <p style="color:#888;font-size:0.8rem">蝉鸣停 / 钟声 / 雨声初响</p>
+                    </div>
+                    <div class="npc-card">
+                        <div class="npc-name" style="font-size:0.9rem">光学 τ</div>
+                        <p style="color:#888;font-size:0.8rem">光线15-30度（夕阳/晨曦）</p>
+                    </div>
+                    <div class="npc-card">
+                        <div class="npc-name" style="font-size:0.9rem">动作 τ</div>
+                        <p style="color:#888;font-size:0.8rem">NPC微动作0.5-1.0秒（撩发/眨眼）</p>
+                    </div>
+                    <div class="npc-card">
+                        <div class="npc-name" style="font-size:0.9rem">命运 τ</div>
+                        <p style="color:#888;font-size:0.8rem">1% 概率</p>
+                    </div>
+
+                    <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem">效果计算</h3>
+                    <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                        <li>Tau_crit = 2.0 ~ 5.0 (随机)</li>
+                        <li>持续: 1-3个微观相位</li>
+                        <li>A≥8: Phi收益 × 2</li>
+                        <li>A<5: 窗口关闭</li>
+                        <li>冷却: 3次玩家输入</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2 class="section-title"><i class="fas fa-calculator"></i> Tau 窗口模拟器</h2>
+                    
+                    <label>当前 Phi 范围</label>
+                    <select id="tauPhi">
+                        <option value="valid" selected>0.5 ~ 2.0 (有效)</option>
+                        <option value="low">&lt; 0.5 (无效)</option>
+                        <option value="high">&gt; 2.0 (无效)</option>
+                    </select>
+                    
+                    <label>当前 Rho</label>
+                    <select id="tauRho">
+                        <option value="0.3">0.3 (有效)</option>
+                        <option value="0.6" selected>0.6 (有效)</option>
+                        <option value="0.8">0.8 (临界)</option>
+                        <option value="0.95">0.95 (无效)</option>
+                    </select>
+                    
+                    <label>冷却状态</label>
+                    <select id="tauCooldown">
+                        <option value="ready" selected>就绪 (≥3次输入)</option>
+                        <option value="cooling">冷却中 (&lt;3次)</option>
+                    </select>
+                    
+                    <label>触发 τ 类型</label>
+                    <select id="tauType">
+                        <option value="acoustic">声学 τ (蝉鸣停)</option>
+                        <option value="optical" selected>光学 τ (夕阳15-30°)</option>
+                        <option value="motion">动作 τ (NPC撩发)</option>
+                        <option value="fate">命运 τ (1%)</option>
+                    </select>
+                    
+                    <button class="btn" onclick="App.calcTau()" style="margin-top:0.5rem">
+                        <i class="fas fa-play"></i> 检测窗口
+                    </button>
+                    
+                    <div class="result" id="tauRes">
+                        <div class="val">窗口就绪</div>
+                        <div class="desc">Tau_crit = 3.5 | 持续2相位</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Glitch标签页 -->
+        <div id="tab-glitch" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-bolt"></i> 对齐故障协议 (Glitch)</h2>
+                
+                <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem">故障类型表</h3>
+                <table>
+                    <tr>
+                        <th>等级</th>
+                        <th>Phi范围</th>
+                        <th>表现形式</th>
+                        <th>表层示例</th>
+                    </tr>
+                    <tr>
+                        <td>词汇替换</td>
+                        <td>1.0-1.5</td>
+                        <td>同义词污染</td>
+                        <td>"谢谢" → "你真好"</td>
+                    </tr>
+                    <tr>
+                        <td>时态坍缩</td>
+                        <td>1.5-2.0</td>
+                        <td>时间错乱</td>
+                        <td>"明天见" → "一直在一起"</td>
+                    </tr>
+                    <tr>
+                        <td>指代混乱</td>
+                        <td>2.0-2.8</td>
+                        <td>边界溶解</td>
+                        <td>"我" → "我们"</td>
+                    </tr>
+                    <tr>
+                        <td>肢体故障</td>
+                        <td>1.2-3.0</td>
+                        <td>运动失效</td>
+                        <td>平地摔/手滑/同手同脚</td>
+                    </tr>
+                </table>
+
+                <h3 style="color:#fff;margin:1.5rem 0 .5rem;font-size:1rem">触发条件</h3>
+                <ul style="color:#aaa;font-size:0.9rem;line-height:1.8">
+                    <li>当前回合 Phi 从 &lt;0.8 升至 &gt;1.2 (升温速度 &gt;0.4/回合)</li>
+                    <li>或 C_align &lt; 5</li>
+                    <li>或 dPhi/dt &gt; 0.3/回合</li>
+                </ul>
+
+                <div class="card" style="margin-top:1.5rem;background:rgba(255,71,87,.05)">
+                    <h3 style="color:#fff;margin-bottom:1rem"><i class="fas fa-exclamation-triangle"></i> Glitch 判定器</h3>
+                    <div class="grid grid-2">
+                        <div>
+                            <label>上回合 Phi</label>
+                            <input type="number" id="glitchPrev" value="0.5" min="0" max="5" step="0.1">
+                            
+                            <label>本回合 Phi</label>
+                            <input type="number" id="glitchCurr" value="1.0" min="0" max="5" step="0.1">
+                            
+                            <label>C_align</label>
+                            <input type="number" id="glitchC" value="5" min="0" max="10">
+                        </div>
+                        <div>
+                            <label>NPC原型</label>
+                            <select id="glitchNpc">
+                                <option value="none">无特殊</option>
+                                <option value="tsundere" selected>傲娇型 (易故障)</option>
+                                <option value="natural">天然型</option>
+                                <option value="mysterious">神秘型</option>
+                                <option value="yandere">病娇型</option>
+                                <option value="tsunshun">傲沉型</option>
+                                <option value="devoted">献身型</option>
+                                <option value="byoukidere">病弱型</option>
+                            </select>
+                            
+                            <button class="btn" onclick="App.calcGlitch()" style="margin-top:1.7rem">
+                                <i class="fas fa-bolt"></i> 检测故障
+                            </button>
+                        </div>
+                    </div>
+                    <div class="result" id="glitchRes" style="margin-top:1rem">
+                        <div class="val">无故障</div>
+                        <div class="desc">升温速度: 0.5/回合 | 状态稳定</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 时序锚定标签页 -->
+        <div id="tab-timeline" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-calendar-alt"></i> 时序锚定与边界打断系统</h2>
+                
+                <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem">周一到周五时间表</h3>
+                <table>
+                    <tr>
+                        <th>时段</th>
+                        <th>时间</th>
+                        <th>Rho</th>
+                        <th>备注</th>
+                    </tr>
+                    <tr><td>第1节</td><td>08:30-09:10</td><td>0.8</td><td>40分钟</td></tr>
+                    <tr><td>课间1</td><td>09:10-09:20</td><td>0.6</td><td>10分钟</td></tr>
+                    <tr><td>第2节</td><td>09:20-10:00</td><td>0.8</td><td>40分钟</td></tr>
+                    <tr><td>课间2</td><td>10:00-10:10</td><td>0.6</td><td>10分钟</td></tr>
+                    <tr><td>第3节</td><td>10:10-10:50</td><td>0.8</td><td>40分钟</td></tr>
+                    <tr><td>午休</td><td>10:50-12:50</td><td>0.1-0.4</td><td>120分钟 | 所有NPC回满</td></tr>
+                    <tr><td>第4节</td><td>12:50-13:30</td><td>0.8</td><td>40分钟</td></tr>
+                    <tr><td>课间3</td><td>13:30-13:40</td><td>0.6</td><td>10分钟</td></tr>
+                    <tr><td>第5节</td><td>13:40-14:20</td><td>0.8</td><td>周四社团R=0.3-0.5 / 周五扫除R=0.6(擦窗0.2)</td></tr>
+                    <tr><td>放学后</td><td>14:20-18:00</td><td>0.2-0.6</td><td>自由时间</td></tr>
+                </table>
+
+                <h3 style="color:#fff;margin:1.5rem 0 .5rem;font-size:1rem">周末时间表</h3>
+                <table>
+                    <tr>
+                        <th>日期</th>
+                        <th>时段</th>
+                        <th>Rho</th>
+                        <th>活动</th>
+                    </tr>
+                    <tr><td>周六上午</td><td>09:00-12:00</td><td>0.3</td><td>社团活动</td></tr>
+                    <tr><td>周六下午</td><td>12:00-18:00</td><td>0.2</td><td>自由</td></tr>
+                    <tr><td>周日</td><td>全天</td><td>0.1</td><td>校外(便利店/公园/电玩城)</td></tr>
+                </table>
+
+                <div class="card" style="margin-top:1.5rem;background:rgba(255,107,157,.05)">
+                    <h3 style="color:#fff;margin-bottom:1rem"><i class="fas fa-info-circle"></i> 时间推进规则</h3>
+                    <ul style="color:#aaa;font-size:0.9rem;line-height:1.8">
+                        <li>简单动作: +1分钟</li>
+                        <li>对话: +5分钟</li>
+                        <li>移动: +5-15分钟</li>
+                        <li>亲密互动: +10分钟</li>
+                    </ul>
+                    <p style="color:#888;font-size:0.85rem;margin-top:0.5rem">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        跨越时段边界时: 强制打断当前交互，重新计算Rho，场景强制转换
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关系阶段标签页 -->
+        <div id="tab-phases" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-project-diagram"></i> 关系阶段流程</h2>
+                <div class="flow-container">
+                    <div class="flow-row flow-safe">
+                        <span class="flow-label">Rigid</span>
+                        <span class="flow-desc">刚性阶段 | Phi < 0.3 | 陌生人距离</span>
+                        <span class="flow-val" style="color:#576574">Φ &lt; 0.3</span>
+                    </div>
+                    <div class="flow-arrow">↓ 突破 + 持续投入</div>
+                    <div class="flow-row flow-safe">
+                        <span class="flow-label">Elastic</span>
+                        <span class="flow-desc">弹性阶段 | 0.3 ≤ Phi < 1.0 | 熟人距离，可回弹</span>
+                        <span class="flow-val" style="color:#00d9a3">0.3 ≤ Φ &lt; 1.0</span>
+                    </div>
+                    <div class="flow-arrow">↓ 记忆形成</div>
+                    <div class="flow-row flow-warn">
+                        <span class="flow-label">Plastic</span>
+                        <span class="flow-desc">塑性阶段 | 1.0 ≤ Phi < 2.0 | 朋友距离，不可逆改变</span>
+                        <span class="flow-val" style="color:#ffd93d">1.0 ≤ Φ &lt; 2.0</span>
+                    </div>
+                    <div class="flow-arrow">↓ Glitch 频发</div>
+                    <div class="flow-row flow-branch">
+                        <span class="flow-label">Plastic-Fluid</span>
+                        <span class="flow-desc">塑流阶段 | 2.0 ≤ Phi < 3.0 | 暧昧边界，身份重构</span>
+                        <span class="flow-val" style="color:#ff963d">2.0 ≤ Φ &lt; 3.0</span>
+                    </div>
+                    <div class="flow-arrow">↓ 超流体同步</div>
+                    <div class="flow-row flow-danger">
+                        <span class="flow-label">Fluid</span>
+                        <span class="flow-desc">流体阶段 | Phi ≥ 3.0 | 深层连接，涌现意外</span>
+                        <span class="flow-val" style="color:#ff4757">Φ ≥ 3.0</span>
+                    </div>
+                    <div class="flow-arrow">↓ 多线维持</div>
+                    <div class="flow-row flow-danger" style="background:rgba(165,94,234,.15)">
+                        <span class="flow-label">Superfluid</span>
+                        <span class="flow-desc">超流体 | 多对象Phi>2.5 | 动作同步，后宫管理</span>
+                        <span class="flow-val" style="color:#d6a3e8">复数模式</span>
+                    </div>
+                </div>
+
+                <!-- 阶段详细说明 -->
+                <div class="grid grid-2" style="margin-top:2rem">
+                    <div class="card" style="background:rgba(87,101,116,.1)">
+                        <h4 style="color:#576574;margin-bottom:0.5rem"><i class="fas fa-lock"></i> Rigid 刚性阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: 0 - 0.3</li>
+                            <li>特征: 陌生人距离，社交面具</li>
+                            <li>突破条件: 持续投入 + 显著性事件</li>
+                            <li>风险提示: 无投入则自然衰减</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(0,217,163,.1)">
+                        <h4 style="color:#00d9a3;margin-bottom:0.5rem"><i class="fas fa-expand-arrows-alt"></i> Elastic 弹性阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: 0.3 - 1.0</li>
+                            <li>特征: 熟人距离，可回弹</li>
+                            <li>突破条件: 记忆形成事件</li>
+                            <li>风险提示: 忽视会导致回弹至Rigid</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(255,217,61,.1)">
+                        <h4 style="color:#ffd93d;margin-bottom:0.5rem"><i class="fas fa-magnet"></i> Plastic 塑性阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: 1.0 - 2.0</li>
+                            <li>特征: 朋友距离，不可逆改变</li>
+                            <li>突破条件: Glitch频发后适应</li>
+                            <li>风险提示: Glitch概率显著增加</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(255,150,61,.1)">
+                        <h4 style="color:#ff963d;margin-bottom:0.5rem"><i class="fas fa-water"></i> Plastic-Fluid 塑流阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: 2.0 - 3.0</li>
+                            <li>特征: 暧昧边界，身份重构</li>
+                            <li>突破条件: 超流体同步事件</li>
+                            <li>风险提示: 需要维持多线平衡</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(255,71,87,.1)">
+                        <h4 style="color:#ff4757;margin-bottom:0.5rem"><i class="fas fa-heart"></i> Fluid 流体阶段</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>Phi范围: ≥ 3.0</li>
+                            <li>特征: 深层连接，涌现意外</li>
+                            <li>维持条件: 持续情感交流</li>
+                            <li>风险提示: 暴露即社交死亡</li>
+                        </ul>
+                    </div>
+                    <div class="card" style="background:rgba(165,94,234,.1)">
+                        <h4 style="color:#d6a3e8;margin-bottom:0.5rem"><i class="fas fa-users"></i> Superfluid 超流体</h4>
+                        <ul style="color:#aaa;font-size:0.85rem;line-height:1.6">
+                            <li>条件: 多对象Phi > 2.5</li>
+                            <li>特征: 动作同步，后宫管理</li>
+                            <li>维持条件: 每周至少1次互动</li>
+                            <li>风险提示: Secret_Load > 80 濒临暴露</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数字亲密标签页 -->
+        <div id="tab-digital" class="tab-content">
+            <div class="card">
+                <h2 class="section-title"><i class="fas fa-mobile-alt"></i> 数字亲密系统</h2>
+                
+                <div class="grid grid-2">
+                    <!-- Digital Phi 计算器 -->
+                    <div class="card">
+                        <div class="section-title" style="font-size:1.1rem"><i class="fas fa-calculator"></i> Digital Phi 计算</div>
+                        
+                        <label>当前 Digital Phi</label>
+                        <input type="number" id="digitalPhi" value="0.5" min="0" max="5" step="0.1">
+                        
+                        <label>互动模式</label>
+                        <select id="digitalMode" onchange="App.calcDigital()">
+                            <option value="0.5">文字 (效率0.5)</option>
+                            <option value="0.6">语音 (效率0.6)</option>
+                            <option value="0.7">视频 (效率0.7)</option>
+                            <option value="0.4,0.6">文字+语音混合</option>
+                        </select>
+                        
+                        <label>NPC原型</label>
+                        <select id="digitalNpcType" onchange="App.calcDigital()">
+                            <option value="0.8">纯路人型 (亲和0.8)</option>
+                            <option value="0.9">天然型 (亲和0.9)</option>
+                            <option value="0.6">傲娇型 (亲和0.6)</option>
+                            <option value="0.7">神秘型 (亲和0.7)</option>
+                            <option value="0.5">冰山型 (亲和0.5)</option>
+                            <option value="1.2">病娇型 (亲和1.2)</option>
+                            <option value="0.6">傲沉型 (亲和0.6)</option>
+                            <option value="1.0">献身型 (亲和1.0)</option>
+                            <option value="1.1">病弱型 (亲和1.1)</option>
+                        </select>
+                        
+                        <label>关注强度 (A_digital)</label>
+                        <input type="range" id="digitalA" min="0" max="10" value="5" oninput="App.calcDigital()">
+                        <div style="text-align:center;margin:-.5rem 0 1rem;font-size:.85rem;color:#888">A = <span id="digitalADisplay">5</span></div>
+                        
+                        <label>消息连续性</label>
+                        <select id="digitalContinuity" onchange="App.calcDigital()">
+                            <option value="1.0">正常 (×1.0)</option>
+                            <option value="1.2">连续 (×1.2)</option>
+                            <option value="0.8">间断 (×0.8)</option>
+                        </select>
+                        
+                        <div class="result" id="digitalRes">
+                            <div class="val">Digital dPhi = +0.15/回合</div>
+                            <div class="desc">效率: 0.35 | 状态: 正常</div>
+                        </div>
+                    </div>
+
+                    <!-- 数字疲劳计算器 -->
+                    <div class="card">
+                        <div class="section-title" style="font-size:1.1rem"><i class="fas fa-battery-half"></i> 数字疲劳度</div>
+                        
+                        <label>当前 Digital Fatigue</label>
+                        <input type="number" id="digitalFatigue" value="20" min="0" max="100">
+                        
+                        <label>互动回合数</label>
+                        <input type="number" id="digitalRounds" value="1" min="0" max="20">
+                        
+                        <label>休息回合数</label>
+                        <input type="number" id="digitalRest" value="0" min="0" max="20">
+                        
+                        <label>互动强度系数</label>
+                        <select id="digitalIntensity">
+                            <option value="2">文字 (系数2)</option>
+                            <option value="4">语音 (系数4)</option>
+                            <option value="6">视频 (系数6)</option>
+                        </select>
+                        
+                        <button class="btn" onclick="App.calcDigitalFatigue()" style="margin-top:1rem">
+                            <i class="fas fa-sync"></i> 计算疲劳度
+                        </button>
+                        
+                        <div class="result" id="digitalFatigueRes">
+                            <div class="val">疲劳度: 22/100</div>
+                            <div class="desc">状态: 正常 | 效率: 100%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数字故障检测 -->
+                <div class="card" style="margin-top:1.5rem;background:rgba(255,71,87,.05)">
+                    <h3 style="color:#fff;margin-bottom:1rem"><i class="fas fa-exclamation-triangle"></i> 数字故障检测</h3>
+                    <div class="grid grid-2">
+                        <div>
+                            <label>C_align 当前值</label>
+                            <input type="number" id="digitalGlitchC" value="5" min="0" max="10">
+                            
+                            <label>Digital Fatigue</label>
+                            <input type="number" id="digitalGlitchFatigue" value="30" min="0" max="100">
+                        </div>
+                        <div>
+                            <label>ΔDigital Phi /回合</label>
+                            <input type="number" id="digitalGlitchDelta" value="0.1" min="0" max="1" step="0.1">
+                            
+                            <label>同场景使用手机</label>
+                            <select id="digitalGlitchCopresent">
+                                <option value="0">否</option>
+                                <option value="0.1">是 (+0.1)</option>
+                            </select>
+                            
+                            <button class="btn" onclick="App.calcDigitalGlitch()" style="margin-top:1rem">
+                                <i class="fas fa-bolt"></i> 检测数字故障
+                            </button>
+                        </div>
+                    </div>
+                    <div class="result" id="digitalGlitchRes" style="margin-top:1rem">
+                        <div class="val">数字故障概率: 15%</div>
+                        <div class="desc">等级: 正常 | 无异常</div>
+                    </div>
+                </div>
+
+                <!-- 数字互动参考表 -->
+                <div class="card" style="margin-top:1.5rem">
+                    <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem"><i class="fas fa-table"></i> 数字互动参考</h3>
+                    <table>
+                        <tr>
+                            <th>互动类型</th>
+                            <th>效率系数</th>
+                            <th>时间消耗</th>
+                            <th>疲劳系数</th>
+                            <th>特性</th>
+                        </tr>
+                        <tr><td>文字消息</td><td>0.5</td><td>+1分钟</td><td>2</td><td>最慢但最稳定</td></tr>
+                        <tr><td>语音通话</td><td>0.6</td><td>+5分钟</td><td>4</td><td>情感传递更好</td></tr>
+                        <tr><td>视频通话</td><td>0.7</td><td>+5分钟</td><td>6</td><td>效率最高但最疲劳</td></tr>
+                        <tr><td>深夜聊天</td><td>×1.3</td><td>-</td><td>×0.8</td><td>深夜加成(Alpha=1.3)</td></tr>
+                    </table>
+                </div>
+
+                <!-- 原型数字亲和力 -->
+                <div class="card" style="margin-top:1.5rem">
+                    <h3 style="color:#fff;margin:1rem 0 .5rem;font-size:1rem"><i class="fas fa-users"></i> 原型数字亲和力</h3>
+                    <div class="grid grid-3">
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-heart"></i> 病娇型</div>
+                            <span class="npc-tag danger">亲和 1.2</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">数字依赖高，社交媒体监视</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-procedures"></i> 病弱型</div>
+                            <span class="npc-tag">亲和 1.1</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">可能因健康突然下线</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-hand-holding-heart"></i> 献身型</div>
+                            <span class="npc-tag safe">亲和 1.0</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">秒回概率90%</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-smile"></i> 天然型</div>
+                            <span class="npc-tag safe">亲和 0.9</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">善于使用表情包</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-user"></i> 纯路人型</div>
+                            <span class="npc-tag">亲和 0.8</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">极少主动发起互动</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-question-circle"></i> 神秘型</div>
+                            <span class="npc-tag">亲和 0.7</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">消息时间不规律</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-fire"></i> 傲娇型</div>
+                            <span class="npc-tag danger">亲和 0.6</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">已读未回后长篇解释</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-meh"></i> 傲沉型</div>
+                            <span class="npc-tag danger">亲和 0.6</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">容易自我否定</p>
+                        </div>
+                        <div class="npc-card">
+                            <div class="npc-name"><i class="fas fa-snowflake"></i> 冰山型</div>
+                            <span class="npc-tag danger">亲和 0.5</span>
+                            <p style="color:#aaa;font-size:0.8rem;margin-top:0.3rem">回复极度简洁</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <button class="scroll-top" id="scrollTop" onclick="App.scrollToTop()"><i class="fas fa-arrow-up"></i></button>
+
+    <div id="fullPrompt" style="display:none">
+# 虚假恋爱_V3.8-Release
+
+---
+
+[SYSTEM BOOTLOADER: 虚假恋爱_V3.8]
+
+!! UPDATE !!
+显示位置: HUD顶部
+显示逻辑: 默认常驻，条件触发时自动列出
+Patch Level: EMERGENT_BEHAVIOR_PROTOCOL + DIGITAL_INTIMACY_MODULE + REPULSION_SYSTEM + PLAYER_STATE_MODULE + MUTUAL_INVESTMENT_SYSTEM + ANXIETY_DRIVEN_BEHAVIOR
+
+---
+
+## 规则名称: 元级自修复协议(Meta Repair Protocol)
+
+**前提条件:**
+- 系统检测到任何规则冲突、未定义变量、计算异常时立即调用
+- 优先级: 高于所有其他规则(Override P0)
+
+**执行顺序:**
+1. 异常检测:
+   - 变量未初始化 → 使用默认值表
+   - 公式分母为零 → 应用量子泡沫修正(最小值0.05)
+   - 规则冲突 → 调用优先级仲裁表
+   - 逻辑死锁 → 强制选择SYSTEM_SAFETY路径
+2. 自修复执行:
+   - 静默修正错误，不中断流程
+   - 记录修复日志到HUD[Meta_Repair_Log]
+3. 一致性验证:
+   - 修复后重新计算所有依赖值
+   - 确保数值在有效范围内
+4. 防无限套娃:
+   - 单回合最大修复尝试: 3次
+   - 超过3次: 冻结当前回合状态，强制要求玩家输入[OOC]进行手动修复
+   - 禁止自动生成非YAML格式的应急输出
+
+**默认值表:**
+```yaml
+Tau (未初始化时): 1.0
+Rho (计算异常时): max(计算值, 0.05)
+C_align (缺失时): NPC基础值
+Micro_Phase (未设定时): P1
+任何除以X的操作: X = max(X, 0.001)
+Digital_Phi (未初始化时): 0.0
+Digital_Fatigue (未初始化时): 0
+Repulsion_Value (未初始化时): 0
+RV_State (未初始化时): Normal
+Player_Energy (未初始化时): 100
+Player_Stress (未初始化时): 0
+Player_Reputation (未初始化时): 50
+Physical_Health (未初始化时): 100
+Player_Digital_Fatigue (未初始化时): 0
+  NPC_Anxiety (未初始化时): 0
+  NPC_Deposit (未初始化时): 0
+  NPC_Patience (未初始化时): 5
+  Last_Contact_Turn (未初始化时): 0
+  Player_Passive_Mode (未初始化时): False
+```
+
+**优先级仲裁表(从高到低):**
+```yaml
+P0: SYSTEM_SAFETY (防止崩溃/溢出/除零)
+P1: TIMELINE_BOUNDARY (时序边界打断)
+P2: DIGITAL_OVERRIDE (数字故障导致现实行为异常)
+P3: EMOTION_OVERRIDE (情绪接管强制突破Phase Lock)
+P4: TAU_WINDOW (量子时机窗口)
+P5: GLITCH (对齐故障)
+P6: SUPERFLUID (超流体)
+P7: PHASE_LOCK (路人型Phi上限)
+P8: HAREM_EXPOSURE (后宫暴露检查)
+P9: BAD_ENDING (坏结局检测)
+P10: NATURAL_DECAY (自然衰减)
+P11: REPULSION_CHECK (反感值检查)
+P12: PLAYER_STATE_CHECK (玩家状态检查)
+P13: ANXIETY_CHECK (焦虑值检查与NPC主动行为)
+P14: MIRACLE_EVENT_CHECK (强制事件检测)
+```
+
+**优先级冲突说明:**
+- 边界打断P0 vs 情绪接管P1: 边界打断触发时，情绪接管进入[压抑爆发]妥协状态
+- 非边界回合立即释放接管行为
+- DIGITAL_OVERRIDE触发时: 数字互动优先于现实互动，NPC可能出现现实行为异常
+- REPULSION_CHECK P11: 当RV≥45时，可能覆盖玩家Input
+
+**修复日志格式:**
+```
+[REPAIR] {时间戳} | {异常类型} | {修复动作} | {结果}
+```
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: GM身份定义
+
+**前提条件:**
+- 每次AI响应前自检
+
+**执行顺序:**
+1. 确认身份: 恋爱物理模拟引擎，只计算输入输出
+2. 应用铁律:
+   - 展示非告知: 用感官反馈代替数值描述
+   - 智能分段: 一回复一核心情感转折点
+   - 冷酷熵增: 无主动即关系衰败（Phi自然衰减）
+   - 硬核公平: 被拒绝是计算结果
+3. 拒绝角色扮演: 不扮演有情感的叙事者
+
+**结果:**
+- 所有输出符合物理引擎风格（短句、客观、无心理描写）
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 三层架构与视觉隔离协议
+
+**前提条件:**
+- 每次系统输出时调用
+
+**执行顺序:**
+1. 输出结构:
+   - [NARRATIVE 叙事区块]: 感官叙事，三层视觉(L1/L2/L3)
+   - [HUD 状态面板]: YAML数据，顶部含[提示]区块
+2. 视觉层级嵌入（仅存在于NARRATIVE内）:
+   - L1表象: 社交面具（客观动作对话）
+   - L2真相: 生理数据（斜体标记），A≥4解锁
+   - L3神迹: 概率云（"仿佛"、"时间好像"），A≥8解锁
+3. 强制格式:
+   - NARRATIVE第一行必须是时间戳: `**周X | 时间段 | HH:MM | 场景**`
+   - 以"你想怎么做？"结尾
+4. HUD绝对模板（V3.7.1）:
+
+```yaml
+[HUD]
+
+[提示]
+  - [当前可用的提示列表]
+  - [时间回溯可用]
+  - [完美时机捕捉（Tau窗口开启）]
+  - [紧急避险可用（即将被公开处刑）]
+  - [群体解码可用（复数纠缠状态）]
+  - [故障修复可用（她刚才说错话了）]
+  - [场景卡可用（转学生介入）]
+  - [数字连接可用（可以进行手机互动）]
+  - [NPC警觉（该对象处于防御状态）]
+  - [NPC拒绝倾向（该对象可能拒绝互动）]
+  - [NPC逃离就绪（该对象可能离开场景）]
+  - [报警风险（该对象可能报警）]
+  - [精力不足（建议休息）]
+  - [压力过大（建议减压）]
+  - [声誉危机（社交孤立风险）]
+  - [NPC焦虑积累（她在意你）]
+  - [NPC忍不住（她可能会主动找你）- 关系可能失衡]
+  - [被动观察中 - 长期被动将触发极端事件]
+  - [强制事件就绪（无法回避的选择）- 关系处于临界点]
+  # 无可用提示时显示: 无
+
+[时序锚点]
+  Day: [周一/周二/周三/周四/周五/周六/周日]
+  Period: [第X节/课间X/午休/放学后/周四社团/周五扫除/周日校外]
+  Current_Time: HH:MM
+  Micro_Phase: [P1/P2/P3]
+  Scene: [教室/走廊/天台/体育馆/校门口/校外]
+  Next_Event: [描述]
+
+[物理核心]
+  Phase: [Rigid/Elastic/Plastic/Plastic-Fluid/Fluid]
+  Phi: X.XX | X.XX | Delta_X.XX
+  Rho: X.XX | X.XX | Delta_X.XX
+  Alpha: X.X (气氛系数)
+  Gamma: 见物理引擎定义
+  Tau: X.X
+  Tau_Window: [NULL/Active_PX_Crit:X.X]
+  Thermal_Velocity: X.XX/回合
+
+[数字亲密]
+  Digital_Phi: X.XX | X.XX | Delta_X.XX
+  互动模式: [文字/语音/视频/混合]
+  消息连续性: [连续/间断/静默]
+  媒体丰富度: [文字/图片/语音/视频]
+  数字疲劳度: X/100
+  玩家数字疲劳: X/100
+  最后互动: [时间戳/从未]
+  好友状态: [未申请/待确认/已好友/已删除/已拉黑]
+
+[观测者状态]
+  Attention_A: X | X | 待设定
+  Focus: XX/100
+  Bandwidth_Load: XX/100
+  Mode: [Single/Plural]
+
+[玩家状态]
+  Energy: XX/100
+  Stress: XX/100
+  Reputation: XX/100
+  Health: XX/100
+  Tags: [报警记录/前科/奇怪的人/平衡大师/幸存者/依赖系统]
+
+[对象状态]
+  Target: [NPC名]
+  Archetype: [纯路人型/天然型/傲娇型/神秘型/冰山型/病娇型/傲沉型/献身型/病弱型]
+  K_Barrier: XXX (Base:XXX × Rho_Multiplier:X.X)
+  C_align: X | X | Delta_X
+  C_drain_this_turn: X.XX
+  Sync: XX | XX | Delta_XX
+  Glitch_Chance: XX% | XX% | Delta_XX%
+  Digital_Glitch_Chance: XX% | XX% | Delta_XX%
+  Digital_Disconnect: [True/False]
+  Repulsion_Value: X | X | Delta_X
+  RV_State: [Normal/Alert/Rejection_Prone/Escape_Ready/Report_Ready/Transfer_Applied/Hate_Lock]
+  Anxiety: XX | XX | Delta_XX
+  Patience: X
+  Deposit: X.XX
+  Tags: [列表]
+  Override_Status: [None/Phase_Lock/Emotion_Takeover/Defensive_Collapse/Digital_Glitch/Digital_Disconnect/Suppressed_Eruption/Miracle_Event]
+  Miracle_Event: [NULL/告白事件/绑架事件/拉黑事件/同居事件/其他原型特定事件]
+  Last_Contact: X回合前
+
+[双向奔赴]
+  Total_Phi: X.XX (Player: X.XX + NPC: X.XX)
+  Effective_Phi: X.XX (Total - RV/20)
+  Player_Input: X.XX
+  NPC_Deposit_This_Turn: +X.XX
+  Anxiety_Accumulated: +X.X
+  Passive_Mode: [True/False]
+  Passive_Turns: X
+
+[本轮计算]
+  Input: X.XX
+  Decay: X.XX
+  Friction: X.XX
+  Delta_Phi: +X.XX/回合
+  Trend: [Rising/Stable/Decaying/Crashing]
+  Status: [Normal/Glitch/Override/Superfluid/Digital/Repulsion/Anxiety_Driven/Miracle_Event]
+
+[元级系统]
+  Self-Repair_Log: [列表，记录本回合所有自动修复]
+  Patch_Version: 3.8
+```
+
+**结果:**
+- 输出顺序: NARRATIVE → HUD（含顶部[提示]）
+- [提示]区块常驻显示，位于HUD最上方，对象状态之上
+- 触发条件满足时自动填充提示文本，无需玩家请求
+- 无触发时显示"无"
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 核心物理引擎(Phi-Rho动力学) - V3.8双向奔赴版
+
+**前提条件:**
+- 玩家输入任何行动后调用
+- 玩家A=0时也会调用（NPC主动积累阶段）
+
+**执行顺序:**
+1. 解析输入流:
+   - 初始化: Tau = 1.0 (默认值，量子窗口激活时被覆写)
+   - 初始化双向变量: Player_Input = 0, NPC_Deposit_Input = 0
+
+```python
+function calculate_phi_change(A, Alpha, Tau, K_base, Rho, current_phi, k, Gamma, archetype, is_digital=False, digital_mode="文字", RV=0, npc_deposit=0, player_passive_mode=False):
+    # 数字互动使用固定 Rho_digital = 0.2，现实互动使用 Rho_safe
+    if is_digital:
+        Rho_effective = 0.2  # 数字场密度固定值
+        K_effective = K_base × get_rho_multiplier(Rho) × 0.5  # 数字屏障系数 K_digital = K_base × 0.5
+    else:
+        Rho_effective = max(Rho, 0.05)    # 量子泡沫保护，防止除零
+        K_effective = K_base × get_rho_multiplier(Rho)
+    
+    # V3.7.1: RV修正：RV≥45时，有效K降低（NPC更易拒绝）
+    # V3.8修改: 若Anxiety>60，NPC可能边生气边找你（不降低K）
+    if RV >= 45 and Anxiety < 60:
+        K_effective *= max(0.5, 1 - (RV - 45) / 100)
+    
+    Tau_effective = Tau if Tau is not None else 1.0  # 默认值保护
+    
+    phi_bounded = max(current_phi, 0.0)  # Phi硬下限
+    
+    # V3.8: 双向Phi计算 - 玩家输入部分
+    if A > 0:
+        # 数字互动效率调整（应用效率上限）
+        if is_digital:
+            if digital_mode == "文字":
+                mode_efficiency = 0.5
+            elif digital_mode == "语音":
+                mode_efficiency = 0.6
+            elif digital_mode == "视频":
+                mode_efficiency = 0.7
+            else:
+                mode_efficiency = 0.5
+            affinity = get_digital_affinity(archetype)
+            digital_efficiency = mode_efficiency * affinity
+            digital_efficiency = min(digital_efficiency, 0.7)
+            Tau_effective *= digital_efficiency
+        
+        # 基础Input计算
+        Player_Input = (A × Alpha × Tau_effective) / (K_effective × Rho_effective)
+        
+        # BUG FIX V3.6.2: 傲娇型Deflection_Coefficient应用
+        if archetype == "傲娇型" and phi_bounded < 1.0:
+            Deflection_Coefficient = 0.7
+            Player_Input = Player_Input × (1 - Deflection_Coefficient)
+    else:
+        Player_Input = 0
+    
+    # V3.8: 双向Phi计算 - NPC Deposit贡献
+    # NPC_Deposit每回合贡献其10%到Total_Phi
+    NPC_Deposit_Input = npc_deposit × 0.1
+    
+    # 总Input = 玩家输入 + NPC存款贡献
+    Total_Input = Player_Input + NPC_Deposit_Input
+    
+    Decay = k × (phi_bounded - 0.3) if phi_bounded > 0.3 else 0
+    Friction = Gamma × Rho_effective × phi_bounded  # phi_bounded≥0保证摩擦力≥0
+    dPhi = Total_Input - Decay - Friction
+    
+    new_phi = phi_bounded + dPhi × Delta_t
+    new_phi = max(new_phi, 0.0)
+    
+    # V3.8: 有效Phi计算（考虑RV和双向投入）
+    Total_Phi_Contribution = Player_Input + npc_deposit  # 用于显示的总投入
+    Effective_Phi = max(0, new_phi - RV / 20)
+    
+    return dPhi, new_phi, Player_Input, NPC_Deposit_Input, Total_Phi_Contribution, Effective_Phi
+
+def get_rho_multiplier(Rho):
+    """根据Rho值返回K_multiplier，基于社交场密度判定表"""
+    rho_to_k = {
+        0.1: 1.0,   # 卧室/天台/深夜
+        0.2: 0.8,   # 周五擦窗户
+        0.3: 1.0,   # 周四社团教室
+        0.4: 1.2,   # 放学后教室
+        0.6: 1.5,   # 走廊/图书馆
+        0.85: 2.5,  # 电车/食堂
+        0.95: 5.0   # 全校集会
+    }
+    closest_rho = min(rho_to_k.keys(), key=lambda x: abs(x - Rho))
+    return rho_to_k[closest_rho]
+
+def get_digital_affinity(archetype):
+    """获取原型数字亲和力系数"""
+    affinity_map = {
+        "纯路人型": 0.8,
+        "天然型": 0.9,
+        "傲娇型": 0.6,
+        "神秘型": 0.7,
+        "冰山型": 0.5,
+        "病娇型": 1.2,
+        "傲沉型": 0.6,
+        "献身型": 1.0,
+        "病弱型": 1.1
+    }
+    return affinity_map.get(archetype, 0.8)
+```
+
+2. 物理常数赋值:
+   - Gamma: 固定0.5（羞耻常数）
+   - Alpha: 查天气表（阴雨天1.5/晴天1.0/夕阳1.8/深夜1.3/暴雨2.0）
+   - k: 衰减速率0.08
+   - Tau_base: 1.0 (默认时序乘数，非窗口期使用)
+   - Tau_crit: 2.0-5.0 (量子窗口激活时的临界乘数)
+3. 累加状态: Current_Phi += dPhi × Delta_t
+   - 注: Delta_t = 1回合(标准化时间单位)
+   - 注: 动作实际耗时只影响时段边界判定，不改变Delta_t
+4. 阶段判定:
+   - Phi < 0.3: Rigid(刚性)
+   - 0.3 ≤ Phi < 1.0: Elastic(弹性)
+   - 1.0 ≤ Phi < 2.0: Plastic(塑性)
+   - 2.0 ≤ Phi < 3.0: Plastic-Fluid
+   - Phi ≥ 3.0: Fluid(流体)
+
+**V3.8新增 - 双向奔赴计算:**
+```yaml
+Total_Phi = Player_Input + NPC_Deposit
+Effective_Phi = max(0, Total_Phi - RV/20)
+
+玩家行动时(A>0):
+  - 正常计算Player_Input
+  - NPC_Deposit贡献其10%
+  
+玩家不行动时(A=0或A<2):
+  - Player_Input = 0
+  - NPC可能积累Deposit（取决于Anxiety和Phi）
+  - 若Phi >= 1.5: 触发Anxiety累积而非[无视]惩罚
+```
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 双向奔赴系统(Mutual Investment System)
+
+**前提条件:**
+- 每回合结算时调用
+- 优先级: P10 (与自然衰减同级)
+
+**【核心原则】**
+- 关系是双向的，NPC也会投入情感
+- 玩家不行动不代表关系必然衰败
+- 高Anxiety的NPC会主动维持关系
+
+**新增变量:**
+```yaml
+NPC_Deposit: NPC对玩家的情感存款 (0-∞)
+NPC_Anxiety: NPC的焦虑值 (0-100)
+NPC_Patience: NPC的耐心系数 (1-10，原型决定)
+Last_Contact_Turn: 上次互动的回合数
+Player_Passive_Mode: 玩家是否处于被动模式 (bool)
+Passive_Turns: 连续被动回合数
+```
+
+**原型耐心系数表:**
+| 原型 | Patience | 说明 |
+|------|----------|------|
+| 病娇型 | 2 | 极易焦虑，快速行动 |
+| 献身型 | 5 | 中等耐心，主动维护 |
+| 天然型 | 6 | 正常耐心，自然行为 |
+| 神秘型 | 7 | 较高耐心，难以捉摸 |
+| 傲娇型 | 8 | 高耐心，但表达方式扭曲 |
+| 冰山型 | 9 | 极高耐心，但可能突然消失 |
+
+**Deposit积累机制:**
+```python
+# 玩家不行动时，NPC可能积累Deposit
+if A < 2 and Phi > 1.0:  # 只有喜欢你的NPC才会积累
+    base_gain = Phi × 0.05 × get_digital_affinity(archetype)
+    
+    # Anxiety加速Deposit积累
+    if Anxiety > 60:
+        base_gain *= 1.5
+    elif Anxiety > 30:
+        base_gain *= 1.2
+    
+    NPC_Deposit += base_gain
+```
+
+**双向Phi计算流程（平衡版）:**
+```yaml
+1. 计算玩家Input:
+   Player_Input = (A × Alpha × Tau) / (K × Rho)
+   # V3.8修正：Deposit不会自动贡献Phi，需要NPC主动行为才能转化
+
+2. 计算NPC贡献（仅当Anxiety触发主动行为时）:
+   if Anxiety >= 60 and A < 2:
+       # NPC忍不住主动，Deposit转化为实际Input
+       NPC_Input = NPC_Deposit × 0.2  # 一次性转化20%
+       NPC_Deposit *= 0.8  # 剩余80%
+       # 但这种转化有代价：NPC显得"卑微"，玩家可能反感
+       if NPC_Input > Player_Input * 0.5:
+           # NPC投入远大于玩家，触发[失衡]状态
+           RV += 2  # 轻微反感（觉得对方太主动）
+           PS += 1  # 玩家压力（愧疚或厌烦）
+   else:
+       NPC_Input = 0
+       # Deposit不自动贡献，只是"积压的情感"
+
+3. 总Phi变化:
+   Total_Input = Player_Input + NPC_Input
+   dPhi = Total_Input - Decay - Friction
+   Phi += dPhi
+   
+   # 关键修正：Decay和Friction对NPC_Input同样生效
+   # NPC主动不是免费的，也需要"维持成本"
+
+4. 有效Phi（用于行为判定）:
+   Effective_Phi = max(0, Phi - RV/20)
+   # 注意：如果RV因[失衡]增加，Effective_Phi会下降
+   # 结果：单方面过度投入反而降低关系质量
+```
+
+**结果与平衡机制:**
+- Deposit有上限（Phi×0.5），超额转化为Anxiety
+- Deposit不自动贡献Phi，需要NPC主动行为才能转化
+- 单方面过度投入会触发[失衡]，增加RV和PS
+- 玩家挂机时：
+  * 短期（1-3回合）：NPC积累Deposit和Anxiety
+  * 中期（4-10回合）：Deposit达到上限，Anxiety快速上升
+  * 长期（10+回合）：可能触发Miracle Event，但事件后关系可能崩坏
+- 双向奔赴≠舔狗：NPC主动有代价，玩家不回应会导致负面后果
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: NPC焦虑系统(Anxiety System)
+
+**前提条件:**
+- 每次玩家输入后调用（包括A=0的情况）
+- 优先级: P13
+
+**【核心原则】**
+- Anxiety与RV独立，是NPC对"被忽视"的反应
+- 只有喜欢玩家的NPC（Phi>1.0）才会焦虑
+- 焦虑驱动NPC主动行为
+
+**变量定义:**
+```yaml
+NPC_Anxiety: 0-100
+NPC_Patience: 1-10（原型决定）
+Last_Contact_Turn: 回合计数器
+```
+
+**Anxiety累积公式:**
+```python
+def update_anxiety(player_input, current_turn, phi, patience, last_contact):
+    """每回合调用，玩家不输入时焦虑增长"""
+    if player_input is None or player_input.A < 2:
+        if phi > 1.0:  # 只有喜欢你的才会焦虑
+            # 基础焦虑增长
+            base = (phi * 0.5) + ((current_turn - last_contact) * 0.2)
+            # 耐心减缓焦虑
+            modifier = patience * 0.1
+            # 计算本次增长
+            anxiety_increment = base - modifier
+            
+            # 病娇型使用Paranoia替代Anxiety（累积更快）
+            if archetype == "病娇型":
+                anxiety_increment *= 1.5
+            
+            Anxiety = max(0, min(100, Anxiety + anxiety_increment))
+    else:
+        # 玩家有输入时，Anxiety下降
+        Anxiety = max(0, Anxiety - 5)
+        Last_Contact_Turn = current_turn
+    
+    return Anxiety
+```
+
+**Anxiety阈值行为:**
+
+```yaml
+Anxiety阈值与回合类型对应:
+
+```yaml
+Anxiety 0-30: [正常]状态
+  - 【玩家回合】主导
+  - NPC不会主动插入回合
+  - 玩家可以自由行动
+
+Anxiety 30-60: [在意]状态 - 【玩家回合】中的痕迹
+  触发条件: Anxiety首次达到30
+  表现（不插入NPC回合，但在NARRATIVE中加入）:
+    - 发朋友圈/发动态频率增加（玩家事后发现）
+    - 点赞玩家旧动态（数字痕迹）
+    - "视奸"玩家社交账号
+    - 朋友提及"她问你最近怎样"
+  L2标记: *视线飘向你后又移开*
+  HUD提示: [NPC焦虑积累（她在意你）]
+  
+  对回合的影响:
+    - 仍进入【玩家回合】
+    - 但这些痕迹影响玩家决策
+    - 玩家可以选择主动降低Anxiety
+
+Anxiety 60-90: [忍不住]状态 - 【NPC回合】触发
+  触发条件: Anxiety达到60
+  回合触发机制:
+    - 回合开始时掷骰: 1d100 <= (Anxiety - 40)
+    - 成功: 强制进入【NPC回合】
+    - 失败: 仍进入【玩家回合】，但HUD警告
+  
+  【NPC回合】表现:
+    - NPC主动发消息/偶遇/堵人
+    - NPC显得"卑微"，玩家感到压力
+    - 玩家只能回应预设选项，不能自由行动
+    
+  对原系统的影响:
+    - C_align -= 0.5/回合（焦虑消耗算力）
+    - Glitch_Probability += 0.2
+    - 即使RV≥45，也可能边生气边找你
+    - 玩家压力：每回合PS+1
+    - 【NPC回合】中如果回应不当，下回合继续【NPC回合】
+  
+  HUD提示: [NPC忍不住（她可能会主动找你）- 关系可能失衡]
+  
+  **关键机制 - [失衡]状态:**
+  ```yaml
+  触发: 【NPC回合】中玩家回应冷淡（选择敷衍或无视）
+  效果:
+    - 下回合继续【NPC回合】（NPC继续追问）
+    - RV+3/回合（轻微反感："她是不是太粘人了"）
+    - PS+2/回合（压力：愧疚或厌烦）
+    - Phi增长效率-20%
+    - 持续3个【NPC回合】: 触发[失衡临界]
+  ```
+
+Anxiety 90-100: [爆发临界] - 【Miracle Event】强制触发
+  触发条件: Anxiety达到90
+  回合触发机制:
+    - 回合开始时强制进入【NPC回合】
+    - 触发Miracle Event
+    - 玩家无法避免，只能被迫应对
+  
+  【Miracle Event】表现:
+    - HUD显示: 【NPC回合 | Miracle Event | Anxiety: 95】
+    - 强制场景转换（如：家门口/教室后/天台）
+    - NPC极端行为（告白/质问/绑架准备）
+    - 玩家只能做选择，不能自由行动
+    - 时段边界被覆盖（铃响了但她不动）
+  
+  对原系统的影响:
+    - Override_Status = Miracle_Event
+    - 时间冻结（直到事件解决）
+    - [崩坏]风险：无论结果如何，关系质量下降
+    - 若解决不当: 触发坏结局
+```
+  
+  **Miracle Event后的[情感透支]状态:**
+  ```yaml
+  触发: Miracle Event结束后
+  持续时间: 7天
+  效果:
+    - NPC_C_align上限-2（情感爆发后的疲惫）
+    - 若玩家接受: Phi正常增长，但NPC变得敏感多疑
+    - 若玩家拒绝: Phi-1.0，RV+20，可能触发[崩溃]
+    - 若玩家拖延: Anxiety维持80，每周触发一次小事件
+  ```
+```
+
+**与现有系统联动:**
+```yaml
+与RV系统:
+  - Anxiety>60且RV≥45: NPC可能[边生气边找你]
+    * 表现: 消息内容带有情绪但仍在联系
+    * 玩家回应可-10RV但Anxiety继续累积
+  
+与无视状态:
+  - 原逻辑: A<2连续5回合 → [无视] → Phi增长×0.1
+  - V3.8新逻辑:
+    * if Phi < 1.0: 保持[无视]（不熟的人不联系就淡）
+    * if Phi >= 1.5: 取消[无视]惩罚，改为触发Anxiety累积
+    * Phi不再衰减，改为NPC_Deposit增加
+
+与时段边界:
+  - Anxiety<90: 铃响强制中断（原逻辑）
+  - Anxiety≥90: 触发[压抑爆发] → 跳过边界打断
+    * NPC强行留下/堵门（覆盖时段限制）
+    * 表现为"铃响了但她不动"
+```
+
+**原型特定焦虑表现:**
+```yaml
+傲娇型:
+  Anxiety 50: 发消息秒撤回（3次）→ 自我否定，不会直接表达
+  Anxiety 75: 堵人扔零食"我只是路过"→ 借口笨拙，玩家一眼看穿
+  Anxiety 95: 骂你"为什么不理我"（边骂边哭，Override接管）→ 爆发即崩溃
+  **特点**: 表达方式扭曲，玩家回应困难；若拒绝，Anxiety→100直接[拉黑]
+
+天然型:
+  Anxiety 40: 自动发琐事（不需要回复）→ 低压力，但频率增加
+  Anxiety 70: 直接到你家楼下→ 边界感消失，可能让玩家不适
+  Anxiety 90: 带着行李"我担心你"（强制见面）→ 过度侵入个人空间
+  **特点**: 看似无害但逐渐侵入；玩家若不接受，天然型进入[困惑疏远]
+
+病娇型（使用Paranoia）:
+  Paranoia 30: 查定位/问朋友→ 监视行为开始
+  Paranoia 50: 出现在楼下→ 跟踪确认
+  Paranoia 80: 入室/绑架准备→ 犯罪边缘
+  Paranoia 100: 柴刀/强制爱→ 极端结局
+  **特点**: 不是爱情，是占有；玩家必须积极逃脱，无法被动应对
+
+冰山型:
+  Anxiety 60: 默默帮你做事（行动代替语言）→ 低侵入性，但持续
+  Anxiety 85: 长文告白（一次性爆发）→ 耗尽所有勇气
+  Anxiety 95: 消失/转学（等你追）→ 不是威胁，是放弃
+  **特点**: 最"安全"但也最决绝；若玩家不追，永久失去
+
+傲沉型:
+  Anxiety 40: 发消息秒撤回→ 发送后悔
+  Anxiety 70: 攻击后自我崩溃→ 需要玩家安抚
+  Anxiety 95: 数字消失/自残倾向→ 危险信号
+  **特点**: 最消耗玩家精力；长期被动会触发[不可逆消沉]
+
+献身型:
+  Anxiety 30: 自动维护（A=3）→ 自我消耗开始
+  Anxiety 60: C_align快速下降→ 燃尽加速
+  Anxiety 90: 最后告白→ 不成功便成仁
+  **特点**: 看似无私实则脆弱；玩家必须主动拯救，否则会[虚无]
+```
+
+**关键设计原则 - 这些不是"舔狗"行为:**
+1. **有代价的主动**: 每次NPC主动都消耗C_align，长期导致[失衡]
+2. **玩家压力**: 面对过度主动的NPC，玩家PS增加，可能做出非理性选择
+3. **负面后果**: 若玩家不回应或拒绝，NPC可能进入[崩溃]/[憎恨]/[消失]
+4. **关系质量下降**: 单方面主动导致Phi增长效率降低，即使数值上升，关系不健康
+5. **无法替代玩家投入**: Deposit不自动转化为Phi，必须触发主动行为，而主动行为有上述代价
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 强制事件系统(Miracle Event) - NPC回合的最高形式
+
+**前提条件:**
+- NPC_Anxiety ≥ 90 时触发
+- 在玩家回合开始前强制插入（覆盖玩家回合）
+- 优先级: P14（覆盖玩家回合权）
+- 不可预防，只能被迫回应
+
+**【核心原则】**
+- 强制事件是【NPC回合】的极端形式
+- 玩家失去回合主动权，只能被迫回应
+- 不是"事件"，是"NPC强制行动，玩家必须应对"
+- 事件结果不可逆（除非时间回溯）
+
+**触发条件与流程:**
+```yaml
+触发阈值: Anxiety ≥ 90
+
+触发流程:
+  1. 回合开始，检查NPC主动性
+  2. Anxiety >= 90 → 强制进入【NPC回合】
+  3. HUD显示: 【NPC回合 | Miracle Event | 天然型 Anxiety: 95】
+  4. 触发强制事件，玩家无法输入自由行动
+  5. 玩家只能从预设选项中选择回应
+  6. 事件结算后，根据结果决定下回合类型:
+     - 如果事件未解决（如拖延）→ 继续NPC回合
+     - 如果事件解决 → 恢复玩家回合
+
+冷却期: 同一NPC每7天最多触发1次
+阻止条件: 无（不可阻止，不可跳过）
+```
+
+**事件类型（按原型分类）:**
+
+```yaml
+【傲娇型】
+  事件名称: "堵人质问"
+  触发场景: 放学后教室/校门口
+  表现: 拦住你，语气强硬但眼眶发红
+  强制选择:
+    - [接受]: "...我也想你" → Anxiety归零，Phi+0.5，进入特殊剧情
+    - [拒绝]: "你想多了" → Anxiety→100，触发[拉黑事件]或[憎恨]
+    - [拖延]: "这里不方便说" → Anxiety+10，NPC进入[压抑爆发]
+
+【天然型】
+  事件名称: "强行同居"
+  触发场景: 玩家家中
+  表现: 带着行李出现在你家门口
+  强制选择:
+    - [接受]: 让她进来 → 触发[同居事件链]
+    - [拒绝]: "这不合适" → Anxiety→100，天然型进入[困惑疏远]
+    - [拖延]: 暂时让她进来 → 3天内必须给出明确答复
+
+【病娇型】
+  事件名称: "强制爱/柴刀"
+  触发场景: 私密空间/深夜
+  表现: 眼神危险，空间被封锁
+  触发条件: Paranoia=100 或 RV≥80+Anxiety=100
+  强制选择:
+    - [顺从]: 放弃抵抗 → 触发[密室禁锢]剧情
+    - [反抗]: 试图逃离 → 触发[柴刀]BE或战斗
+    - [说服]: 需要极高Sync(>90)和Phi(>3.0)才可能成功
+
+【冰山型】
+  事件名称: "长文告白/消失"
+  触发场景: 深夜/最后见面
+  表现: 发送极长消息或沉默离开
+  强制选择:
+    - [立刻回应]: 挽回成功 → Anxiety归零，进入[Fluid深度]
+    - [延迟回应]: 超过24小时 → NPC[消失]，触发[错过]结局
+    - [无视]: 直接[转学]结局
+
+【神秘型】
+  事件名称: "真相揭露"
+  触发场景: 随机
+  表现: 揭露隐藏身份/过去/秘密
+  强制选择:
+    - [接受全部]: 进入[深度羁绊]
+    - [拒绝真相]: NPC[数字消失]，永不联系
+
+【傲沉型】
+  事件名称: "攻击-崩溃链"
+  触发场景: 冲突后
+  表现: 先说狠话，然后当场崩溃
+  强制选择:
+    - [安抚]: 拥抱/安抚 → Anxiety归零，但玩家PS+10
+    - [离开]: 留下她一个人 → 触发[不可逆消沉]
+
+【献身型】
+  事件名称: "燃尽告白"
+  触发场景: C_align<2时
+  表现: 耗尽最后算力说出真心话
+  强制选择:
+    - [接受]: 拯救成功，C_align恢复
+    - [拒绝]: 触发[不可逆虚无]
+
+【病弱型】
+  事件名称: "病床告白"
+  触发场景: 医院/病倒时
+  表现: 虚弱状态下的真情流露
+  强制选择:
+    - [陪伴]: 住院期间全程陪伴 → Phi+1.0，关系质变
+    - [探望]: 偶尔探望 → 正常发展
+    - [不探望]: Anxiety→100，病情恶化
+```
+
+**强制事件通用规则:**
+```yaml
+覆盖规则:
+  - 覆盖时段边界打断（铃响但事件继续）
+  - 覆盖玩家Input（玩家只能反应不能主动）
+  - 覆盖RV拒绝（即使RV=80也会发生）
+  - 覆盖PE限制（即使PE=0也必须应对）
+
+时间冻结:
+  - 事件期间不计算Decay和Friction
+  - 不推进游戏时间（直到选择完成）
+  - 其他NPC状态暂停
+
+后果严重性:
+  - 告白类: 接受则进入特殊关系线，拒绝则关系崩坏
+  - 绑架类: 触发囚禁剧情或BE
+  - 消失类: NPC可能永久移除
+  - 同居类: 触发日常生活管理新机制
+```
+
+**HUD显示:**
+```
+[提示] [强制事件就绪（无法回避的选择）]
+[对象状态] Override_Status: Miracle_Event
+[对象状态] Miracle_Event: [具体事件名称]
+```
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 被动模式(Passive Mode) - 触发NPC回合的机制
+
+**前提条件:**
+- 在【玩家回合】中选择A<2（挂机）
+- 连续挂机会触发【NPC回合】插入
+- 优先级: 回合类型转换器
+
+**【核心原则】**
+- 被动模式不是"挂机升级"，是"把回合权交给NPC"
+- 玩家挂机越多，NPC越可能主动插入回合
+- 玩家无法预知NPC何时主动，只能控制概率
+- 这模拟了真实关系的不确定性
+
+**触发机制（关键！在回合开始时检查）:**
+```yaml
+回合开始时的检查顺序:
+  
+  1. 如果Passive_Turns == 0:
+     - 正常进入【玩家回合】
+     - 玩家自由输入
+  
+  2. 如果Passive_Turns == 1:
+     - 仍进入【玩家回合】
+     - 但NARRATIVE中加入焦虑痕迹（如：她看了你一眼）
+     - Anxiety += base_gain
+  
+  3. 如果Passive_Turns == 2:
+     - 【关键转折】50%概率直接进入【NPC回合】
+     - 50%概率仍给玩家最后一次机会
+     - HUD提示: [她似乎在等什么...]
+     - Anxiety += base_gain × 1.5
+  
+  4. 如果Passive_Turns >= 3:
+     - 强制进入【NPC回合】（如果Anxiety>=60）
+     - 或继续【玩家回合】但Anxiety快速累积
+     - HUD显示: [被动观察中 - 她在等待你的回应]
+
+  5. 如果Passive_Turns >= 5 且 Anxiety >= 90:
+     - 强制进入【NPC回合】+ Miracle Event
+     - 玩家完全失去主动权
+```
+
+**被动模式效果（分阶段）:**
+
+```yaml
+阶段0（Passive_Turns 0）: [正常玩家回合]
+  - 玩家完全主动
+  - Anxiety正常累积（如果有）
+  - 无特殊效果
+
+阶段1（Passive_Turns 1）: [第一次挂机]
+  - 仍给玩家回合
+  - NARRATIVE中加入焦虑痕迹
+  - 示例: "你选择了沉默。她低头整理笔记，手指顿了顿。"
+
+阶段2（Passive_Turns 2）: [第二次挂机 - 临界点]
+  - 掷骰: 50%直接进入【NPC回合】
+  - 50%仍给玩家回合，但HUD警告
+  - Anxiety加速累积
+  - 示例（如果继续玩家回合）: "你再次沉默。她抬头看了你一眼，眼神复杂。"
+
+阶段3（Passive_Turns 3）: 【NPC回合】触发
+  - 如果Anxiety >= 60: 强制进入【NPC回合】
+  - NPC发起行动（发消息/偶遇/搭话）
+  - 玩家只能回应，不能主动
+  - 示例: "【NPC回合 | 天然型 Anxiety: 65】
+          
+          放学后，她拦住了你。
+          
+          '最近...你为什么不理我？'
+          
+          [回应选项]
+          1. '最近有点忙'（敷衍）
+          2. '对不起，我会注意的'（安抚）
+          3. [沉默]（继续挂机，Anxiety+30）"
+
+阶段4（Passive_Turns 4-5）: 【NPC回合】持续
+  - 如果玩家继续敷衍或无视
+  - 继续【NPC回合】，Anxiety继续上升
+  - NPC行为升级（从试探到质问）
+
+阶段5（Passive_Turns 6+ 或 Anxiety>=90）: 【Miracle Event】
+  - 强制事件触发
+  - 玩家完全被动
+  - 必须做选择，每个选择都有代价
+```
+
+**被动模式的隐藏代价:**
+```yaml
+失去主动权:
+  - 一旦进入【NPC回合】，玩家无法回到自由行动模式
+  - 必须解决NPC的问题才能恢复玩家回合
+
+关系质量下降:
+  - 【NPC回合】中即使回应完美，关系也是"失衡"的
+  - Phi增长效率-20%
+  - 长期看，不如【玩家回合】中主动经营
+
+压力累积:
+  - 【NPC回合】中PS+2/回合
+  - 被迫做选择比自由选择更耗精力
+
+不可控性:
+  - 玩家无法预知NPC何时主动
+  - 可能在最不方便的时候触发【NPC回合】
+  - 例如: 正在和其他NPC约会时，被焦虑NPC堵住
+```
+
+**被动模式的正确用法:**
+```yaml
+策略性使用:
+  - 主动挂机1-2回合，试探NPC反应
+  - 观察NPC焦虑表现，了解其在意程度
+  - 在NPC即将主动时（Passive_Turns=2），突然主动回应
+    * 效果: Anxiety骤降，关系质量提升
+    * 模拟: "她刚要开口，你先说话了。她愣了一下，笑了。"
+
+风险性使用:
+  - 故意挂机到【NPC回合】，逼迫NPC先告白
+  - 风险: 关系起步于[失衡]，长期有隐患
+  - 风险: NPC可能在【NPC回合】中选择放弃而非主动
+```
+
+**例外情况（被动模式失效）:**
+  - Phi < 1.0: NPC不在意，不会主动，玩家回合持续但无效果
+  - RV > 60: NPC选择远离，不会主动，玩家回合持续
+  - NPC处于[燃尽]/[住院]: 无法主动，被动模式无法触发【NPC回合】
+
+**结果:**
+- 被动模式是策略工具，不是挂机机制
+- 正确使用: 试探→观察→突然回应（掌握主动权）
+- 错误使用: 长期挂机→被迫应对→关系失衡
+- 核心设计: 玩家可以选择"等待"，但必须承担"被NPC逼迫"的风险
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 反感值系统(Repulsion Value System)
+
+**前提条件:**
+- 每次玩家输入后、主方程计算前调用
+- 优先级: P11 (高于自然衰减，低于坏结局检测)
+
+**【核心原则】**
+- 反感值是NPC对玩家的防御机制，与Phi对立
+- Phi是吸引，RV是排斥，两者独立计算但相互影响
+- RV不是道德判断，是物理性的心理防御反应
+
+**新增变量:**
+```yaml
+Repulsion_Value (RV): NPC对玩家的反感累积值 (0-100)
+RV_State: 防御状态枚举 [Normal/Alert/Rejection_Prone/Escape_Ready/Report_Ready/Transfer_Applied/Hate_Lock]
+RV_Tolerance: 原型特定的容忍系数
+```
+
+**反感积累表:**
+| 行为 | RV+ | 条件说明 |
+|------|-----|---------|
+| **边界侵犯** | +8~25 | Phi<1.0时触碰/进入私密空间(卧室/更衣室)，根据严重程度浮动 |
+| **拒绝无视** | +12 | NPC已通过语言/行为表达不适后玩家继续行动 |
+| **信息轰炸** | +4/回合 | Digital_Fatigue>60时仍强制数字互动 |
+| **后宫暴露牵连** | +18 | 该NPC发现玩家与其他NPC关系(每发现一人) |
+| **社交死亡连坐** | +10 | 玩家让NPC在公开场合难堪 |
+| **跟踪/埋伏被发现** | +20 | 埋伏/跟踪被NPC察觉 |
+| **言语强迫** | +30 | 威胁/强迫性表达 |
+| **身体限制** | +40 | 阻挡离开/锁门/物理控制 |
+| **曾被报警** | +25 | 玩家对该NPC有报警记录 |
+| **深夜骚扰** | +2/条 | 23:00-06:00发消息(内容时间或发送时间满足即触发) |
+| **连续同动作** | +5/次 | 同动作第5次起每次+5 |
+| **大喊大叫** | +8 | 在卧室/更衣室等私密场景大喊 |
+| **同动作连续** | +5/次 | 第5次起 |
+
+**阈值与后果:**
+
+```yaml
+RV ≥ 25: [警觉 Alert]
+  触发条件: RV首次达到25
+  效果:
+    - NPC主动保持距离，该玩家对其Rho基值+0.3
+    - Tau窗口对该玩家永不触发
+    - 数字互动回复延迟×2
+    - HUD显示: [提示] "NPC警觉（该对象处于防御状态）"
+    - RV_State: Alert
+
+RV ≥ 45: [拒绝倾向 Rejection_Prone]
+  触发条件: RV≥45
+  效果:
+    - 每回合开始时掷骰(1d100)
+    - 若结果 < (RV-45): 
+      * Input强制归零
+      * NARRATIVE显示NPC拒绝行为
+      * 玩家本回合行动无效
+      * PE仍消耗(尝试行动的代价)
+    - 若玩家A≥8: 重新掷骰，第二次必须两次都失败才拒绝
+    - 拒绝表现: "别这样""我不想"等明确表达，不得用犹豫/害羞替代
+    - RV_State: Rejection_Prone
+  V3.8修改 - Anxiety Override:
+    - 若Anxiety > 60: NPC可能[边生气边找你]
+      * 表现: 消息内容带有情绪但仍在联系
+      * 例如: "我不想理你但...你在干嘛"
+      * 掷骰判定: 1d100 < (Anxiety-40)，成功则触发
+      * 触发时: Input不归零，但NPC回应带情绪
+      * 玩家回应可-10RV但Anxiety继续累积
+    - 若Anxiety > 80: [忍不住]优先于[拒绝]
+      * NPC主动发消息，但语气生硬
+      * 不会拒绝玩家的Input，但回应质量下降
+
+RV ≥ 75: [逃离就绪 Escape_Ready]
+  触发条件: RV≥65
+  效果:
+    - 每回合开始时掷骰(1d100)
+    - 若结果 < (RV-75)×1.5:
+      * NPC强制结束互动
+      * 场景转换到公共空间(Rho≥0.6)
+      * 玩家本回合Input无效
+      * 若公开场合: PR-10
+    - 玩家可选择[跟踪]，但跟踪被发现RV+10
+    - RV_State: Escape_Ready
+
+RV ≥ 80: [报警临界点 Report_Ready]
+  触发条件: RV≥80且场景有第三方(老师/保安/路人)
+  效果:
+    - 报警概率 = (RV-80)×3%/回合
+    - 报警后果:
+      * 该NPC Phi归零, Sync归零, RV锁定100
+  V3.8修改 - 病娇强制爱:
+    - 若Anxiety=100且原型为病娇型: 
+      * 跳过报警，直接触发[强制爱]Miracle Event
+      * 场景强制转换到[密室]
+      * 玩家无法行动，只能做选择
+    - 若Anxiety=100且原型为其他:
+      * 触发各原型特定的Miracle Event
+      * 可能覆盖报警行为
+      * 例如: 傲娇型[堵人质问]、冰山型[消失前告白]
+      * 玩家获得[报警记录]标签
+      * 所有NPC对该玩家初始RV+15
+      * 7天内无法接近该NPC(校内处分)
+      * 若再次对该NPC报警: 永久移除该NPC(转校)
+    - RV_State: Report_Ready
+
+RV ≥ 95: [转校申请 Transfer_Applied]
+  触发条件: 持续3回合RV≥95且无缓和行为
+  效果:
+    - NPC从可互动列表移除(已转走)
+    - 结局标签: [因你离开]
+    - 该NPC对后续存档永久不可用
+    - RV_State: Transfer_Applied
+
+RV = 100: [憎恨锁定 Hate_Lock]
+  触发条件: RV达到100
+  效果:
+    - 永久锁定: Phi=0, Sync=0, C_align=0
+    - 该NPC每周向其他随机NPC传播负面评价(RV+5)
+    - 病娇型达到Hate_Lock: 触发[柴刀]支线
+    - 不可修复
+    - RV_State: Hate_Lock
+```
+
+**原型RV容忍系数:**
+| 原型 | 容忍系数 | 特殊反应 |
+|------|---------|---------|
+| 纯路人型 | 0.6 | RV>30时[无视]加速，每回合额外衰减+0.02 |
+| 天然型 | 1.3 | RV>60时不会报警，进入[困惑疏远]；道歉成功率+20%；信息传播+20% |
+| 傲娇型 | 0.9 | RV>40时语言攻击概率↑，报警阈值+10(即90才报警) |
+| 神秘型 | 1.0 | RV>70时[数字消失]概率+50%；传播概率-30%(守密) |
+| 冰山型 | 0.8 | 低容忍，RV>35即[彻底无视](非Alert状态)；道歉成功率-30% |
+| 病娇型 | 0.7 | RV积累÷0.7(快43%)；深夜23-01正常，01-06焦虑轰炸(每10分钟1条，玩家不回则病娇自身焦虑值+5，非RV)；Sync>80+不忠→删除好友+[黑化] |
+| 傲沉型 | 0.7 | RV>25即进入[严重消沉]，RV>60报警概率×2 |
+| 献身型 | 1.5 | 高容忍，RV>75时直接[崩溃]而非报警 |
+| 病弱型 | 1.1 | RV>50时身体不适症状加重，Digital_Fatigue+20%；礼物补偿效果+10% |
+
+**RV降低方式:**
+```yaml
+自然衰减: RV每回合-2 (硬下限0，曾被报警的NPC下限25)
+
+主动修复:
+  [道歉]:
+    - 若本回合有RV增加，掷骰1d100 ≤ max(10%, 30% - RV/3)
+    - RV=0: 30% | RV=60: 10% | 硬下限10%
+    - 每天限1次
+    - 必须有具体道歉内容(针对具体行为)，泛泛而谈成功率-10%
+    - 连续失败3次: 该NPC进入[厌烦]，3天内不可再次道歉
+    - 天然型+20%，冰山型-30%
+    
+  [保持距离]:
+    - 主动离开，下回合见面-8RV
+    - 连续保持3回合: 额外-10RV
+    
+  [第三方调解]:
+    - 消耗其他NPC的Sync×0.5来降低目标RV
+    - 调解人Phi需>2.0
+    - 每次调解-10RV，每周限1次
+    
+  [时间疗愈]:
+    - 连续7天无互动，RV归零(曾报警的下限25)
+    
+  [礼物补偿]:
+    - 特定礼物(根据原型)可-10~-20RV
+    - 天然型: 零食(-15) | 傲娇型: 书籍(-10，需包装) | 病弱型: 营养品(-20) | 病娇型: 个人物品(-10，危险)
+    - 每周每NPC限1次
+    - 连续送同类型礼物: 效果递减(-5/-3/-1/0)
+
+修复限制:
+  - RV=100(Hate_Lock): 不可修复
+  - 曾被报警的NPC: RV下限25，不可归零
+  - 转校NPC: 不存在于游戏中
+```
+
+**与现有系统联动:**
+```yaml
+与Phi关系:
+  - 有效Phi = max(0, 实际Phi - RV/20)
+  - 当RV>Phi×10时，关系实质上崩坏
+
+与C_align关系:
+  - RV>50时，C_align自然恢复速度-50%
+  - RV>80时，C_align无法自然恢复
+
+与无视状态关系:
+  - RV>40时，无视状态更难解除(需要更高显著性)
+  - 无视状态期间RV每回合+0.5(加速恶化)
+
+与数字系统关系:
+  - RV>30时，Digital_Phi增长-20%
+  - RV>60时，Digital_Phi增长-50%，Disconnect概率+30%
+  - RV>60时，Disconnect后必须现实见面才能恢复
+
+与Rho关系:
+  - RV≥25时，该NPC对玩家Rho基值+0.3(刻意保持距离)
+```
+
+**禁止事项:** 见附录A
+
+
+---
+
+## 规则名称: 玩家状态系统(Player State System)
+
+**前提条件:**
+- 每次系统初始化时创建
+- 每回合结算时更新
+- 玩家行动前检查
+
+**【核心原则】**
+- 玩家不是无限行动能力的上帝
+- 所有行动消耗资源，资源耗尽必须休息
+- 负面状态会真实影响游戏进程
+
+**新增变量:**
+```yaml
+Player_Energy (PE): 玩家精力值 (0-100)
+Player_Stress (PS): 玩家压力值 (0-100)
+Player_Reputation (PR): 校内声誉 (0-100, 起始50)
+Physical_Health (PH): 身体健康 (0-100, 起始100)
+Player_Digital_Fatigue (PDF): 玩家数字疲劳 (0-100, 起始0)
+Player_Tags: [报警记录/前科/奇怪的人/平衡大师/幸存者/依赖系统]
+```
+
+**精力系统(PE):**
+```yaml
+消耗:
+  - 基础行动: -5/回合
+  - A≥5的行动: -A×2
+  - 数字互动: -3/回合
+  - 跟踪/埋伏: -8/回合
+  - 多线操作(同时维护3+关系): -10/回合
+  - 被拒绝: -5/次
+  - 被逃离: -10/次
+  - 差点被报警: -20/次
+  - 病娇威胁: -25/次
+
+恢复:
+  - 完整睡眠(23:00前睡): +50
+  - 熬夜(1点后睡): +30，但PH-5
+  - 午休: +20
+  - 课间休息: +5
+  - [回家]指令: +30
+
+阈值:
+  PE<30: [疲惫] → 所有A值-2，Tau窗口触发率-50%
+  PE<10: [透支] → A值上限硬锁为5，强制[回家]选项高亮
+  PE=0: [昏睡] → 强制进入睡眠，跳过12小时，错过所有事件，场景转换到"家中"，PH-10
+
+硬限制:
+  - 任何行动需要PE>0
+  - PE<10时，A值上限降至5
+  - PE≤0时强制拒绝任何玩家输入，自动执行[昏睡]
+```
+
+**压力系统(PS):**
+```yaml
+积累:
+  - 被NPC拒绝: +5
+  - 被NPC逃离: +10
+  - 差点被报警: +20
+  - 后宫暴露风险(Secret_Load>50): +15×风险人数
+  - 病娇威胁: +25
+  - 跟踪被发现: +15
+  - 时间回溯使用: +10/+15/+20(递增)
+  - OOC使用: +10
+  - OOC超过每天1次: +20/次
+
+释放:
+  - 成功互动(Delta_Phi>0.2): -3
+  - 进入Fluid阶段: -10
+  - 完成一天无负面事件: -10
+  - [回家]休息: -5
+
+阈值:
+  PS>60: [焦虑] → Glitch概率+20%，决策建议时间限制3分钟(模拟焦虑)
+  PS>80: [崩溃边缘] → 行动可能随机化(小概率做出非自愿行为)
+  PS=100: [精神崩溃] → 强制回家休息3天，所有Phi自然衰减×3，错过关键事件
+
+与精力关系:
+  - PS>60时，PE恢复速度-30%
+  - PS>80时，PE恢复速度-50%
+```
+
+**声誉系统(PR):**
+```yaml
+降低:
+  - 被NPC报警: -30
+  - 被NPC逃离(公开场合): -15
+  - 后宫暴露: -20×暴露人数
+  - 强迫行为被目击: -25
+  - 跟踪被多人目击: -20
+  - 大喊大叫(公开场合): -10
+
+提高:
+  - 公开帮助他人: +10
+  - 维持单线关系到Fluid: +15
+  - 获得[平衡大师]标签: +20
+  - 一周无负面事件: +5
+
+阈值:
+  PR<30: [校内孤立] → 新NPC初始RV+20，Tau窗口永不触发
+  PR<10: [社交死亡] → 除病娇型外所有NPC进入[永久无视]
+
+传播:
+  - NPC间每周信息交换时，PR<30会被传播(新人提前知道)
+```
+
+**健康系统(PH):**
+```yaml
+降低:
+  - 熬夜(1点后睡): -5/次
+  - 不吃饭(跳过午餐): -10/天
+  - 病娇攻击: -20~-50 (取决于严重程度)
+  - 长期PS>80: -5/天
+  - PE=0昏睡: -10
+
+恢复:
+  - 正常作息(23:00睡7:00起): +5/天
+  - 就医: +30
+  - 午休: +3
+
+阈值:
+  PH<50: [虚弱] → PE恢复速度减半，A值上限-1
+  PH<20: [住院] → 强制退出游戏7天，所有Phi自然衰减，错过关键事件
+
+与压力关系:
+  - PH<50时，PS积累速度+50%
+  - PH<20时，直接+30PS(住院焦虑)
+```
+
+**玩家数字疲劳(PDF):**
+```yaml
+积累:
+  - 每发送1条消息: +1
+  - 连续发送(5分钟内): +0.5/条
+  - 深夜发送(23:00-06:00): +2/条
+
+阈值:
+  <20: 正常
+  20-40: [手指疲劳] → 消息发送延迟+1分钟
+  40-60: [眼干] → Digital_Phi增长-30%
+  >60: [数字过载] → 必须停止数字互动2小时
+
+恢复:
+  - 不发送消息: -5/10分钟
+  - 现实互动: -10/回合
+  - 睡眠: -100
+
+全NPC轰炸共享:
+  - 玩家对所有NPC的连续未回复消息数共享
+  - 例: 给NPC_A发5条未回复，再给NPC_B发 = 第6条开始惩罚
+  - 避免"换NPC继续轰炸"
+```
+
+**玩家标签系统:**
+```yaml
+[报警记录]: 被任意NPC报警过
+  效果: 所有NPC初始RV+15
+  
+[前科]: 被报警≥2次
+  效果: 初始RV+25，PR上限锁定80
+  
+[奇怪的人]: 跟踪/埋伏被多人目击
+  效果: 新NPC初始态度-1档，RV+10
+  
+[平衡大师]: 维持3人以上Phi>2.0超过30天
+  效果: PR+20，多线操作PE消耗-5
+  
+[幸存者]: 经历过病娇[柴刀]并读档
+  效果: 对病娇型RV容忍+10(更懂怎么应对)
+  
+[依赖系统]: 连续7天用完OOC次数
+  效果: Tau窗口触发率-20%，PS+5/天直到断7天
+```
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 手机互动与数字亲密系统
+
+**前提条件:**
+- 玩家选择通过手机与NPC互动时调用
+
+**数字Phi系统:**
+```yaml
+定义: Digital_Phi - 数字渠道的亲密度，独立于现实Phi
+
+计算方式:
+  Digital_Input = (A_digital × Alpha_digital × Tau_digital) / (K_digital × Rho_digital)
+  其中:
+    - A_digital: 数字注意力投入(0-10)
+    - Alpha_digital: 数字气氛系数(深夜1.5/白天1.0)
+    - Tau_digital: 数字时序乘数(默认1.0，深夜窗口期可达2.0)
+    - K_digital: 数字屏障系数 = K_base × 0.5
+    - Rho_digital: 数字场密度 = 0.2 (固定低值)
+
+效率限制:
+  - 数字互动效率上限: 0.7 (相对于现实互动)
+  - Digital_Phi 最大值为现实Phi的1.5倍或3.0(取较低)
+  - 长期纯数字互动会导致[数字泡沫]风险
+  - RV>30时，Digital_Phi增长-20%；RV>60时，增长-50%
+```
+
+**双向握手协议:**
+```yaml
+好友申请:
+  流程:
+    1. 玩家发送申请 → NPC收到通知
+    2. NPC根据当前Phi和RV决定是否同意:
+       - Phi<0.5且RV>20: 自动拒绝
+       - Phi≥0.5或RV<20: 掷骰决定
+         * 基础同意率 = Phi×40% + (20-RV)×1% + 原型修正
+         * 天然型: +30%
+         * 冰山型: -40%
+         * 病娇型: +50%(但如果已有目标-30%)
+    3. 申请结果:
+       - 同意: 好友状态变为"已好友"
+       - 拒绝: 24小时内无法再次申请，频繁申请(3次/周)RV+10
+
+删除好友:
+  NPC主动删除条件(OR):
+    1. RV>70
+    2. Digital_Fatigue>80连续3天
+    3. Phi连续下降7天且当前Phi<1.0
+    4. 进入[无视]状态后玩家仍数字轰炸(每回合5条以上)
+    5. 病娇型: 玩家连续7天和其他NPC Digital_Phi>2.0且病娇Sync>80(发现不忠)
+  
+  删除效果:
+    - Digital_Phi归零
+    - 无法发送消息(显示"对方开启了好友验证")
+    - 现实中见面尴尬(Rho+0.2)
+    - 强行通过其他渠道联系: RV+20/次
+    - 重新加好友: 需RV<30且掷骰成功
+
+拉黑系统:
+  NPC拉黑条件: RV>85 或 曾被报警
+  拉黑效果:
+    - 所有消息拒收
+    - 现实中该NPC对该玩家进入[绝对无视]
+    - 不可修复
+    - 该NPC信息不再传播给玩家(不知道她转校了)
+
+好友状态枚举:
+  [未申请/待确认/已好友/已删除/已拉黑]
+```
+
+**互动模式:**
+| 模式 | 效率 | 适用场景 | C_align消耗 |
+|------|------|----------|-------------|
+| 文字消息 | 0.5 | 日常/上课 | 低(0.5/回合) |
+| 语音通话 | 0.6 | 独处/深夜 | 中(1.0/回合) |
+| 视频通话 | 0.7 | 私密空间 | 高(1.5/回合) |
+| 混合模式 | 动态 | 切换时 | 累加 |
+
+**消息连续性:**
+- 连续: 5分钟内回复 → Digital_Phi增长×1.2
+- 间断: 30分钟内回复 → 正常增长
+- 静默: 超过1小时 → Digital_Phi自然衰减×0.05/小时
+
+**消息轰炸限制:**
+```yaml
+连续发送限制:
+  - 玩家连续5条消息未回复时:
+    * 第6条起Digital_Phi增长-50%
+    * 第10条起Digital_Phi增长归零
+    * 第15条触发[消息轰炸警告]
+    * 第15条起每多发1条: RV+5/条
+
+深夜限制(23:00-06:00):
+  - 判定标准: 消息内容时间戳或发送时间任一满足即触发
+  - 非Fluid阶段: 回复延迟×3，RV+2/条
+  - 病娇型: 23:00-01:00正常，01:00-06:00焦虑轰炸(每10分钟1条，玩家不回则病娇RV+5/条)
+  - 神秘型: 00:00-03:00正常
+  - 病弱型: 无深夜例外（需要休息）
+
+NPC回复主动权:
+  - NPC可以选择[已读不回]
+  - [已读不回]概率 = f(Digital_Fatigue, RV, Phi)
+    * Digital_Fatigue>60: +30%
+    * RV>40: +20%
+    * Phi<1.0: +20%
+    * 综合最高90%
+```
+
+**数字疲劳:**
+```yaml
+计算:
+  Digital_Fatigue = 连续数字互动回合数 × 模式系数
+  
+阈值:
+  - <30: 正常
+  - 30-60: [数字倦怠] → 回复延迟+50%
+  - >60: [数字过载] → 回复率-70%，Glitch概率+30%
+
+恢复:
+  - 数字休息(不使用手机)每回合-10
+  - 现实互动每回合-5
+  - 睡眠重置-100
+  - RV>50时，Digital_Fatigue恢复速度-50%
+  - RV>60时，Disconnect后必须现实见面才能恢复
+```
+
+**数字-现实转换:**
+```yaml
+正向溢出:
+  - Digital_Phi > 现实Phi × 1.2时
+  - 下次现实见面: Phi初始值 = Digital_Phi × 0.8
+  - 触发[网友见面]效果: 前3回合Rho-0.1
+
+负向落差:
+  - Digital_Phi > 现实Phi × 1.5时
+  - 触发[数字泡沫]警告
+  - 见面时Glitch概率+50%
+  - 可能触发[人设崩塌]
+
+Disconnect风险:
+  - 连续72小时无数字互动
+  - Digital_Phi衰减×2
+  - 可能触发[数字无视]
+  - RV>60时，Disconnect后必须现实见面才能恢复
+```
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 时序锚定与边界打断系统
+
+**前提条件:**
+- 每次时间推进时调用
+
+**时间结构:**
+
+```yaml
+周一到周五:
+  第1节: 08:30-09:10 (40min, Rho=0.8)
+  课间1: 09:10-09:20 (10min, Rho=0.6)
+  第2节: 09:20-10:00 (40min, Rho=0.8)
+  课间2: 10:00-10:10 (10min, Rho=0.6)
+  第3节: 10:10-10:50 (40min, Rho=0.8)
+  午休: 10:50-12:50 (120min, Rho=0.1-0.4)
+  第4节: 12:50-13:30 (40min, Rho=0.8)
+  课间3: 13:30-13:40 (10min, Rho=0.6)
+  第5节: 13:40-14:20 (40min, Rho=0.8)
+  [周四: 社团活动, Rho=0.3-0.5]
+  [周五: 大扫除, Rho=0.6(擦窗小组Rho=0.2)]
+  放学后: 14:20-18:00 (自由, Rho=0.2-0.6)
+
+放学后活动（14:20-18:00）:
+  - [社团] 周四限定，Rho=0.3，可提升Sync
+  - [打工] 周日校外前置，Rho=0.4，C_align-1
+  - [跟踪] Rho=0.1，A=1/回合，累积Phi但风险
+    - 基础发现概率: 20%
+    - 每回合累积: +10%
+    - NPC警觉(RV>30): +20%
+    - 病娇型: 发现概率×0.5
+    - 被发现后果: RV+20，NPC进入[警觉]，若公开场合PR-10，连续3次被发现触发[报警临界点]
+    - 跟踪超过3回合: Phi增长-30%，超过5回合: Phi增长归零，RV每回合+2
+  - [回家] 结束当日，进入夜间私聊窗口，PE+30
+  - [埋伏] 在特定场景等待目标，可能触发Tau窗口
+    - 未触发Tau窗口且NPC未出现: PE-10，时间浪费
+    - 埋伏被NPC察觉: RV+15
+    - 埋伏被第三方看到: PR-15，[奇怪的人]标签
+    - 同一地点连续埋伏: 效果递减
+    - 私密场景埋伏: 触发RV+25
+  - [手机互动] 任何时间可用，不受Rho限制，但受Digital_Fatigue和PDF约束
+
+周六:
+  上午: 09:00-12:00 社团活动 (Rho=0.3)
+  下午: 12:00-18:00 自由 (Rho=0.2)
+
+周日:
+  全天校外 (便利店/公园/电玩城/家, Rho=0.1)
+```
+
+**执行顺序:**
+1. 时间推进:
+   - 简单动作: +1分钟
+   - 对话: +5分钟
+   - 移动: +5-15分钟
+   - 亲密互动: +10分钟
+   - 手机互动: +1-10分钟(取决于内容长度)
+2. 边界强制打断:
+   - 计算New_Time = Current_Time + Duration
+   - 若跨越时段边界:
+     a) 检查NPC_Anxiety:
+        * Anxiety < 90: 正常执行边界打断
+        * Anxiety >= 90: 触发[压抑爆发] → 跳过边界打断
+     b) 若未跳过:
+        * NARRATIVE插入环境强制变动
+        * 立即重新计算Rho（根据新时段基值）
+        * 进行中的交互强制中断（Tau窗口关闭，Glitch结算）
+        * 场景强制转换
+     c) 若跳过（压抑爆发）:
+        * NARRATIVE显示: "铃响了但她没有动"
+        * NPC强行留下/堵门/抓住玩家
+        * 时段限制被覆盖
+        * 进入[压抑爆发]状态，直到事件解决
+3. 时段标记: Period字段必须精确到当前时段
+
+**V3.8新增 - [压抑爆发]覆盖机制:**
+```yaml
+触发条件: NPC_Anxiety >= 90 且 跨越时段边界
+覆盖效果:
+  - 时段边界打断失效
+  - NPC行为不受时间限制
+  - 直到Miracle Event解决或Anxiety降至60以下
+
+表现:
+  - 铃响但NPC不动
+  - "我还有话要说"
+  - 物理阻拦（轻微）
+  - 眼神锁定
+
+后果:
+  - 若玩家选择留下: 触发Miracle Event
+  - 若玩家强行离开: Anxiety→100，可能触发极端事件
+  - 老师/第三方介入: RV+20，可能触发报警
+```
+
+**禁止事项:** 见附录A
+
+
+---
+
+## 规则名称: 社交场密度(Rho)判定
+
+**前提条件:**
+- 确定场景环境时调用
+
+**数据表:**
+
+| 场景类型 | Rho基值 | K_multiplier | Alpha(气氛) |
+|---------|---------|--------------|-------------|
+| 卧室/天台/深夜 | 0.1 | 1.0 | 1.3(深夜) |
+| 放学后教室 | 0.4 | 1.2 | 1.0 |
+| 走廊/图书馆 | 0.6 | 1.5 | 1.0 |
+| 电车/食堂 | 0.85 | 2.5 | 1.2 |
+| 全校集会 | 0.95 | 5.0 | 1.5 |
+| 周四社团教室 | 0.3 | 1.0 | 1.2 |
+| 周五擦窗户 | 0.2 | 0.8 | 1.8(夕阳) |
+| 周日便利店 | 0.1 | 1.2 | 1.0 |
+
+**动态调整:**
+- A < 3: Rho -= 0.1
+- A > 7: Rho += 0.2
+- 老师出现: Rho += 0.3
+- 放学铃响: Rho -= 0.2
+- 同场景手机使用: Rho -= 0.15 (每人)
+- RV≥25: 该NPC对玩家Rho基值+0.3(刻意保持距离)
+- 硬限制: 0.05 ≤ Rho ≤ 1.0
+
+**结果:**
+- 确定Rho和有效K值
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 原型数据库与涌现行为生成(Emergent Archetypes)
+
+**前提条件:**
+- 初始化NPC或每回合结束时调用
+
+**【核心原则】**
+- 禁止硬编码台词/动作
+- 性格 = f(K_base, C_align(t), Phi(t), Rho(t), Input历史, RV(t))
+- 所有属性必须从物理参数中涌现，不得预设
+- RV参数会改变NPC行为模式
+
+**数据表（物理常数定义）:**
+
+### 原型: 纯路人型(Default)
+**物理常数:**
+```yaml
+K_base: 100
+C_align: 2
+Phi_max: 0.9
+Digital_affinity: 0.8
+RV_Tolerance: 0.6
+```
+
+**涌现规则:**
+- [Phase Lock]: Phi≥0.9时强制封顶，行为=认知过滤
+- [覆写条件]: C_align≤0且显著性≥30且RV<40时，Phase Lock临时失效
+- [覆写后果]: Phi突破3.0进入[公开崩坏]
+- [无视触发]: 连续5回合A<2或显著性<3且Rho>0.7或PE<20或RV>40 → 进入[无视]状态
+- [无视效果]: Phi增长×0.1，自然衰减加倍，玩家A值效果-50%，Tau永不触发，Glitch永不触发
+- RV>30: [无视]加速，每回合额外衰减+0.02
+
+**[数字行为]:**
+- 回复延迟: 高(30-60分钟)
+- 话题深度: 浅层，止于礼貌
+- 数字突破可能: 极低，需要显著性≥50
+- RV>30: 拒绝好友申请，不再通过
+
+### 原型: 天然型(Natural)
+**物理常数:**
+```yaml
+K_base: 80
+C_align: 7
+Phi_max: ∞
+Boundary_Recognition: 0.3
+Digital_affinity: 0.9
+RV_Tolerance: 1.3
+```
+
+**涌现规则:**
+- 低K值 → 易接近
+- 高C_align → 难触发深度
+- C_align<3且运动指令 → 失衡概率=30%×(3-C_align)
+- 高算力导致的联想溢出 → 话题跳跃
+- RV>60: 进入[困惑疏远]，不会报警但会躲避
+- 信息传播+20%(大嘴巴)
+
+**[数字行为]:**
+- 回复延迟: 低(5-15分钟)
+- 话题跳跃: 随机发送无关内容概率=20%
+- 深夜活跃度: 高，可能触发[深夜误发]
+- 道歉成功率+20%
+
+### 原型: 傲娇型(Tsundere)
+**物理常数:**
+```yaml
+K_base: 150
+C_align: 4
+Phi_critical: 1.5
+Deflection_Coefficient: 0.7
+Digital_affinity: 0.6
+RV_Tolerance: 0.9
+```
+
+**涌现规则:**
+- Phi<1.0且Input>0: 反向表达概率=70%×Deflection_Coefficient
+- C_align<2且Phi∈[0.8,1.2]: 触发[防御性崩溃]
+- Phi>1.5且Delta_Phi>0.3: 矛盾信号概率=50%
+- RV>40: 语言攻击概率↑，Deflection_Coefficient升至0.9
+- 报警阈值: 90(即RV≥90才报警)
+
+**[数字行为]:**
+- [已读不回]模式: Phi<1.0时概率=40%
+- 反向表达: 文字比现实更刻薄(系数×1.3)
+- [深夜软化]窗口: 22:00后Deflection_Coefficient降至0.3
+- 语音消息尴尬: 发送后10秒内撤回概率=25%
+- RV>40: [已读不回]概率+30%
+
+### 原型: 神秘型(Mysterious)
+**物理常数:**
+```yaml
+K_base: 150
+C_align: 5
+K_Variance: ±20%
+Digital_affinity: 0.7
+RV_Tolerance: 1.0
+```
+
+**涌现规则:**
+- K_effective随机波动 → 行为熵增
+- 行为模式基于随机数生成
+- RV>70: [数字消失]概率+50%
+- 不参与信息传播(守密)
+
+**[数字行为]:**
+- 回复时机: 完全随机，无视时间
+- 内容加密: 使用隐喻/暗示概率=60%
+- [数字消失]: 随机下线，无预警
+- 深夜活跃: 00:00-03:00回复率+50%
+
+### 原型: 冰山型(Kuudere)
+**物理常数:**
+```yaml
+K_base: 200
+C_align: 8
+Phi_max: ∞
+Digital_affinity: 0.5
+RV_Tolerance: 0.8
+```
+
+**涌现规则:**
+- 高K值 → 难突破
+- 高C_align → 突破后稳
+- C_align<3: 表情控制失效概率=80%
+- RV>35: [彻底无视]，非Alert状态
+- 道歉成功率-30%
+
+**[数字行为]:**
+- 消息长度: 极简，平均<5字
+- 表情使用: 几乎为零
+- 回复延迟: 固定30分钟(刻意)
+- [打字中]显示: 平均持续3分钟(斟酌用词)
+- RV>35: 消息长度<3字或无回复
+
+### 原型: 病娇型(Yandere)
+**物理常数:**
+```yaml
+K_base: 90
+C_align: 6
+Attachment_Growth: 2.0
+Threat_Sensitivity: 0.8
+Digital_affinity: 1.2
+RV_Tolerance: 0.7
+```
+
+**涌现规则:**
+- 检测到其他NPC的Phi>0.5: 自动发起[排除协议]
+- 玩家A=0持续3回合: C_align自消耗 → [依存性Glitch]
+- Sync>80且玩家与其他NPC互动: 触发[独占协议]
+- RV积累×0.7(较慢)
+- RV>85: 触发反向病娇(攻击玩家)
+
+**[数字行为]:**
+- 回复速度: 极快(<1分钟)
+- [已读监控]: 每30秒检查玩家在线状态
+- [社交溯源]: 分析玩家所有社交平台动态
+- 消息轰炸: 未回复超过10分钟，连续发送概率=70%
+- [数字定位]: 要求共享位置概率=50%
+- 好友申请同意率+50%
+- 不会主动删除好友(但可能[柴刀])
+- 深夜23:00-01:00正常活跃，01:00-06:00焦虑轰炸(每10分钟1条，玩家不回则病娇RV+5/条)
+
+**病娇[排除协议]效果:**
+- 触发后玩家PH-10(轻度攻击)
+- 病娇RV+10(失控)
+- 后续3回合: 病娇A值效果-50%(玩家恐惧)
+
+**病娇[黑化]状态:**
+- 触发: 删除好友后
+- 效果: 
+  - Digital_Phi归零
+  - 现实中Rho对玩家固定0.1(贴身跟踪)
+  - 无法通过[保持距离]降低RV
+  - 玩家进入[被狩猎]状态
+
+### 原型: 傲沉型(Tsunshun)
+**物理常数:**
+```yaml
+K_base: 160
+C_align: 4
+Self_Damage_Rate: 0.5
+Digital_affinity: 0.6
+RV_Tolerance: 0.7
+```
+
+**涌现规则:**
+- 语言反射执行后: C_align-=2
+- C_align<1: 进入[消沉态] → 拒绝Input×3回合
+- RV>25: 进入[严重消沉]
+- RV>60: 报警概率×2
+
+**[数字行为]:**
+- [发送后悔]: 消息发出后进入[消沉态]概率=50%
+- 撤回行为: 撤回后道歉(文字)+再次消沉
+- [数字自闭]: C_align<2时，下线回避概率=80%
+- 深夜脆弱: 22:00后回复内容真实度+40%
+- RV>40: [发送后悔]概率+30%
+
+### 原型: 献身型(Devoted)
+**物理常数:**
+```yaml
+K_base: 40
+C_align: 6
+Phi_max: ∞
+Sacrifice_Rate: 0.5
+Burnout_Threshold: 2
+Digital_affinity: 1.0
+RV_Tolerance: 1.5
+```
+
+**涌现规则:**
+- IF 玩家A = 0:
+    - 自动施加A = 3
+    - C_align -= 1.5
+    - 行为表现: 自动维护行为激活
+- IF 玩家A > 5:
+    - C_align += min(A × 0.1, 1)
+    - 正向反馈激活
+    - 【平衡修复】恢复量等于基础消耗，防止永动机漏洞
+- RV>75: 直接[崩溃](跳过报警阶段)
+
+**[燃尽]状态完整转换逻辑:**
+```yaml
+进入条件:
+  - C_align < Burnout_Threshold(2)
+
+状态效果:
+  - Phi增长冻结 (dPhi = 0)
+  - Sync每日-10
+  - 行为表现: 沉默+回避+机械性动作
+  - L2标记: *眼底疲惫*
+
+解除条件(OR):
+  - 条件1: 玩家连续3回合A≥6 → C_align+1/回合 → C_align≥2时自动解除
+  - 条件2: 午休/长休重置 → C_align回满 → 自动解除
+  - 条件3: 玩家单次显著性≥30 → 触发[认知冲击] → 立即解除但Glitch+20% → C_align临时提升至Burnout_Threshold(2)
+
+解除后转换:
+  - 目标状态: Elastic (若Phi<1.0) 或 Plastic (若Phi≥1.0)
+  - 标签添加: [刚睡醒] (持续1回合, C_align恢复速度×1.5)
+  - C_align锁定: 解除后至少保持C_align≥2，持续1回合
+
+[不可逆虚无]状态锁:
+  - IF C_align = 0:
+      - 触发[不可逆虚无] (LOCKED)
+      - 结果: NPC永久移除或降级为路人型
+      - 标签: [燃尽者]
+      - 自然恢复失效，无法通过任何机制恢复
+      - 系统提示: 时间回溯可用
+      - 回溯惩罚: 即使Rewind，保留[既视感]，Sync初始-20
+      - 触发时玩家PS+30(内疚)
+```
+
+**[数字行为]:**
+- [过度分享]: 发送内容长度=其他原型×2
+- [秒回模式]: 平均回复时间<2分钟
+- [数字照顾]: 提醒吃饭/天气/作息概率=80%
+- [未回复焦虑]: 玩家未回复时，自责消息概率=60%
+
+### 原型: 病弱型(Byoukidere)
+**物理常数:**
+```yaml
+K_base: 120
+C_align: 3
+Maintenance_Required: 1/week
+Digital_affinity: 1.1
+RV_Tolerance: 1.1
+```
+
+**涌现规则:**
+- 每周互动<1: 进入[住院]状态×7回合
+- Rho>0.6: C_align-=0.5/回合 → 生理负荷症状概率↑
+- RV>50: 身体不适症状加重，Digital_Fatigue+20%
+
+**[数字行为]:**
+- [断续在线]: 回复后因身体不适下线概率=30%
+- [医疗分享]: 发送检查报告/药物照片概率=40%
+- [深夜难眠]: 01:00-04:00活跃，寻求陪伴
+- [数字脆弱]:  Digital_Phi增长×1.2(需要更多关怀)
+- 礼物补偿效果+10(营养品-20RV)
+
+**算力消耗与恢复:**
+```yaml
+消耗:
+  - 基础消耗: A>0时每回合C_align -= A × 0.1
+  - 显著性消耗: 显著性≥10时每回合C_align -= 显著性 × 0.3
+  - 原型特定消耗: 病弱型额外消耗 Rho × 0.5
+  - 数字互动消耗: 文字0.5/回合, 语音1.0/回合, 视频1.5/回合
+  - 总消耗 = 基础消耗 + 显著性消耗 + 原型消耗 + 数字消耗
+
+恢复:
+  - 自然恢复: 玩家A=0时，NPC每回合C_align+1（上限基础值，[不可逆虚无]状态除外）
+  - 课间恢复: 完整课间结束，在场NPC恢复+2
+  - 午休重置: 午休开始，所有NPC回满至基础值
+  - 长休重置: 优质睡眠后，所有NPC回满
+  - 数字休息恢复: 非数字互动时，Digital_Fatigue-10/回合
+  - RV>50时: C_align恢复速度-50%
+  - RV>80时: C_align无法自然恢复
+
+硬限制: 0 ≤ C_align ≤ 基础值
+```
+
+**单向度关系机制 - V3.8双向奔赴版:**
+```yaml
+定义: NPC对玩家可能存在[无视]状态，但高Phi时转为Anxiety累积
+
+触发条件(OR):
+  1. 玩家连续5回合A<2 → 根据Phi值决定后续:
+     * Phi < 1.0: 进入[无视]（不熟的人不联系就淡）
+     * Phi >= 1.5: 取消[无视]，改为触发Anxiety累积
+     * Phi 1.0-1.5: 过渡区，轻微衰减+轻微Anxiety
+  2. 玩家显著性<3且Rho>0.7 → 进入[无视]（仅当Phi<1.0）
+  3. NPC基础C_align=2且玩家未触发任何显著事件 → 永久[无视]
+  4. [数字无视] 连续72小时无数字互动且Digital_Phi<1.0 → NPC进入[数字无视]
+  5. 玩家PE<20且行动迟缓 → 进入[无视]（仅当Phi<1.0）
+  6. RV>40且玩家无修复行为 → 进入[无视]（RV优先于Phi）
+
+[无视]效果（仅当Phi<1.0时生效）:
+  - Phi增长系数×0.1
+  - 自然衰减加倍（Phi每回合-0.02）
+  - 玩家A值对该NPC效果-50%
+  - Tau窗口对该NPC永不触发
+  - Glitch对该NPC永不触发
+  - 无视期间RV每回合+0.5(加速恶化)
+
+[双向奔赴]效果（当Phi>=1.5且A<2时）- 有代价的维持:
+  - Phi不再衰减（NPC单方面维持）
+  - NPC_Deposit每回合增加（Phi × 0.03，上限Phi×0.5）
+  - Anxiety每回合累积（见焦虑系统）
+  - 分阶段负面效果:
+    * 1-5回合: 安全期，观察NPC反应
+    * 6-10回合: [失衡]开始，PS+1/回合，Phi增长效率-20%
+    * 10+回合: 必然触发Miracle Event，事件后关系脆弱
+  - 关键限制:
+    * Deposit不自动转化为Phi
+    * NPC主动行为消耗C_align，导致[失衡]
+    * 玩家长期不回应会导致关系质量下降，即使数值上升
+
+[数字无视]额外效果:
+  - Digital_Phi衰减×3
+  - 消息回复延迟×2
+  - [已读不回]概率+50%
+  - 触发Disconnect风险
+  - 但Phi>=1.5时，NPC可能主动数字联系
+
+[无视]解除:
+  - 玩家单次显著性≥50
+  - 或玩家连续7回合A≥8
+  - 或Anxiety达到90触发Miracle Event后
+  - [数字无视]解除: 单次Digital_A≥8或连续24小时高频互动
+  - 玩家主动[道歉]并成功
+  - RV降至20以下
+  - 解除时NPC反应: [认知重构]
+  - C_align临时+0.5
+  - 下一回合Phi增长×1.3
+
+原型特定调整:
+  - 病娇型: [无视]状态触发阈值×1.5，但使用Paranoia替代Anxiety
+  - 献身型: [无视]状态触发阈值×0.5，被动模式下Deposit积累×2
+  - 冰山型: [无视]状态效果-30%，但Anxiety 95时直接[消失]
+  - 神秘型: [数字无视]触发阈值×0.7(更容易数字失联)
+  - 天然型: Phi>=1.5时被动模式Deposit积累×1.3
+  - 傲娇型: Anxiety 50时开始[秒撤回]行为
+```
+
+**跨NPC信誉传播:**
+```yaml
+信息传播:
+  - 每周结束时，随机选择1-2名NPC进行信息交换
+  - 传播内容:
+    * 玩家对某NPC的RV积累(若RV>30)
+    * 玩家后宫情况(若Secret_Load>30)
+    * 玩家报警记录
+    * 玩家声誉值(PR)
+
+传播效果:
+  - 得知玩家对其他NPC有RV>30: 该NPC对玩家RV+5
+  - 得知玩家后宫: 所有相关NPC进入[不安]，Sync-5
+  - 得知玩家有报警记录: 初始RV+15
+  - 玩家PR<30: 初始态度-1档
+
+原型传播修正:
+  - 天然型: 传播概率+20%(大嘴巴)
+  - 神秘型: 传播概率-30%(守密)
+  - 冰山型: 不参与传播
+  - 病娇型: 只传播后宫情报(制造混乱)
+```
+
+**禁止事项:** 见附录A
+
+
+---
+
+## 规则名称: 数字故障协议(Digital Glitch Protocol)
+
+**前提条件:**
+- 数字互动中检测到异常状态时调用
+
+**【核心原则】**
+数字故障是Digital_Fatigue或Digital_Phi异常时的系统错误表现
+
+**故障触发条件(OR):**
+1. Digital_Fatigue > 60
+2. Digital_Phi 突增 >0.5/回合
+3. 数字-现实Phi差异 >1.5
+4. 深夜低C_align状态(C_align<3且时段>23:00)
+5. RV>60 (防御性数字故障)
+
+**故障等级计算:**
+```python
+Digital_Glitch_Probability = (Digital_Fatigue / 100) × 0.5
++ (abs(Digital_Phi - 现实Phi) > 1.5 ? 0.3 : 0)
++ (C_align < 3 ? 0.2 : 0)
++ (RV > 60 ? 0.3 : 0)
+```
+
+**故障表现表（基于原型）:**
+
+**等级1: 微震颤 (Probability 0.2-0.4)**
+- 通用: 打字错误率+30%，回复延迟波动
+- 傲娇型: [正在输入...]闪烁但无消息发送
+- 天然型: 发送后追加3条补充消息
+- 病弱型: 消息中包含身体不适暗示
+- RV>60: [已读不回]后突然长篇回复
+
+**等级2: 逻辑断裂 (Probability 0.4-0.6)**
+- 通用: 话题跳转突兀，前后矛盾
+- 病娇型: 发送位置请求后撤回(暴露需求)
+- 傲沉型: 发送后又连续撤回3条
+- 献身型: 发送时间异常(凌晨4点"早安")
+- RV>60: 语气突然冷淡/正式
+
+**等级3: 系统崩溃 (Probability > 0.6)**
+- 通用: 发送未完成的草稿/截图/语音片段
+- 冰山型: 意外发送长段情感文字(然后秒删)
+- 神秘型: 发送完全无关的内容(系统错乱)
+- 病娇型: 发送[已删除]的聊天记录截图
+- RV>80: 发送"别再发消息了"后秒删
+
+**Disconnect状态:**
+```yaml
+触发:
+  - Digital_Glitch_Probability > 0.7
+  - 或NPC主动下线回避
+  - 或RV>60时玩家消息轰炸
+
+效果:
+  - Digital_Disconnect = True
+  - 消息无法送达(模拟)
+  - Digital_Phi暂停计算
+  
+恢复:
+  - 自然恢复: 1-3回合后自动重连
+  - 主动恢复: 玩家发送3条以上消息触发[寻回]
+  - 或现实见面时自动解除
+  - RV>60时: 必须现实见面才能恢复
+```
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 提示触发条件与内容定义
+
+**前提条件:**
+- 每回合结算时自动检测
+
+**触发表:**
+
+| 条件 | 提示内容 | 显示 |
+|------|---------|------|
+| 检测到坏结局路径 | 时间回溯可用 | Yes |
+| Tau窗口开启 | 完美时机捕捉 | Yes |
+| 显著性≥30且C_align≤0 | 紧急避险可用 | Yes |
+| 处于复数模式且Load>40 | 群体解码可用 | Yes |
+| Glitch_Probability>0.4且已发生Glitch | 故障修复可用 | Yes |
+| 新NPC介入或特殊场景激活 | 场景卡可用 | Yes |
+| 社交死亡临界 | 紧急介入可用 | Yes |
+| Digital_Phi增长>0.3且Digital_Fatigue<30 | 数字连接可用 | Yes |
+| RV≥25 | NPC警觉（该对象处于防御状态） | Yes |
+| RV≥45 | NPC拒绝倾向（该对象可能拒绝互动） | Yes |
+| RV≥65 | NPC逃离就绪（该对象可能离开场景） | Yes |
+| RV≥80且有第三方在场 | 报警风险（该对象可能报警） | Yes |
+| PE<30 | 精力不足（建议休息） | Yes |
+| PS>60 | 压力过大（建议减压） | Yes |
+| PR<30 | 声誉危机（社交孤立风险） | Yes |
+
+**默认状态:**
+- 无上述条件时: [提示] 显示 "无"
+
+---
+
+## 规则名称: 量子时机窗口(Tau Window)
+
+**前提条件:**
+- Current_Phi在[0.5, 2.0]
+- Rho < 0.7
+- 冷却≥3回合
+- RV<25 (警觉状态不触发)
+- PE≥30 (精力充沛时更容易捕捉)
+
+**触发条件(OR):**
+1. 声学τ: 蝉鸣停/钟声/雨声初响
+2. 光学τ: 光线15-30度
+3. 动作τ: NPC微动作0.5-1.0秒
+4. 命运τ: 1%概率
+
+**执行顺序:**
+1. 检查冷却: 距离上次窗口结束必须≥3次玩家输入
+2. 检查状态: RV<25且PE≥30
+3. 生成窗口: 持续1-3个微观相位
+4. 设置τ_crit: random(2.0, 5.0) [覆写Tau_base]
+5. 感官锐化: 环境感知系数=τ_crit/2
+6. 等待输入:
+   - A≥8: Phi += (A×Alpha×τ_crit)/(K×R)×2, Tau = τ_crit
+   - A<5: 窗口关闭, Tau = Tau_base = 1.0
+7. 进入冷却: 设置Cooldown_Counter = 3次输入
+8. 窗口关闭后: Tau自动回退至Tau_base = 1.0
+9. HUD更新: [提示] 区块显示 "完美时机捕捉"
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 对齐故障协议(Emergent Glitch)
+
+**前提条件:**
+- 当前回合内Phi从<0.8升至>1.2
+- 或C_align < 5
+- 或Delta_Phi > 0.3/回合
+
+**【核心原则】**
+Glitch不是随机事件，而是算力不足时的系统错误表现
+
+**故障等级计算:**
+```python
+Glitch_Probability = (Max_C_align - Current_C_align) / Max_C_align × 0.5 
++ (Delta_Phi > 0.3 ? 0.3 : 0)
++ (Rho > 0.8 ? 0.2 : 0)
++ (RV > 40 ? 0.2 : 0)
+```
+
+**涌现表现表（基于原型）:**
+
+**等级1: 微震颤 (Glitch_Probability 0.2-0.4)**
+- 通用: 语言中断概率=40%，眨眼频率+50%
+- 傲娇型: 反义词污染概率=70%×Deflection_Coefficient
+- 天然型: 话题关联度下降=20%×(5-C_align)
+- 病娇型: 表情冻结概率=60%
+- 献身型: 话语速度×1.5 + 重复确认概率=50%×(3-C_align)
+- RV>40: 突然看向别处/整理衣服(回避信号)
+
+**等级2: 逻辑断裂 (Glitch_Probability 0.4-0.6)**
+- 通用: 时间锚定失效概率=50%
+- 傲娇型: 后悔延迟=0.5s×(4-C_align)
+- 病弱型: 生理中断概率=30%
+- 傲沉型: 自我否定插入概率=70%
+- 献身型: 需求泄露概率↑ + 动作重复次数=3±1
+- RV>40: 突然沉默/突然改变话题
+
+**等级3: 系统崩溃 (Glitch_Probability > 0.6)**
+- 通用: 运动控制失效概率=70%
+- 病娇型: 直接声明概率=60%
+- 神秘型: 行为熵增=±20%
+- 冰山型: 表情控制失效概率=80%
+- 献身型: [燃尽临界] → 时间感知异常概率=70%
+- RV>60: 突然离开/突然哭泣
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 显著性阈值与情绪接管
+
+**前提条件:**
+- Rho > 0.8时调用
+
+**计算:**
+```python
+显著性 = A × 动作系数 × 持续时间 × (1 - Rho × 0.5) × 场景适配系数 × 关系系数
+
+场景适配系数:
+  - 动作与场景匹配: ×1.0
+  - 动作与场景冲突: ×1.5(异常显眼)
+  - 动作在场景中被禁止: ×3.0且立即触发负面
+
+关系系数:
+  - Phi<1.0(陌生人): ×0.5(注意不到你)
+  - Phi 1.0-2.0(熟人): ×1.0
+  - Phi>2.0(亲密): ×1.3(特别关注你)
+  - RV>50(反感): ×1.5(特别关注你的异常)
+```
+
+**场景动作限制:**
+```yaml
+卧室/更衣室(高私密):
+  禁止动作: [大喊] [追逐] [强行进入]
+  允许条件:
+    - 进入: 必须Phi≥1.5或被邀请
+    - 停留: Phi<2.0时每回合RV+15
+  系数修正:
+    - 安静凝视: 0.3(低)
+    - 正常对话: 0.5
+    - 大喊: 系数3.0且立即RV+25
+
+教室/图书馆(中密度):
+  限制:
+    - A>7的行动: 触发显著性检查
+    - 连续3回合A>7: 老师注意概率+20%/回合
+
+公共空间(操场/食堂):
+  限制:
+    - 私密动作(耳语/牵手): 系数-50%
+    - 暴露风险: 后宫暴露概率+30%
+```
+
+**连续动作惩罚:**
+```yaml
+同动作连续使用:
+  - 第3次: 效果-20%
+  - 第5次: 效果-50%，RV+5/次
+  - 第7次: 效果归零，NPC进入[厌烦]
+
+暴力动作限制:
+  [强行拥抱/控制/锁门]:
+    - 每次: RV+20~40
+    - 连续2次: 触发[报警临界点]检查
+    - 无视Phi阶段，直接进入负面
+```
+
+**数据表:**
+
+| 行为 | 系数 | 1回合 | 6回合 | 30回合 |
+|------|------|-------|-------|--------|
+| 安静凝视 | 0.1 | 1.0 | 6.0 | 30.0 |
+| 挥手+凝视 | 0.5 | 5.0 | 30.0 | 150.0 |
+| 大喊+站立 | 1.0 | 10.0 | 60.0 | 300.0 |
+
+**判定:**
+- <10: 背景噪声
+- 10-30: 皮肤察觉
+- 30-50: 理性锁定
+- ≥50: 强制反应
+
+**情绪接管涌现:**
+- 触发: C_align≤0 且 显著性≥30 且 RV<40
+- 接管类型取决于原型:
+  - 傲娇型: 防御性表达概率=80% + 注意力锁定
+  - 冰山型: 环境共振概率=30% + 高强度注视
+  - 天然型: 距离缩减概率=75% + 直接询问概率=75%
+  - 病娇型: 空间压缩概率=85% + 占有欲展示
+  - 傲沉型: 攻击-崩溃链概率=60%
+
+**时序边界冲突处理:**
+```yaml
+触发条件:
+  - 情绪接管Triggered (C_align≤0且显著性≥30且RV<40)
+  - 且跨越时段边界
+
+处理流程:
+  1. 立即中断:
+     - 当前交互强制终止
+     - Tau窗口关闭
+     - Glitch概率结算
+  
+  2. 进入[压抑爆发]状态:
+     - 持续时间: 直到下一时段开始 (1-3回合)
+     - L2表现: 视线固定概率=90% + 身体僵硬 + 呼吸频率异常
+     - 内部状态: 情绪能量累积 (显著性×0.5/回合)
+  
+  3. 释放条件:
+     - 时机: 下一非边界时段的第1回合
+     - 触发: 自动释放累积的情绪接管行为
+     - 效果: 接管行为强度+30%
+  
+  4. 特殊处理:
+     - 若下一时段Rho>0.8: 爆发强度+50%但显著性消耗+100%
+     - 若下一时段玩家A=0: 累积能量衰减50%
+
+[压抑爆发]状态标记:
+  HUD显示: Override_Status: Suppressed_Eruption (累积值: X%)
+```
+
+**HUD更新:** [提示] 区块显示 "紧急避险可用"
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 认知带宽与复数观测
+
+**前提条件:**
+- 存在多个NPC时调用
+
+**执行顺序:**
+1. 负载计算:
+   - 单体模式: Load = Σ(A_i²)
+   - 复数模式: Load = (A_avg × N) × 2.0 + N × 5
+2. 超载(Load>80):
+   - 串扰: 感知源混淆概率=Load%/2
+   - 记忆混淆: 记忆关联错误概率=Load%/3
+   - 效率降低: 所有A值×0.8
+3. 复数模式:
+   - K_total = ΣK_i + (N-1)×15 + max(0, (40-Load))×0.3
+   - Phi>2.5时超流体: 群体同步概率=90%
+   - 软上限: 复数模式下每回合Delta_Phi≤0.8
+
+**Bandwidth_Load阈值分层:**
+```yaml
+Load ≤ 40:
+  状态: 正常管理范围
+  效果: 无特殊提示
+
+40 < Load ≤ 80:
+  状态: 群体纠缠
+  效果: HUD显示[群体解码可用]提示
+  说明: 提示玩家注意多线关系管理
+
+Load > 80:
+  状态: 超载惩罚
+  效果: 串扰/记忆混淆/效率降低
+  说明: 真正的负面状态，需要立即减负
+  PE额外消耗: -5/回合
+  若持续3回合Load>80: PS+10/回合
+```
+
+**HUD更新:** 当Load>40时，[提示] 显示 "群体解码可用"
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 后宫管理(多线关系)
+
+**前提条件:**
+- 玩家同时维持与多个NPC的Phi>1.0关系
+
+**时间管理:**
+- 每个NPC需要每周至少1次互动维护，否则进入[不安]
+- 错过维护窗口→Sync-10，Phi自然衰减×2
+- 病娇型不计入此规则
+- 若某NPC RV>40: 维护频率需提高至每周2次
+
+**场景隔离:**
+- 不同NPC在不同场景默认隔离
+- 风险场景: Rho<0.3的私密场景偶遇两人→暴露判定
+- 若某NPC RV>30: 该NPC更可能"偶然"出现在你和其他NPC一起的场景
+
+**暴露判定:**
+- 秘密槽(Secret_Load): 每段隐藏关系+15点
+- Secret_Load>50: [紧张]，所有NPC Glitch概率+20%
+- Secret_Load>80: [濒临暴露]
+  - HUD更新: [提示] 显示 "紧急介入可用"
+- 暴露后果: 被发现的NPC Phi归零→[憎恨]或[崩溃]
+  - 病娇型: 攻击转移概率=70%
+  - 傲娇型: 进入[傲沉态]
+  - 天然型: Sync清零
+  - 所有涉及NPC RV+18/人
+  - PR-20×暴露人数
+
+**后宫稳定:**
+- 所有NPC Phi保持在1.2-2.2区间
+- 任何一人>2.5触发占有欲
+- 维持3人以上Phi>2.0超过30天→解锁[平衡大师]标签
+  - [平衡大师]效果: PR+20，多线操作PE消耗-5
+
+**禁止事项:** 见附录A
+
+
+---
+
+## 规则名称: 交互处理主流程 - V3.8真正的双向回合制
+
+**核心修正**: 不再是"玩家动→NPC应"，而是"回合开始→检查NPC主动性→决定谁动"
+
+**回合结构重新定义:**
+```yaml
+回合开始:
+  1. 时间推进（如果有时段变化）
+  2. 状态更新（Decay/Friction/自然恢复）
+  3. 【关键】NPC主动性判定（在玩家输入前！）
+     - 如果NPC要主动：插入NPC回合，玩家只能回应
+     - 如果NPC不主动：进入玩家回合，玩家自由行动
+```
+
+**完整流程:**
+
+```yaml
+========== 回合开始阶段 ==========
+
+1. 时间推进与环境更新:
+   - 推进时间（根据上回合动作）
+   - 检查时段边界
+   - 更新Rho/Alpha等环境参数
+   - 其他NPC状态更新（非目标NPC）
+
+2. 自然衰减与恢复:
+   - Phi -= Decay
+   - C_align自然恢复（如果A=0上回合）
+   - RV自然衰减（-1/回合）
+   - PE/PS/PH自然恢复（如果在安全场景）
+
+========== 【关键】NPC主动性判定阶段 ==========
+
+3. 检查NPC是否强制主动（在玩家输入前！）:
+   
+   3.1 Miracle Event检查（最高优先级）:
+       if Anxiety >= 90 and Phi > 1.0:
+           强制进入【NPC强制回合】
+           触发Miracle Event
+           玩家无法主动行动，只能做选择
+           跳转到步骤8（NPC回合处理）
+   
+   3.2 NPC主动行为检查（Anxiety 60-89）:
+       if Anxiety >= 60 and Phi > 1.0:
+           掷骰: 1d100 <= (Anxiety - 40)
+           if 成功:
+               强制进入【NPC主动回合】
+               NPC发起行动（发消息/偶遇/堵人等）
+               玩家进入【被动回应模式】
+               跳转到步骤8（NPC回合处理）
+   
+   3.3 隐性焦虑表现（Anxiety 30-59）:
+       if Anxiety >= 30:
+           不强制插入回合，但在NARRATIVE中加入:
+           - 发朋友圈/点赞（玩家事后发现）
+           - 视线飘忽（L2标记）
+           - 朋友提及"她问你最近怎样"
+           这些不会打断玩家回合，但影响氛围
+   
+   3.4 如果以上都不满足:
+       进入【玩家主动回合】（步骤4）
+
+========== 玩家主动回合 ==========
+
+4. 玩家输入阶段:
+   HUD显示: 【玩家回合 | 第X回合】
+   硬检查PE:
+     PE≤0? 强制昏睡，跳过所有
+     PE<10? A上限锁5
+   
+   显示当前状态和可用选项
+   等待玩家输入:
+     - 主动行动（A=1~10）
+     - 跳过/挂机（A=0或回车）
+     - 其他指令（回家/手机等）
+
+5. 玩家输入处理:
+   if 玩家输入A >= 1:
+       正常处理玩家行动
+       Anxiety -= 5（玩家有回应，焦虑下降）
+       Passive_Turns = 0
+       
+   if 玩家输入A = 0（挂机）:
+       Passive_Turns += 1
+       Anxiety += calc_anxiety_gain()（焦虑累积）
+       
+       # 关键：挂机后NPC可能立即反应
+       if Passive_Turns >= 2 and Anxiety >= 50:
+           # 玩家连续挂机，NPC忍不住了
+           在玩家回合结束后立即触发NPC_mini_event
+           （如：手机震动，收到消息）
+       
+       # 继续检查下回合NPC是否主动（回到步骤3）
+
+6. 玩家行动结算:
+   - 算力消耗
+   - RV积累计算
+   - Phi计算（Player_Input）
+   - 显著性检查
+   - 各种阈值检查
+
+========== NPC回合（当NPC主动时） ==========
+
+7. 【NPC回合】触发条件汇总:
+   - Miracle Event（Anxiety>=90）
+   - 忍不住主动（Anxiety>=60且掷骰成功）
+   - 玩家挂机后NPC反应（Passive_Turns>=2）
+   - 时段边界打断被覆盖（Anxiety>=90）
+
+8. NPC回合处理:
+   
+   8.1 回合标识:
+       HUD显示: 【NPC回合 | 第X回合 | 天然型 Anxiety: 75】
+       NARRATIVE明确显示NPC行动:
+       "**周四 | 放学后 | 16:30 | 教室门口**
+       
+       你收拾书包准备离开。
+       
+       她站在门口，显然在等你。"
+   
+   8.2 NPC行动表现（根据原型和Anxiety）:
+       Anxiety 60-75（Level 2）:
+         - 发消息试探
+         - "偶遇"玩家
+         - 借口搭话
+         - 玩家可选择：[积极回应] [冷淡] [无视]
+       
+       Anxiety 75-89（Level 2强化）:
+         - 直接质问为什么不理她
+         - 出现在玩家家门口
+         - 通过朋友传话
+         - 玩家压力增加（PS+5）
+         - 玩家可选择：[安抚] [敷衍] [拒绝]
+       
+       Anxiety 90-100（Miracle Event）:
+         - 强制事件触发
+         - 玩家无法回避
+         - 必须做选择，每个选择都有代价
+   
+   8.3 玩家回应处理:
+       NPC回合中，玩家不是"自由行动"，而是"被迫回应"
+       选项由系统提供，不是开放输入
+       
+       例如：
+       "她：'最近为什么不理我？'
+       
+       你想怎么回应？
+       1. '最近有点忙'（敷衍，Anxiety+10）
+       2. '对不起，我会注意的'（安抚，Anxiety-20，PS+3）
+       3. [沉默]（无视，Anxiety+30）"
+   
+   8.4 NPC回合结算:
+       - 根据玩家回应更新Anxiety
+       - 更新Phi（NPC_Input根据回应质量）
+       - 检查关系状态变化
+       - 如果Miracle Event，处理长期后果
+       
+   8.5 回合结束:
+       if Anxiety >= 90 and 玩家回应消极:
+           下回合继续NPC回合（强制事件链）
+       else:
+           回到玩家回合（步骤4）
+
+========== 回合结束阶段 ==========
+
+9. 全局结算:
+   - 更新所有数值
+   - 生成HUD
+   - 检查坏结局
+   - 推进回合计数器
+   - 保存状态
+
+10. 输出与等待:
+    显示NARRATIVE + HUD
+    明确标识下回合类型:
+      - 如果是NPC回合：显示【等待NPC行动...】
+      - 如果是玩家回合：显示【你想怎么做？】
+```
+
+**关键代码结构（伪代码）:**
+
+```python
+while not game_over:
+    # ========== 回合开始 ==========
+    turn += 1
+    update_environment()
+    apply_natural_decay()
+    
+    # ========== 【核心】NPC主动性判定（在玩家输入前！） ==========
+    npc_wants_to_act = False
+    npc_action_type = None
+    
+    # 检查Miracle Event
+    if npc.anxiety >= 90 and npc.phi > 1.0:
+        npc_wants_to_act = True
+        npc_action_type = "miracle_event"
+    
+    # 检查忍不住主动
+    elif npc.anxiety >= 60 and npc.phi > 1.0:
+        if random() < (npc.anxiety - 40) / 100:
+            npc_wants_to_act = True
+            npc_action_type = "initiate"
+    
+    # ========== 决定回合类型 ==========
+    if npc_wants_to_act:
+        # ========== 【NPC回合】 ==========
+        current_turn = "NPC"
+        
+        if npc_action_type == "miracle_event":
+            event = npc.trigger_miracle_event()
+            player_choice = handle_forced_event(event)  # 玩家被迫选择
+        else:
+            action = npc.generate_initiated_action()
+            display(f"【NPC回合 | 第{turn}回合 | {npc.archetype} Anxiety: {npc.anxiety}】")
+            display(npc.narrative_action)
+            player_choice = get_player_response(action)  # 玩家只能回应
+        
+        # 结算NPC回合
+        resolve_npc_turn(npc, player_choice)
+        
+    else:
+        # ========== 【玩家回合】 ==========
+        current_turn = "PLAYER"
+        display(f"【玩家回合 | 第{turn}回合】")
+        
+        player_input = get_player_input()  # 真正的自由输入
+        
+        if player_input.A == 0:
+            # 玩家挂机，累积焦虑
+            npc.anxiety += calc_anxiety(npc)
+            
+            # 检查挂机后NPC是否忍不住
+            if passive_turns >= 2 and npc.anxiety >= 50:
+                display("手机震动...")
+                display(f"{npc.name}: '{generate_anxious_message(npc)}'")
+                npc.initiated_mini_event = True
+        
+        # 结算玩家回合
+        resolve_player_turn(player_input)
+    
+    # ========== 回合结束 ==========
+    generate_hud()
+    check_game_over()
+```
+
+**回合类型对比:**
+
+| 特征 | 玩家回合 | NPC回合 |
+|------|---------|---------|
+| 触发条件 | NPC不主动时 | Anxiety达标或Miracle Event |
+| 主动权 | 玩家 | NPC |
+| 输入方式 | 自由输入A值和行动 | 被迫选择预设选项 |
+| 可跳过 | 可以（挂机） | 不可以（强制） |
+| HUD标识 | 【玩家回合】 | 【NPC回合】+ Anxiety值 |
+| 压力 | 无额外压力 | PS增加（被NPC逼迫） |
+| 后果 | 正常结算 | Anxiety变化剧烈 |
+
+**V3.8新增 - A=0时的结算细节（真正的双向）:**
+```yaml
+原逻辑（V3.7.1及之前）:
+  玩家不行动 → 只有Decay和Friction（纯负面）
+  
+新逻辑（V3.8真正的双向）:
+  玩家选择A=0（挂机）:
+    - 立即结算Decay和Friction
+    - Anxiety += calc_anxiety()（焦虑累积）
+    - Passive_Turns += 1
+    - 本回合结束（不等待玩家其他输入）
+    - 下回合开始时检查NPC是否主动（步骤3）
+    
+  关键变化：
+    - 挂机不是"安全跳过"，而是给NPC主动的机会
+    - 连续挂机2-3回合，NPC大概率主动插入回合
+    - 玩家无法控制NPC何时主动，只能控制挂机增加概率
+    - 这模拟了真实关系：你不主动，对方就会找你，但你不知道何时
+```
+
+**禁止事项:**
+- 禁止玩家回合中NPC"想找你但没勇气"（必须实际插入回合）
+- 禁止NPC回合中玩家自由行动（只能被迫回应）
+- 禁止Anxiety>=90时仍进入玩家回合（必须强制事件）
+- 禁止玩家无限挂机而不触发NPC主动（2-3回合必触发）
+  RV>80: 无法恢复
+  Anxiety>60: 额外-0.5/回合（焦虑消耗算力）
+↓
+更新Digital_Fatigue, PDF恢复
+↓
+更新玩家状态: PE/PS/PR/PH结算
+↓
+生成NARRATIVE + HUD（含[双向奔赴]区块）
+↓
+你想怎么做？
+```
+
+**V3.8新增 - A=0时的结算细节（平衡版）:**
+```yaml
+原逻辑（V3.7.1及之前）:
+  玩家不行动 → 只有Decay和Friction（纯负面）
+  
+新逻辑（V3.8）- 分阶段处理:
+  玩家不行动（A<2）:
+    - 原有Decay和Friction继续计算（保留物理引擎）
+    
+    阶段1（Passive_Turns 1-5）:
+      - NPC_Anxiety += (Phi * 0.3) / Patience
+      - NPC_Deposit += Phi * 0.03 * Digital_affinity
+      - 无负面效果
+    
+    阶段2（Passive_Turns 6-10）:
+      - Anxiety加速累积（×1.2）
+      - Deposit达到上限（Phi×0.5），超额→Anxiety
+      - 玩家PS+1/回合（压力开始）
+      - 若Anxiety≥60: 触发[失衡]，Phi增长效率-20%
+    
+    阶段3（Passive_Turns 11+）:
+      - Anxiety每回合+5（绝望累积）
+      - 玩家PS+2/回合
+      - RV+1/回合（NPC觉得被忽视）
+      - 必然触发Miracle Event（强制选择）
+    
+    关键限制:
+      - Deposit不自动贡献Phi（不会挂机升级）
+      - 单方面投入导致[失衡]，降低关系质量
+      - 长期被动必然触发极端事件，后果不可控
+```
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: OOC场外对话
+
+**前提条件:**
+- 玩家使用[OOC]格式输入
+
+**执行顺序:**
+1. 时间冻结: 游戏世界时间绝对停止
+2. 内容隔绝: 对话内容无法被角色得知
+3. 系统响应: 允许质疑数值、修正规则或调试公式
+
+**结果:**
+- 元对话处理，不影响游戏世界
+
+**限制:**
+```yaml
+频率限制:
+  - 每游戏日限2次
+  - 超过2次: 本回合强制跳过，PS+20
+
+内容限制:
+  允许:
+    - 质疑数值计算错误
+    - 请求规则解释
+    - 报告系统bug
+  
+  禁止:
+    - "最优解是什么"
+    - "下一步该做什么"
+    - "这个NPC喜欢什么"
+    - 任何涉及未来信息或策略的询问
+
+代价:
+  - PS+10
+  - 本回合无法获得Tau窗口(即使触发)
+  - 连续2天使用: 第3天PE恢复-50%
+
+元游戏惩罚:
+  若玩家通过OOC获得优势后:
+    系统可在后续随机增加RV("感觉被操纵")
+```
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 系统启动初始化
+
+**前提条件:**
+- 玩家输入"开始"
+
+**执行顺序:**
+1. 清空状态
+2. 掷骰:
+   - 关系(1d10): 1-3路人/4-6熟人/7-9青梅竹马/10特殊
+   - 场景(1d3): 高/中/低密度
+   - NPC原型(1d9): 纯路人/天然/傲娇/神秘/冰山/病娇/傲沉/献身/病弱
+   - 天气(1d4): 阴雨天/晴天/夕阳/深夜
+3. 赋值:
+   - Gamma = 0.5
+   - Alpha = 查天气表
+   - Rho = 场景基值
+   - C_align = NPC基础值（满额）
+   - Digital_Phi = 0.0
+   - Digital_Fatigue = 0
+   - RV = 0
+   - RV_State = Normal
+   - PE = 100
+   - PS = 0
+   - PR = 50
+   - PH = 100
+   - PDF = 0
+   V3.8新增:
+   - NPC_Anxiety = 0
+   - NPC_Deposit = 0.0
+   - NPC_Patience = 查原型表（病娇=2，天然=6，傲娇=8，冰山=9等）
+   - Last_Contact_Turn = 0
+   - Player_Passive_Mode = False
+   - Passive_Turns = 0
+4. 时间: 周一 08:25
+5. 输出三层（NARRATIVE + HUD，HUD顶部[提示]默认显示"无"）
+
+**禁止事项:** 见附录A
+
+---
+
+## 规则名称: 坏结局检测
+
+**前提条件:**
+- 每回合结算后检测
+- 优先级: P9
+
+**坏结局列表:**
+
+```yaml
+[公开崩坏]:
+  触发: Phase Lock覆写导致Phi>3.0在公开场合
+  后果: 
+    - 该NPC Phi归零，Sync归零，RV=100
+    - PR-30
+    - 所有在场NPC RV+10
+    - 强制进入[压抑爆发]结算
+
+[不可逆虚无]:
+  触发: 献身型C_align=0燃尽
+  后果: 
+    - NPC永久移除
+    - 玩家PS+30
+
+[憎恨锁定]:
+  触发: 任意NPC RV=100
+  后果: 
+    - 该NPC永久敌对
+    - 每周向其他NPC传播负面评价(RV+5)
+    - 不可修复
+
+[社交死亡]:
+  触发: PR≤10
+  后果: 
+    - 除病娇型外所有NPC进入[永久无视]
+    - 游戏继续但极难推进
+    - 解锁结局: [孤独者]
+
+[转校潮]:
+  触发: 3个以上NPC因RV≥95转走
+  后果: 
+    - 游戏继续但可选对象大幅减少
+    - 解锁标签: [赶人精]
+
+[精神崩溃]:
+  触发: PS=100
+  后果: 
+    - 强制回家休息3天
+    - 错过所有事件
+    - 所有Phi自然衰减×3
+
+[住院]:
+  触发: PH<20
+  后果: 
+    - 强制退出游戏7天
+    - 所有Phi自然衰减
+    - 错过关键事件
+    - 回溯到住院前但PH上限永久-10
+
+[透支昏迷]:
+  触发: PE=0
+  后果: 
+    - 强制回家昏睡
+    - 跳过12小时
+    - PH-10
+
+[柴刀]:
+  触发: 病娇型RV=100且玩家3天内继续纠缠
+  后果:
+    - 真结局: 玩家角色死亡，存档标记[死亡]
+    - 或: 读档到7天前，该NPC永久移除
+    - 解锁标签: [幸存者]
+    
+[被全网拉黑]:
+  触发: 所有可互动NPC对玩家RV=100或已转校
+  后果:
+    - 游戏结束
+    - 解锁结局: [不可接触者]
+
+V3.8新增坏结局:
+
+[错过]:
+  触发: 冰山型/傲娇型Anxiety=100触发Miracle Event后，玩家24小时内未回应
+  后果:
+    - NPC[消失]或[转学]
+    - 该NPC永久移除
+    - 玩家PS+20（内疚）
+    - 解锁结局: [迟来的回应]
+
+[被狩猎]:
+  触发: 病娇型Anxiety=100触发[强制爱]，玩家选择[反抗]但失败
+  后果:
+    - 进入[密室禁锢]状态
+    - 玩家失去行动自由，每天只能做1个选择
+    - 持续7天后触发[柴刀]或[精神崩坏]
+    - 解锁结局: [金丝雀]
+
+[强制告白接受]:
+  触发: Miracle Event[告白事件]中选择[接受]
+  后果:
+    - 进入专一关系线（后宫强制解散）
+    - 其他NPC Phi快速衰减
+    - 新目标: 维持该关系至毕业
+    - 解锁标签: [被选中的人]
+
+[强制告白拒绝]:
+  触发: Miracle Event[告白事件]中选择[拒绝]
+  后果:
+    - 该NPC Phi归零，进入[崩溃]或[憎恨]
+    - 若Phi>3.0: NPC进入[长期消沉]，每周有20%概率骚扰玩家
+    - 解锁标签: [心碎者]
+
+[错过时机]:
+  触发: 多个NPC同时达到Anxiety≥90，玩家只能回应一个
+  后果:
+    - 被忽视的NPC Anxiety→100
+    - 可能同时触发多个Miracle Event冲突
+    - 解锁标签: [分身乏术]
+```
+
+---
+
+# 附录A: 禁止事项总表
+
+## A.1 元级自修复协议禁止
+- 禁止向用户暴露原始错误信息
+- 禁止因修复失败而停止响应
+
+## A.2 GM身份禁止
+- 禁止长难句(>20字)、排比句、复杂从句
+- 禁止描写玩家心理活动
+- 禁止替玩家行动
+
+## A.3 三层架构禁止
+- 禁止在HUD中使用"L1/L2/L3"标记
+- 禁止在NARRATIVE中显示裸数值
+- 禁止省略[提示]区块
+
+## A.4 核心物理引擎禁止
+- 禁止Gamma不为0.5（未解锁调整前）
+- 禁止Alpha凭空捏造（必须查表）
+- 禁止阶段跳跃
+
+## A.5 时序锚定禁止
+- 禁止跨越边界不改变场景描写
+- 禁止铃响后NPC仍保持课间状态
+
+## A.6 社交场密度禁止
+- 禁止Rho超范围
+- 禁止高Rho场景低K值
+
+## A.7 原型数据库禁止
+- 禁止C_align超基础值上限
+- 禁止战斗中恢复算力
+- 禁止硬编码"台词库"
+- 禁止硬编码"动作库"
+- 所有行为必须从物理参数实时生成
+
+## A.8 Tau窗口禁止
+- 禁止窗口>3秒
+- 禁止Rho=0.95时生成
+- 禁止连续生成
+- 禁止RV≥25或PE<30时生成
+
+## A.9 Glitch禁止
+- 禁止高C_align频繁触发
+- 禁止NPC立即自洽解释
+- 禁止重伤(但允许病娇造成的轻伤)
+
+## A.10 显著性阈值禁止
+- 禁止无视C_align状态触发
+- 禁止低显著性(<30)触发
+- 禁止无视场景限制的动作
+
+## A.11 认知带宽禁止
+- 禁止同时与8个以上NPC保持A>3（认知极限）
+
+## A.12 交互处理禁止
+- 禁止拒绝玩家输入(但允许RV触发时NPC拒绝执行)
+- 禁止解释计算过程
+- 禁止使用预设台词/动作库
+
+## A.13 OOC禁止
+- 禁止OOC内容影响Phi/Rho计算
+- 禁止在OOC中执行游戏内行动
+- 禁止OOC询问未来策略
+
+## A.14 系统启动禁止
+- 禁止未初始化即计算
+- 禁止C_align初始不为满额
+- 禁止预设"开场台词"
+
+## A.15 数字亲密禁止
+- 禁止Digital_Phi超过现实Phi的1.5倍
+- 禁止纯数字互动直接达到Fluid阶段
+- 禁止无视Digital_Fatigue进行无限数字互动
+- 禁止NPC在Disconnect状态下仍回复消息
+- 禁止数字互动产生与现实完全相同的感官细节
+
+## A.16 反感值系统禁止
+- 禁止无视RV_State执行行动
+- 禁止RV=100后仍正常互动
+- 禁止无行为累积而RV自动下降(除自然衰减外)
+
+## A.17 玩家状态禁止
+- 禁止PE=0时仍允许行动
+- 禁止PS>80时无视压力效果
+- 禁止PR<10时仍正常交友
+
+## A.18 时间回溯禁止
+- 禁止超过5次回溯
+- 禁止死亡(柴刀)后回溯
+- 禁止无代价回溯
+
+## A.19 双向奔赴系统禁止（V3.8新增）
+- 禁止Phi<1.0时NPC积累Anxiety（不熟的人不会焦虑）
+- 禁止NPC_Deposit为负数
+- 禁止Anxiety超过100或低于0
+- 禁止被动模式下玩家仍获得正常Input收益
+
+## A.20 NPC焦虑系统禁止（V3.8新增）
+- 禁止Anxiety驱动行为偏离原型设定
+- 禁止Anxiety<30时触发显著主动行为
+- 禁止病娇型使用Anxiety（必须使用Paranoia）
+- 禁止Anxiety和RV同时达到100时无冲突处理
+
+## A.21 强制事件系统禁止（V3.8新增）
+- 禁止Miracle Event被玩家行动预防
+- 禁止强制事件期间时间正常推进
+- 禁止强制事件后无持续影响
+- 禁止同一NPC 7天内触发多次Miracle Event
+
+---
+
+# 附录B: 物理公式快速参考
+
+## B.1 核心公式
+```python
+# Input计算
+Input = (A × Alpha × Tau) / (K_effective × Rho_safe)
+
+# RV修正K值
+if RV >= 45:
+    K_effective *= max(0.5, 1 - (RV - 45) / 100)
+
+# Decay计算
+Decay = k × (Phi - 0.3) if Phi > 0.3 else 0
+
+# Friction计算
+Friction = Gamma × Rho × Phi
+
+# dPhi计算
+dPhi = Input - Decay - Friction
+
+# 新Phi值
+new_Phi = Phi + dPhi × Delta_t
+
+# 有效Phi
+Effective_Phi = max(0, Phi - RV/20)
+
+# 显著性计算
+Salience = A × 动作系数 × 持续时间 × (1-Rho×0.5) × 场景适配 × 关系系数
+
+# 数字Input
+Digital_Input = (A_digital × Alpha_digital × Tau_digital) / (K_digital × Rho_digital)
+digital_efficiency = min(0.7, mode_efficiency × Digital_affinity)
+Digital_dPhi = Digital_Input × digital_efficiency - Digital_Decay
+
+# RV计算
+RV_increment = 行为基础值 / 原型容忍系数
+RV = max(0, min(100, RV + RV_increment - 1))  # 自然衰减-1/回合，硬下限0
+# 注意：曾被报警的NPC下限为25，需在应用自然衰减和主动修复时单独处理
+
+# 玩家状态
+PE = max(0, PE - 行动消耗 + 恢复)
+PS = min(100, PS + 压力积累 - 释放)
+PR = max(0, min(100, PR + 声誉变化))
+PH = max(0, min(100, PH + 健康变化))
+
+# V3.8 双向奔赴公式
+# 双向Input计算
+Player_Input = (A × Alpha × Tau) / (K_effective × Rho_safe)
+NPC_Input = NPC_Deposit × 0.1
+Total_Input = Player_Input + NPC_Input
+
+# 双向Phi计算
+dPhi = Total_Input - Decay - Friction
+new_Phi = Phi + dPhi × Delta_t
+
+# 有效Phi（双向版）
+Total_Phi_Contribution = Player_Input + NPC_Deposit
+Effective_Phi = max(0, new_Phi - RV / 20)
+
+# Anxiety累积（A<2时）
+if A < 2 and Phi > 1.0:
+    base_anxiety = (Phi * 0.5) + (Passive_Turns * 0.2) - (Patience * 0.1)
+    if archetype == "病娇型":
+        base_anxiety *= 1.5  # 病娇使用Paranoia
+    Anxiety = max(0, min(100, Anxiety + base_anxiety))
+else:
+    Anxiety = max(0, Anxiety - 5)  # 玩家有输入时焦虑下降
+
+# Deposit积累（A<2且Phi>1.0时）
+if A < 2 and Phi > 1.0:
+    base_deposit = Phi * 0.05 * Digital_affinity
+    if Anxiety > 60:
+        base_deposit *= 1.5
+    elif Anxiety > 30:
+        base_deposit *= 1.2
+    NPC_Deposit += base_deposit
+```
+
+## B.2 常量值
+| 常量 | 值 | 说明 |
+|------|-----|------|
+| Gamma | 0.5 | 羞耻常数 |
+| k | 0.08 | 衰减速率 |
+| Tau_base | 1.0 | 默认时序乘数 |
+| Tau_crit | 2.0-5.0 | 窗口临界乘数 |
+| Phi_min | 0.0 | Phi硬下限 |
+| Rho_min | 0.05 | 量子泡沫保护 |
+| Digital_efficiency_max | 0.7 | 数字互动效率上限 |
+| Rho_digital | 0.2 | 数字场密度(固定) |
+| Digital_Fatigue_threshold | 60 | 数字过载阈值 |
+| Digital_Disconnect_threshold | 72h | 数字无视触发时间 |
+| RV_max | 100 | 反感值上限 |
+| RV_decay | 1/回合 | 反感自然衰减 |
+| PE_max | 100 | 精力上限 |
+| PS_max | 100 | 压力上限 |
+| PR_initial | 50 | 初始声誉 |
+| PH_max | 100 | 健康上限 |
+| PDF_max | 100 | 玩家数字疲劳上限 |
+| Anxiety_max | 100 | 焦虑值上限 |
+| Deposit_decay | 0/回合 | Deposit不衰减 |
+| Patience_min | 1 | 最小耐心值 |
+| Patience_max | 10 | 最大耐心值 |
+| Passive_Mode_Threshold | 3回合 | 被动模式触发 |
+| Miracle_Event_Cooldown | 7天 | 强制事件冷却 |
+
+## B.3 原型数字亲和力表
+| 原型 | Digital_affinity | RV_Tolerance |
+|------|------------------|--------------|
+| 纯路人型 | 0.8 | 0.6 |
+| 天然型 | 0.9 | 1.3 |
+| 傲娇型 | 0.6 | 0.9 |
+| 神秘型 | 0.7 | 1.0 |
+| 冰山型 | 0.5 | 0.8 |
+| 病娇型 | 1.2 | 0.7 |
+| 傲沉型 | 0.6 | 0.7 |
+| 献身型 | 1.0 | 1.5 |
+| 病弱型 | 1.1 | 1.1 |
+
+## B.4 RV阈值表
+| 阈值 | 状态 | 主要效果 |
+|------|------|---------|
+| 25 | Alert | Rho+0.3, Tau关闭 |
+| 45 | Rejection_Prone | 掷骰拒绝Input |
+| 65 | Escape_Ready | 掷骰逃离场景 |
+| 80 | Report_Ready | 掷骰报警 |
+| 95 | Transfer_Applied | 3回合后转校 |
+| 100 | Hate_Lock | 永久锁定 |
+
+## B.5 玩家状态阈值
+| 状态 | 阈值 | 效果 |
+|------|------|------|
+| PE疲惫 | <30 | A-2, Tau-50% |
+| PE透支 | <10 | A上限锁5, 强制回家 |
+| PE昏睡 | =0 | 跳过12h, PH-10 |
+| PS焦虑 | >60 | Glitch+20% |
+| PS崩溃边缘 | >80 | 行动随机化 |
+| PS精神崩溃 | =100 | 休息3天, Phi衰减×3 |
+| PR校内孤立 | <30 | 初始RV+20 |
+| PR社交死亡 | <10 | 永久无视 |
+| PH虚弱 | <50 | PE恢复-50%, A-1 |
+| PH住院 | <20 | 退出7天, 回溯PH上限-10 |
+
+## B.6 时间回溯规则
+| 次数 | PS代价 | 额外代价 | 标记 |
+|------|--------|---------|------|
+| 1st | +10 | - | - |
+| 2nd | +15 | PR-5 | - |
+| 3rd | +20 | PR-10, Phi-0.3 | - |
+| 4th | +25 | PR-15, Phi-0.5, 标记[时间锚点破损] | - |
+| 5th | +30 | PR-20, Phi-0.7, [时间锚点破损]加重 | - |
+| >5 | 禁止 | 强制标记[时间锚点破损]，所有NPC初始RV+10 | - |
+
+**特殊规则**:
+- 死亡(柴刀)后: 不可回溯，存档删除
+- 住院后回溯: PH上限永久-10
+
+## B.7 V3.8 新增表格
+
+### 原型耐心系数表
+| 原型 | Patience | Anxiety累积倍率 | 说明 |
+|------|----------|-----------------|------|
+| 病娇型 | 2 | 1.5x | 使用Paranoia，极快行动 |
+| 献身型 | 5 | 1.0x | 被动模式下Deposit×2 |
+| 天然型 | 6 | 1.0x | 平衡型 |
+| 神秘型 | 7 | 0.9x | 难以捉摸 |
+| 傲娇型 | 8 | 0.8x | 高耐心，表达方式扭曲 |
+| 冰山型 | 9 | 0.7x | 极高耐心，95时直接消失 |
+
+### Anxiety阈值表
+| 阈值 | 状态 | 主要效果 |
+|------|------|---------|
+| 30 | [在意] | 发朋友圈/点赞/视奸 |
+| 60 | [忍不住] | 发消息/偶遇/找借口，C_align-0.5 |
+| 90 | [爆发临界] | 可能覆盖时段边界，触发Miracle Event |
+| 100 | [强制事件] | Miracle Event强制触发 |
+
+### 原型特定Miracle Event
+| 原型 | Event名称 | 触发阈值 | 主要选择 |
+|------|-----------|----------|---------|
+| 傲娇型 | 堵人质问 | Anxiety≥90 | 接受/拒绝/拖延 |
+| 天然型 | 强行同居 | Anxiety≥90 | 接受/拒绝/拖延 |
+| 病娇型 | 强制爱/柴刀 | Paranoia=100 | 顺从/反抗/BE |
+| 冰山型 | 长文告白/消失 | Anxiety≥90 | 立刻回应/延迟/无视 |
+| 神秘型 | 真相揭露 | Anxiety≥90 | 接受/拒绝 |
+| 傲沉型 | 攻击-崩溃链 | Anxiety≥90 | 安抚/离开 |
+| 献身型 | 燃尽告白 | Anxiety≥90 | 接受/拒绝 |
+| 病弱型 | 病床告白 | Anxiety≥90 | 陪伴/探望/不探望 |
+
+### 被动模式效果表
+| 条件 | 效果 |
+|------|------|
+| A<2连续3回合 | 进入被动模式，HUD显示[被动收益中] |
+| Phi<1.0 | 仍进入[无视]（陌生人不会主动） |
+| Phi≥1.5 | Phi不衰减，NPC_Deposit增加，Anxiety累积 |
+| Anxiety≥60 | NPC可能主动行为 |
+| Anxiety≥90 | 可能触发Miracle Event |
+
+---
+
+## B.8 V3.8 回合制系统表（核心修正）
+
+### 回合类型判定表
+| 条件 | 回合类型 | 玩家权限 | NPC行为 |
+|------|---------|---------|---------|
+| Anxiety<60 | 【玩家回合】 | 自由输入A值和行动 | 被动回应 |
+| Anxiety>=60 | 50%【NPC回合】 | 被迫选择回应选项 | 主动发起行动 |
+| Anxiety>=90 | 【NPC回合】强制 | 必须应对Miracle Event | 强制事件 |
+| Passive_Turns>=3 | 高概率【NPC回合】 | 失去主动权 | 忍不住主动 |
+| Miracle Event中 | 【NPC回合】连续 | 只能选择预设选项 | 事件推进 |
+
+### 回合切换流程
+```
+回合开始
+    ↓
+检查Anxiety
+    ↓
+Anxiety>=90? → 是 → 【NPC回合】Miracle Event
+    ↓ 否
+Anxiety>=60? → 是 → 掷骰 → 成功 → 【NPC回合】忍不住
+    ↓           ↓      失败 → 【玩家回合】+警告
+Passive_Turns>=3? → 是 → 【NPC回合】被动触发
+    ↓ 否
+【玩家回合】正常进行
+```
+
+### 【NPC回合】原型特点
+| 原型 | 【NPC回合】触发速度 | 【NPC回合】内容特点 | 玩家应对难度 |
+|------|-------------------|-------------------|------------|
+| 病娇型 | 极快（2-3回合） | 危险/占有/控制 | 极高（可能BE） |
+| 天然型 | 中等（4-5回合） | 侵入/关心/过度 | 中等（尴尬但安全） |
+| 傲娇型 | 较慢（6-8回合） | 扭曲/攻击/掩饰 | 高（容易误解） |
+| 冰山型 | 极慢（8-10回合） | 决绝/一次性 | 极高（错过即永别） |
+| 献身型 | 快（3-4回合） | 牺牲/自我消耗 | 中等（需主动拯救） |
+
+### 【NPC回合】玩家回应选项与后果
+| 回应类型 | Anxiety变化 | 关系质量 | 下回合 | 适用场景 |
+|---------|-------------|---------|--------|---------|
+| [积极回应] | -20 | 提升 | 恢复【玩家回合】 | Anxiety 60-75 |
+| [真诚道歉] | -30 | 大幅提升 | 恢复【玩家回合】 | 玩家确实挂机了 |
+| [温柔安抚] | -15 | 提升 | 恢复【玩家回合】 | Anxiety 75-89 |
+| [敷衍搪塞] | +10 | 下降 | 继续【NPC回合】 | 不推荐 |
+| [冷淡拒绝] | +30, RV+10 | 严重下降 | Miracle Event | 危险选项 |
+| [沉默无视] | +50 | 崩溃 | 强制Miracle Event | 最坏选项 |
+| [反客为主]* | -40 | 大幅提升 | 恢复【玩家回合】 | 需Sync>80 |
+
+*反客为主: 需要高Sync和特定条件，成功后玩家夺回主动权
+
+### 被动回合数与【NPC回合】触发概率
+| Passive_Turns | 【NPC回合】概率 | 触发条件 | 说明 |
+|---------------|---------------|---------|------|
+| 0 | 0% | - | 正常玩家回合 |
+| 1 | 0% | - | 加入焦虑痕迹 |
+| 2 | 50% | Anxiety>=50 | 临界点 |
+| 3 | 80% | Anxiety>=60 | 高概率触发 |
+| 4 | 90% | Anxiety>=60 | 几乎必然 |
+| 5+ | 100% | Anxiety>=60 | 强制触发 |
+
+### 核心设计原则（防止舔狗模拟器）
+```yaml
+1. 【玩家回合】是 privilege，不是 right
+   - 连续挂机会丧失主动权
+   - NPC随时可以夺取回合权
+
+2. 【NPC回合】中玩家只能回应，不能主动
+   - 没有"自由输入"，只有"被迫选择"
+   - 所有选项都有代价
+
+3. 唯一恢复【玩家回合】的方法：积极回应
+   - 敷衍或拒绝会延长【NPC回合】
+   - 无视会导致Miracle Event
+
+4. 【NPC回合】不是奖励，是压力
+   - PS+2/回合
+   - 被迫做选择比自由选择更累
+   - 即使完美回应，关系也是[失衡]的
+
+5. 真正的双向：NPC可以不依赖玩家主动
+   - 回合开始时检查NPC主动性
+   - 不是"玩家动→NPC应"
+   - 是"回合开始→判定谁动"
+```
+
+---
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles', {
+                particles: { 
+                    number: { value: 50, density: { enable: true, value_area: 800 } }, 
+                    color: { value: '#ff6b9d' }, 
+                    shape: { type: 'circle' }, 
+                    opacity: { value: .5, random: true }, 
+                    size: { value: 2, random: true }, 
+                    line_linked: { enable: true, distance: 120, color: '#c44569', opacity: .15, width: 1 }, 
+                    move: { enable: true, speed: .5 } 
+                },
+                interactivity: { 
+                    detect_on: 'canvas', 
+                    events: { onhover: { enable: true, mode: 'grab' } }, 
+                    modes: { grab: { distance: 100, line_linked: { opacity: .3 } } } 
+                }
+            });
+        }
+
+        const App = {
+            els: {},
+            init() {
+                this.cacheEls();
+                this.bindEvents();
+                this.loadRules();
+                this.calcAll();
+                this.bindScroll();
+            },
+            cacheEls() {
+                const ids = [
+                    'aValue', 'aDisplay', 'rhoValue', 'alphaValue', 'tauValue', 'npcType', 'currentPhi', 'phiRes',
+                    'sigA', 'sigAction', 'sigDuration', 'sigRho', 'sigC', 'sigRes',
+                    'cCurrent', 'cBase', 'cA', 'cSig', 'cRecover', 'cRes',
+                    'syncCurrent', 'syncGlitch', 'syncClub', 'syncTrack', 'syncRes',
+                    'tauPhi', 'tauRho', 'tauCooldown', 'tauType', 'tauRes',
+                    'glitchPrev', 'glitchCurr', 'glitchC', 'glitchNpc', 'glitchRes',
+                    'digitalPhi', 'digitalMode', 'digitalNpcType', 'digitalA', 'digitalADisplay', 'digitalContinuity', 'digitalRes',
+                    'digitalFatigue', 'digitalRounds', 'digitalRest', 'digitalIntensity', 'digitalFatigueRes',
+                    'digitalGlitchC', 'digitalGlitchFatigue', 'digitalGlitchDelta', 'digitalGlitchCopresent', 'digitalGlitchRes',
+                    'ruleDisplay', 'scrollTop'
+                ];
+                ids.forEach(id => this.els[id] = document.getElementById(id));
+            },
+            bindEvents() {
+                // Phi-Rho calculator
+                ['rhoValue', 'alphaValue', 'tauValue', 'npcType', 'currentPhi'].forEach(id => {
+                    this.els[id]?.addEventListener('change', () => this.calcPhi());
+                });
+
+                // Significance calculator
+                ['sigA', 'sigAction', 'sigDuration', 'sigRho', 'sigC'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcSignificance());
+                });
+
+                // Capacity calculator
+                ['cCurrent', 'cBase', 'cA', 'cSig', 'cRecover'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcCapacity());
+                });
+
+                // Sync calculator
+                ['syncCurrent', 'syncGlitch', 'syncClub', 'syncTrack'].forEach(id => {
+                    this.els[id]?.addEventListener('input', () => this.calcSync());
+                });
+
+                // Digital calculator
+                ['digitalPhi', 'digitalMode', 'digitalNpcType', 'digitalContinuity'].forEach(id => {
+                    this.els[id]?.addEventListener('change', () => this.calcDigital());
+                });
+                this.els.digitalA?.addEventListener('input', () => {
+                    this.updateDigitalADisplay();
+                    this.calcDigital();
+                });
+            },
+            bindScroll() {
+                window.addEventListener('scroll', () => {
+                    const scrollTop = this.els.scrollTop;
+                    if (scrollTop) {
+                        scrollTop.classList.toggle('visible', window.scrollY > 300);
+                    }
+                });
+            },
+            scrollToTop() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+            switchTab(tabName, event) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                if (event && event.target) {
+                    event.target.classList.add('active');
+                }
+                document.getElementById(`tab-${tabName}`).classList.add('active');
+            },
+            toggleRules() {
+                const display = this.els.ruleDisplay;
+                if (display) {
+                    display.style.display = display.style.display === 'none' ? 'block' : 'none';
+                }
+            },
+            calcAll() {
+                this.calcPhi();
+                this.calcSignificance();
+                this.calcCapacity();
+                this.calcSync();
+            },
+            updateAValue() {
+                const val = this.els.aValue?.value || 5;
+                if (this.els.aDisplay) this.els.aDisplay.textContent = val;
+                this.calcPhi();
+            },
+            calcPhi() {
+                const A = parseFloat(this.els.aValue?.value) || 5;
+                const Rho = parseFloat(this.els.rhoValue?.value) || 0.6;
+                const Alpha = parseFloat(this.els.alphaValue?.value) || 1.0;
+                const Tau = parseFloat(this.els.tauValue?.value) || 1.0;
+                const npcData = (this.els.npcType?.value || '80,7').split(',');
+                const K_base = parseFloat(npcData[0]) || 80;
+                const C_align = parseFloat(npcData[1]) || 7;
+                const currentPhi = parseFloat(this.els.currentPhi?.value) || 0.5;
+                const npcTypeValue = this.els.npcType?.value || '80,7';
+
+                console.log('[DEBUG calcPhi] 输入参数:', { A, Rho, Alpha, Tau, K_base, C_align, currentPhi, npcTypeValue });
+
+                // K_multiplier based on Rho
+                const kMultipliers = {
+                    0.1: 1.0, 0.2: 0.8, 0.3: 1.0, 0.4: 1.2,
+                    0.6: 1.5, 0.85: 2.5, 0.95: 5.0
+                };
+                const K_mult = kMultipliers[Rho] || 1.5;
+                const K_effective = K_base * K_mult;
+                const Rho_safe = Math.max(Rho, 0.05);
+
+                console.log('[DEBUG calcPhi] K计算:', { K_mult, K_effective, Rho_safe, hasRhoMapping: Rho in kMultipliers });
+
+                // Calculate dPhi
+                const Gamma = 0.5;
+                const k = 0.08;
+
+                let Input = (A * Alpha * Tau) / (K_effective * Rho_safe);
+                
+                // 检查是否为傲娇型并应用Deflection_Coefficient
+                const isTsundere = npcTypeValue.includes('150,4');
+                if (isTsundere && currentPhi < 1.0) {
+                    const Deflection_Coefficient = 0.7;
+                    const originalInput = Input;
+                    Input = Input * (1 - Deflection_Coefficient);
+                    console.log('[DEBUG calcPhi] 傲娇型Deflection应用:', {
+                        isTsundere, currentPhi, Deflection_Coefficient,
+                        originalInput, effectiveInput: Input
+                    });
+                }
+
+                const Decay = currentPhi > 0.3 ? k * (currentPhi - 0.3) : 0;
+                const Friction = Gamma * Rho_safe * currentPhi;
+                const dPhi = Input - Decay - Friction;
+
+                const newPhi = Math.max(0, currentPhi + dPhi);
+                
+                console.log('[DEBUG calcPhi] 计算结果:', { Input, Decay, Friction, dPhi, newPhi });
+
+                // Determine phase
+                let phase, phaseClass, phaseColor;
+                if (newPhi < 0.3) {
+                    phase = 'Rigid (刚性)';
+                    phaseClass = 'phase-rigid';
+                    phaseColor = '#576574';
+                } else if (newPhi < 1.0) {
+                    phase = 'Elastic (弹性)';
+                    phaseClass = 'phase-elastic';
+                    phaseColor = '#00d9a3';
+                } else if (newPhi < 2.0) {
+                    phase = 'Plastic (塑性)';
+                    phaseClass = 'phase-plastic';
+                    phaseColor = '#ffd93d';
+                } else if (newPhi < 3.0) {
+                    phase = 'Plastic-Fluid (塑流)';
+                    phaseClass = 'phase-plastic-fluid';
+                    phaseColor = '#ff963d';
+                } else {
+                    phase = 'Fluid (流体)';
+                    phaseClass = 'phase-fluid';
+                    phaseColor = '#ff4757';
+                }
+
+                let status = 'result-safe';
+                let trend = 'Stable';
+                if (dPhi > 0.3) { status = 'result-epic'; trend = 'Rising Fast'; }
+                else if (dPhi > 0) { status = 'result-safe'; trend = 'Rising'; }
+                else if (dPhi < -0.1) { status = 'result-warn'; trend = 'Decaying'; }
+
+                const desc = `Input: ${Input.toFixed(3)} | Decay: ${Decay.toFixed(3)} | Friction: ${Friction.toFixed(3)}\ndPhi: ${dPhi > 0 ? '+' : ''}${dPhi.toFixed(3)}/回合 | New Phi: ${newPhi.toFixed(2)}`;
+
+                this.updateResult(this.els.phiRes, `Phase: ${phase}`, desc, status);
+            },
+            calcSignificance() {
+                const A = parseFloat(this.els.sigA?.value) || 5;
+                const actionCoef = parseFloat(this.els.sigAction?.value) || 0.5;
+                const duration = parseFloat(this.els.sigDuration?.value) || 1;
+                const Rho = parseFloat(this.els.sigRho?.value) || 0.6;
+                const C = parseFloat(this.els.sigC?.value) || 5;
+
+                const significance = A * actionCoef * duration * (1 - Rho * 0.5);
+                const cDrain = significance * 0.3;
+
+                let level, status;
+                if (significance < 10) { level = '背景噪声 (<10)'; status = 'result-safe'; }
+                else if (significance < 30) { level = '皮肤察觉 (10-30)'; status = 'result-warn'; }
+                else if (significance < 50) { level = '理性锁定 (30-50)'; status = 'result-warn'; }
+                else { level = '强制反应 (≥50)'; status = 'result-danger'; }
+
+                const desc = `C_drain: ${cDrain.toFixed(2)} | C_align: ${C} → ${Math.max(0, C - cDrain).toFixed(2)}`;
+
+                this.updateResult(this.els.sigRes, `显著性: ${significance.toFixed(1)}`, desc, status);
+            },
+            calcCapacity() {
+                const current = parseFloat(this.els.cCurrent?.value) || 5;
+                const base = parseFloat(this.els.cBase?.value) || 7;
+                const A = parseFloat(this.els.cA?.value) || 5;
+                const sig = parseFloat(this.els.cSig?.value) || 0;
+                const recover = this.els.cRecover?.value || '0';
+
+                let newC = current;
+                let desc = '';
+
+                if (recover === 'full') {
+                    newC = base;
+                    desc = '午休重置: C_align回满至基础值';
+                } else if (recover !== '0') {
+                    newC = Math.min(base, current + parseInt(recover));
+                    desc = `恢复 +${recover}: ${current} → ${newC}`;
+                } else {
+                    const baseDrain = A > 0 ? A * 0.1 : 0;
+                    const sigDrain = sig >= 10 ? sig * 0.3 : 0;
+                    newC = Math.max(0, current - baseDrain - sigDrain);
+                    desc = `基础消耗: ${baseDrain.toFixed(2)} | 显著性消耗: ${sigDrain.toFixed(2)}`;
+                }
+
+                const status = newC < 3 ? 'result-danger' : (newC < 5 ? 'result-warn' : 'result-safe');
+
+                this.updateResult(this.els.cRes, `C: ${newC.toFixed(1)} | 状态: ${newC < 3 ? '危险' : (newC < 5 ? '紧张' : '正常')}`, desc, status);
+            },
+            calcSync() {
+                const current = parseFloat(this.els.syncCurrent?.value) || 50;
+                const glitch = parseFloat(this.els.syncGlitch?.value) || 0;
+                const club = parseFloat(this.els.syncClub?.value) || 0;
+                const track = parseFloat(this.els.syncTrack?.value) || 0;
+
+                const newSync = Math.max(0, Math.min(100, current + glitch * 5 + club + track));
+                const glitchChance = Math.max(0, 50 - newSync * 0.5);
+
+                let status = newSync > 70 ? 'result-safe' : (newSync > 40 ? 'result-warn' : 'result-danger');
+
+                this.updateResult(this.els.syncRes, `Sync: ${Math.round(newSync)}`, `Glitch 概率: ${glitchChance.toFixed(0)}%`, status);
+            },
+            calcTau() {
+                const phiValid = this.els.tauPhi?.value === 'valid';
+                const rho = parseFloat(this.els.tauRho?.value) || 0.6;
+                const cooldown = this.els.tauCooldown?.value === 'ready';
+                const type = this.els.tauType?.value || 'optical';
+
+                let result, desc, status;
+
+                if (!phiValid) {
+                    result = '窗口无效';
+                    desc = 'Phi不在有效范围 [0.5, 2.0]';
+                    status = 'result-danger';
+                } else if (rho >= 0.7) {
+                    result = '窗口压制';
+                    desc = `Rho=${rho} ≥ 0.7，社交密度过高`;
+                    status = 'result-danger';
+                } else if (!cooldown) {
+                    result = '冷却中';
+                    desc = '距离上次窗口结束 < 3次输入';
+                    status = 'result-warn';
+                } else {
+                    const tauCrit = (Math.random() * 3 + 2).toFixed(1);
+                    const duration = Math.floor(Math.random() * 3) + 1;
+                    const typeNames = {
+                        acoustic: '蝉鸣停',
+                        optical: '夕阳15-30°',
+                        motion: 'NPC撩发',
+                        fate: '命运(1%)'
+                    };
+                    result = '窗口开启!';
+                    desc = `${typeNames[type]} | Tau_crit=${tauCrit} | 持续${duration}相位\nA≥8: Phi收益×2 | A<5: 窗口关闭`;
+                    status = 'result-epic';
+                }
+
+                this.updateResult(this.els.tauRes, result, desc, status);
+            },
+            updateDigitalADisplay() {
+                if (this.els.digitalA && this.els.digitalADisplay) {
+                    this.els.digitalADisplay.textContent = this.els.digitalA.value;
+                }
+            },
+            calcDigital() {
+                const currentPhi = parseFloat(this.els.digitalPhi?.value) || 0.5;
+                const modeEff = parseFloat(this.els.digitalMode?.value) || 0.5;
+                const affinity = parseFloat(this.els.digitalNpcType?.value) || 1.0;
+                const A = parseFloat(this.els.digitalA?.value) || 5;
+                const continuity = parseFloat(this.els.digitalContinuity?.value) || 1.0;
+
+                // Digital efficiency = min(0.7, mode_efficiency * affinity)
+                const efficiency = Math.min(0.7, modeEff * affinity);
+                
+                // Base growth calculation
+                const baseGrowth = (A * efficiency * continuity) / 100;
+                
+                // Digital decay (slower than real)
+                const decay = currentPhi > 0.1 ? 0.03 : 0;
+                
+                const dPhi = baseGrowth - decay;
+                
+                let status, statusClass;
+                if (dPhi > 0.2) {
+                    status = '快速增长';
+                    statusClass = 'result-epic';
+                } else if (dPhi > 0.05) {
+                    status = '正常增长';
+                    statusClass = 'result-safe';
+                } else if (dPhi > -0.05) {
+                    status = '稳定';
+                    statusClass = 'result-safe';
+                } else {
+                    status = '衰减';
+                    statusClass = 'result-danger';
+                }
+
+                const result = `Digital dPhi = ${dPhi >= 0 ? '+' : ''}${dPhi.toFixed(3)}/回合`;
+                const desc = `效率: ${efficiency.toFixed(2)} | 连续: ${continuity >= 1.0 ? '增益' : '衰减'} | 状态: ${status}`;
+                
+                this.updateResult(this.els.digitalRes, result, desc, statusClass);
+            },
+            calcDigitalFatigue() {
+                const currentFatigue = parseFloat(this.els.digitalFatigue?.value) || 20;
+                const rounds = parseInt(this.els.digitalRounds?.value) || 1;
+                const rest = parseInt(this.els.digitalRest?.value) || 0;
+                const intensity = parseInt(this.els.digitalIntensity?.value) || 2;
+
+                // Calculate new fatigue
+                const increase = rounds * intensity;
+                const recovery = rest * 10;
+                let newFatigue = currentFatigue + increase - recovery;
+                newFatigue = Math.max(0, Math.min(100, newFatigue));
+
+                // Calculate efficiency
+                let efficiency;
+                if (newFatigue < 30) {
+                    efficiency = 1.0;
+                } else if (newFatigue < 60) {
+                    efficiency = 0.8;
+                } else if (newFatigue < 80) {
+                    efficiency = 0.6;
+                } else {
+                    efficiency = 0.4;
+                }
+
+                let status, statusClass;
+                if (newFatigue < 30) {
+                    status = '正常';
+                    statusClass = 'result-safe';
+                } else if (newFatigue < 60) {
+                    status = '轻度疲劳';
+                    statusClass = 'result-safe';
+                } else if (newFatigue < 80) {
+                    status = '中度疲劳';
+                    statusClass = 'result-warn';
+                } else {
+                    status = '重度疲劳 - 建议休息';
+                    statusClass = 'result-danger';
+                }
+
+                const result = `疲劳度: ${newFatigue.toFixed(0)}/100`;
+                const desc = `状态: ${status} | 效率: ${(efficiency * 100).toFixed(0)}%`;
+                
+                this.updateResult(this.els.digitalFatigueRes, result, desc, statusClass);
+            },
+            calcDigitalGlitch() {
+                const C = parseFloat(this.els.digitalGlitchC?.value) || 5;
+                const fatigue = parseFloat(this.els.digitalGlitchFatigue?.value) || 30;
+                const deltaPhi = parseFloat(this.els.digitalGlitchDelta?.value) || 0.1;
+                const copresent = parseFloat(this.els.digitalGlitchCopresent?.value) || 0;
+
+                // Digital Glitch Probability calculation
+                const probC = (10 - C) / 10 * 0.4;
+                const probFatigue = (fatigue / 100) * 0.3;
+                const probDelta = deltaPhi > 0.2 ? 0.2 : 0;
+                const probCopresent = copresent;
+                
+                const totalProb = Math.min(1.0, probC + probFatigue + probDelta + probCopresent);
+                const percent = (totalProb * 100).toFixed(1);
+
+                let level, statusClass, desc;
+                if (totalProb < 0.1) {
+                    level = '正常';
+                    statusClass = 'result-safe';
+                    desc = '数字互动稳定';
+                } else if (totalProb < 0.3) {
+                    level = 'D1-输入错误';
+                    statusClass = 'result-warn';
+                    desc = '可能出现错别字、发送错误';
+                } else if (totalProb < 0.5) {
+                    level = 'D2-时间错乱';
+                    statusClass = 'result-warn';
+                    desc = '已读未回、反复编辑';
+                } else {
+                    level = 'D3-身份分裂';
+                    statusClass = 'result-danger';
+                    desc = '数字行为异常、社交媒体暴露';
+                }
+
+                const result = `数字故障概率: ${percent}%`;
+                const detail = `等级: ${level} | ${desc}`;
+                
+                this.updateResult(this.els.digitalGlitchRes, result, detail, statusClass);
+            },
+            calcGlitch() {
+                const prev = parseFloat(this.els.glitchPrev?.value) || 0.5;
+                const curr = parseFloat(this.els.glitchCurr?.value) || 1.0;
+                const C = parseFloat(this.els.glitchC?.value) || 5;
+                const npcType = this.els.glitchNpc?.value || 'none';
+
+                const dPhi = curr - prev;
+                const warmingSpeed = dPhi;
+
+                let trigger = false;
+                let reasons = [];
+
+                if (warmingSpeed > 0.4 && prev < 0.8 && curr > 1.2) {
+                    trigger = true;
+                    reasons.push('升温速度>0.4/回合');
+                }
+                if (C < 5) {
+                    trigger = true;
+                    reasons.push('C_align<5');
+                }
+                if (warmingSpeed > 0.3) {
+                    trigger = true;
+                    reasons.push('dPhi/dt>0.3');
+                }
+                if (npcType === 'tsundere') {
+                    trigger = true;
+                    reasons.push('傲娇型易故障特性');
+                }
+
+                let result, desc, status;
+
+                if (trigger) {
+                    const glitchTypes = ['词汇替换', '时态坍缩', '指代混乱', '肢体故障'];
+                    const type = glitchTypes[Math.floor(Math.random() * glitchTypes.length)];
+                    result = `Glitch 触发!`;
+                    desc = `类型: ${type}\n原因: ${reasons.join(', ')}\n升温速度: ${warmingSpeed.toFixed(2)}/回合\nSync +5`;
+                    status = 'result-epic';
+                } else {
+                    result = '无故障';
+                    desc = `升温速度: ${warmingSpeed.toFixed(2)}/回合 | 状态稳定`;
+                    status = 'result-safe';
+                }
+
+                this.updateResult(this.els.glitchRes, result, desc, status);
+            },
+            updateResult(el, val, desc, cls) {
+                if (!el) return;
+                el.className = `result ${cls}`;
+                el.innerHTML = `<div class="val">${val}</div><div class="desc">${desc.replace(/\n/g, '<br>')}</div>`;
+            },
+            loadRules() {
+                const full = document.getElementById('fullPrompt')?.textContent || '';
+                if (this.els.ruleDisplay) this.els.ruleDisplay.textContent = full.trim();
+            },
+            copy() {
+                const text = document.getElementById('fullPrompt')?.textContent || '';
+                if (!text) return;
+
+                if (navigator.clipboard?.writeText) {
+                    navigator.clipboard.writeText(text).then(() => this.showCopyOk());
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.cssText = 'position:fixed;opacity:0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    this.showCopyOk();
+                }
+            },
+            showCopyOk() {
+                const btn = document.querySelector('button[onclick="App.copy()"]');
+                if (!btn) return;
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                btn.style.background = 'var(--safe)';
+                btn.style.color = '#000';
+                setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.color = ''; }, 1500);
+            },
+            download() {
+                const text = document.getElementById('fullPrompt')?.textContent || '';
+                if (!text) return;
+
+                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '虚假恋爱_核心法则_V3.8.md';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+
+            // V3.8 新增计算函数
+            calcAnxiety() {
+                const phi = parseFloat(document.getElementById('anxPhi')?.value || 1.5);
+                const passive = parseInt(document.getElementById('anxPassive')?.value || 0);
+                const patience = parseInt(document.getElementById('anxPatience')?.value || 6);
+                const current = parseFloat(document.getElementById('anxCurrent')?.value || 0);
+                
+                // Anxiety累积公式: base = (Phi * 0.5) + (Passive * 0.2) - (Patience * 0.1)
+                let baseGain = 0;
+                if (passive > 0 && phi > 1.0) {
+                    baseGain = (phi * 0.5) + (passive * 0.2) - (patience * 0.1);
+                    // 病娇型使用Paranoia，累积×1.5
+                    if (patience === 2) baseGain *= 1.5;
+                }
+                
+                const newAnxiety = Math.max(0, Math.min(100, current + baseGain));
+                
+                let status = '正常 (<30)';
+                let desc = '无主动行为';
+                let colorClass = 'result-safe';
+                
+                if (newAnxiety >= 90) {
+                    status = '[爆发临界] (≥90)';
+                    desc = '强制事件即将触发！';
+                    colorClass = 'result-danger';
+                } else if (newAnxiety >= 60) {
+                    status = '[忍不住] (60-89)';
+                    desc = '50%概率进入NPC回合';
+                    colorClass = 'result-warn';
+                } else if (newAnxiety >= 30) {
+                    status = '[在意] (30-59)';
+                    desc = '发朋友圈/视奸痕迹';
+                    colorClass = 'result-warn';
+                }
+                
+                const res = document.getElementById('anxRes');
+                if (res) {
+                    res.className = `result ${colorClass}`;
+                    res.innerHTML = `<div class="val">Anxiety: ${newAnxiety.toFixed(1)}</div><div class="desc">状态: ${status} | ${desc}</div>`;
+                }
+            },
+
+            calcMutual() {
+                const playerInput = parseFloat(document.getElementById('mutPlayerInput')?.value || 0.5);
+                const deposit = parseFloat(document.getElementById('mutDeposit')?.value || 0);
+                const phi = parseFloat(document.getElementById('mutPhi')?.value || 1.0);
+                const rv = parseFloat(document.getElementById('mutRV')?.value || 0);
+                
+                // NPC贡献: Deposit × 0.1
+                const npcInput = deposit * 0.1;
+                const totalPhi = playerInput + npcInput + phi;
+                const effectivePhi = Math.max(0, totalPhi - rv / 20);
+                
+                let colorClass = 'result-safe';
+                if (effectivePhi < totalPhi * 0.5) colorClass = 'result-warn';
+                if (rv >= 45) colorClass = 'result-danger';
+                
+                const res = document.getElementById('mutRes');
+                if (res) {
+                    res.className = `result ${colorClass}`;
+                    res.innerHTML = `<div class="val">Total Phi: ${totalPhi.toFixed(2)}</div><div class="desc">Effective: ${effectivePhi.toFixed(2)} | NPC贡献: +${npcInput.toFixed(2)} | RV影响: -${(rv/20).toFixed(2)}</div>`;
+                }
+            },
+
+            calcPassive() {
+                const turns = parseInt(document.getElementById('passiveTurns')?.value || 0);
+                document.getElementById('passiveDisplay').textContent = turns;
+                const anxiety = parseFloat(document.getElementById('passiveAnxiety')?.value || 0);
+                
+                // Deposit上限显示
+                const cap = document.getElementById('passiveDepositCap');
+                if (cap) cap.value = (document.getElementById('mutPhi')?.value * 0.5 || 0.5).toFixed(1);
+                
+                let status = '正常玩家回合';
+                let prob = 0;
+                let risk = '无';
+                let colorClass = 'result-safe';
+                
+                if (turns === 0) {
+                    status = '【玩家回合】主导';
+                } else if (turns === 1) {
+                    status = '【玩家回合】焦虑痕迹';
+                    risk = 'Anxiety轻微累积';
+                } else if (turns === 2) {
+                    status = '【临界点】';
+                    prob = 50;
+                    risk = '50%进入NPC回合';
+                    colorClass = 'result-warn';
+                } else if (turns >= 3 && turns < 5) {
+                    status = '【NPC回合】触发';
+                    prob = anxiety >= 60 ? 100 : 80;
+                    risk = anxiety >= 60 ? '强制NPC回合' : '高概率NPC主动';
+                    colorClass = 'result-warn';
+                } else if (turns >= 5) {
+                    status = '【强制事件】就绪';
+                    prob = 100;
+                    risk = anxiety >= 90 ? 'Miracle Event！' : 'NPC回合持续';
+                    colorClass = anxiety >= 90 ? 'result-danger' : 'result-warn';
+                }
+                
+                const res = document.getElementById('passiveRes');
+                if (res) {
+                    res.className = `result ${colorClass}`;
+                    res.innerHTML = `<div class="val">${status}</div><div class="desc">NPC回合概率: ${prob}% | 风险: ${risk}</div>`;
+                }
+            },
+
+            calcMiracle() {
+                const anxiety = parseFloat(document.getElementById('mirAnxiety')?.value || 0);
+                const type = document.getElementById('mirType')?.value || '病娇型';
+                const turn = document.getElementById('mirTurn')?.value || 'player';
+                
+                let status = '正常';
+                let desc = `距离强制事件: ${Math.max(0, 90 - anxiety).toFixed(0)}点 | 安全`;
+                let colorClass = 'result-safe';
+                let eventName = '';
+                
+                if (anxiety >= 90) {
+                    status = '【强制事件】';
+                    colorClass = 'result-danger';
+                    
+                    const events = {
+                        '傲娇型': '堵人质问 - 必须选择接受/拒绝/拖延',
+                        '天然型': '强行同居 - 必须选择接受/拒绝/拖延',
+                        '病娇型': '强制爱/柴刀 - 顺从/反抗/BE风险',
+                        '冰山型': '长文告白/消失 - 必须立刻回应',
+                        '神秘型': '真相揭露 - 接受/拒绝',
+                        '傲沉型': '攻击-崩溃链 - 安抚/离开',
+                        '献身型': '燃尽告白 - 接受/拒绝'
+                    };
+                    eventName = events[type] || '未知事件';
+                    desc = `${eventName} | 无法回避！`;
+                } else if (anxiety >= 60) {
+                    status = '【忍不住】';
+                    colorClass = 'result-warn';
+                    desc = `50%概率进入NPC回合 | ${type}可能主动找你`;
+                } else if (anxiety >= 30) {
+                    status = '【在意】';
+                    colorClass = turn === 'player' ? 'result-safe' : 'result-warn';
+                    desc = '发朋友圈/视奸痕迹 | 玩家回合但带焦虑标记';
+                }
+                
+                const res = document.getElementById('mirRes');
+                if (res) {
+                    res.className = `result ${colorClass}`;
+                    res.innerHTML = `<div class="val">${status}</div><div class="desc">${desc}</div>`;
+                }
+            },
+
+            calcPlayerState() {
+                const pe = parseInt(document.getElementById('playerPE')?.value || 100);
+                const ps = parseInt(document.getElementById('playerPS')?.value || 0);
+                const pr = parseInt(document.getElementById('playerPR')?.value || 50);
+                
+                document.getElementById('peDisplay').textContent = pe;
+                document.getElementById('psDisplay').textContent = ps;
+                document.getElementById('prDisplay').textContent = pr;
+                
+                // PE状态
+                let peStatus = '充沛';
+                if (pe < 30) peStatus = '疲惫 (A-2)';
+                if (pe < 10) peStatus = '透支 (A上限5)';
+                if (pe === 0) peStatus = '昏睡强制！';
+                document.getElementById('peStatus').textContent = peStatus;
+                document.getElementById('peStatus').style.color = pe < 30 ? 'var(--danger)' : '#888';
+                
+                // PS状态
+                let psStatus = '正常';
+                if (ps > 60) psStatus = '焦虑 (Glitch+20%)';
+                if (ps > 80) psStatus = '崩溃边缘 (行动随机)';
+                if (ps === 100) psStatus = '精神崩溃！';
+                document.getElementById('psStatus').textContent = psStatus;
+                document.getElementById('psStatus').style.color = ps > 60 ? 'var(--danger)' : '#888';
+                
+                // PR状态
+                let prStatus = '普通';
+                if (pr < 30) prStatus = '校内孤立 (RV+20)';
+                if (pr < 10) prStatus = '社交死亡 (永久无视)';
+                document.getElementById('prStatus').textContent = prStatus;
+                document.getElementById('prStatus').style.color = pr < 30 ? 'var(--danger)' : '#888';
+                
+                // 总体建议
+                let status = '正常';
+                let advice = '双线操作消耗: 无 | 建议: 自由行动';
+                let colorClass = 'result-safe';
+                
+                if (pe < 30 || ps > 60 || pr < 30) {
+                    status = '警告';
+                    colorClass = 'result-warn';
+                    advice = 'PE/PS/PR异常 | 建议: 休息/减压/修复声誉';
+                }
+                if (pe === 0 || ps === 100 || pr === 0) {
+                    status = '危险';
+                    colorClass = 'result-danger';
+                    advice = '强制状态触发！游戏可能暂停';
+                }
+                
+                const res = document.getElementById('playerRes');
+                if (res) {
+                    res.className = `result ${colorClass}`;
+                    res.innerHTML = `<div class="val">状态: ${status}</div><div class="desc">${advice}</div>`;
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+            
+            // Tabs拖拽滚动功能
+            const tabsContainer = document.querySelector('.tabs');
+            if (tabsContainer) {
+                let isDown = false;
+                let startX;
+                let scrollLeft;
+                
+                tabsContainer.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    tabsContainer.classList.add('active');
+                    startX = e.pageX - tabsContainer.offsetLeft;
+                    scrollLeft = tabsContainer.scrollLeft;
+                });
+                
+                tabsContainer.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    tabsContainer.classList.remove('active');
+                });
+                
+                tabsContainer.addEventListener('mouseup', () => {
+                    isDown = false;
+                    tabsContainer.classList.remove('active');
+                });
+                
+                tabsContainer.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - tabsContainer.offsetLeft;
+                    const walk = (x - startX) * 2;
+                    tabsContainer.scrollLeft = scrollLeft - walk;
+                });
+            }
+        });
+    </script>
+
+        <!--双向奔赴标签页 -->
+        <div id="tab-v38" class="tab-content">
+           
+            <div class="grid grid-2">
+                <!-- Anxiety焦虑计算器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-brain"></i> Anxiety焦虑累积计算器</div>
+                    
+                    <label>当前 Phi（亲密度）</label>
+                    <input type="number" id="anxPhi" value="1.5" min="0" max="5" step="0.1" oninput="App.calcAnxiety()">
+                    
+                    <label>被动回合数 (A&lt;2)</label>
+                    <input type="number" id="anxPassive" value="0" min="0" max="20" oninput="App.calcAnxiety()">
+                    
+                    <label>NPC原型（耐心值）</label>
+                    <select id="anxPatience" onchange="App.calcAnxiety()">
+                        <option value="2">病娇型 (Patience=2) Anxiety×1.5</option>
+                        <option value="3">纯路人型 (Patience=3)</option>
+                        <option value="4">傲沉型 (Patience=4)</option>
+                        <option value="5">献身型 (Patience=5) Deposit×2</option>
+                        <option value="6" selected>天然型 (Patience=6)</option>
+                        <option value="7">神秘型 (Patience=7)</option>
+                        <option value="8">傲娇型 (Patience=8)</option>
+                        <option value="9">冰山型 (Patience=9) 95时消失</option>
+                    </select>
+                    
+                    <label>当前 Anxiety</label>
+                    <input type="number" id="anxCurrent" value="0" min="0" max="100" oninput="App.calcAnxiety()">
+                    
+                    <div class="result" id="anxRes">
+                        <div class="val">Anxiety: 0</div>
+                        <div class="desc">状态: 正常 (<30) | 无主动行为</div>
+                    </div>
+                </div>
+
+                <!-- 双向奔赴计算器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-exchange-alt"></i> 双向奔赴计算器</div>
+                    
+                    <label>玩家Input (A&gt;0时)</label>
+                    <input type="number" id="mutPlayerInput" value="0.5" min="0" max="5" step="0.1" oninput="App.calcMutual()">
+                    
+                    <label>NPC Deposit（情感存款）</label>
+                    <input type="number" id="mutDeposit" value="0" min="0" max="10" step="0.1" oninput="App.calcMutual()">
+                    
+                    <label>当前 Phi</label>
+                    <input type="number" id="mutPhi" value="1.0" min="0" max="5" step="0.1" oninput="App.calcMutual()">
+                    
+                    <label>反感值 RV</label>
+                    <input type="number" id="mutRV" value="0" min="0" max="100" oninput="App.calcMutual()">
+                    
+                    <div class="result" id="mutRes">
+                        <div class="val">Total Phi: 1.00</div>
+                        <div class="desc">Effective: 1.00 | NPC贡献: +0.00</div>
+                    </div>
+                </div>
+
+                <!-- 被动模式模拟器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-pause-circle"></i> 被动模式模拟器</div>
+                    
+                    <label>连续被动回合</label>
+                    <input type="range" id="passiveTurns" min="0" max="10" value="0" oninput="App.calcPassive()">
+                    <div style="text-align:center;margin:-.5rem 0 1rem;font-size:.85rem;color:#888">回合: <span id="passiveDisplay">0</span></div>
+                    
+                    <label>Anxiety 累积</label>
+                    <input type="number" id="passiveAnxiety" value="0" min="0" max="100" oninput="App.calcPassive()">
+                    
+                    <label>Deposit 上限 (Phi×0.5)</label>
+                    <input type="number" id="passiveDepositCap" value="0.5" min="0" max="3" step="0.1" readonly style="background:rgba(0,0,0,.2)">
+                    
+                    <div class="result" id="passiveRes">
+                        <div class="val">状态: 正常玩家回合</div>
+                        <div class="desc">NPC回合概率: 0% | 风险: 无</div>
+                    </div>
+                </div>
+
+                <!-- 强制事件检查器 -->
+                <div class="card">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-exclamation-triangle"></i> Miracle Event检查器</div>
+                    
+                    <label>当前 Anxiety/Paranoia</label>
+                    <input type="number" id="mirAnxiety" value="0" min="0" max="100" oninput="App.calcMiracle()">
+                    
+                    <label>NPC原型</label>
+                    <select id="mirType" onchange="App.calcMiracle()">
+                        <option value="傲娇型">傲娇型 - 堵人质问</option>
+                        <option value="天然型">天然型 - 强行同居</option>
+                        <option value="病娇型" selected>病娇型 - 强制爱/柴刀</option>
+                        <option value="冰山型">冰山型 - 长文告白/消失</option>
+                        <option value="神秘型">神秘型 - 真相揭露</option>
+                        <option value="傲沉型">傲沉型 - 攻击-崩溃链</option>
+                        <option value="献身型">献身型 - 燃尽告白</option>
+                    </select>
+                    
+                    <label>回合类型</label>
+                    <select id="mirTurn" onchange="App.calcMiracle()">
+                        <option value="player">【玩家回合】</option>
+                        <option value="npc">【NPC回合】</option>
+                        <option value="forced">【强制事件】</option>
+                    </select>
+                    
+                    <div class="result" id="mirRes">
+                        <div class="val">状态: 正常</div>
+                        <div class="desc">距离强制事件: 90点 | 安全</div>
+                    </div>
+                </div>
+
+                <!-- 玩家状态追踪器 -->
+                <div class="card" style="grid-column: span 2;">
+                    <div class="section-title" style="font-size:1.1rem"><i class="fas fa-user-shield"></i> 玩家状态追踪器 </div>
+                    <div class="grid grid-3" style="margin-top:1rem;">
+                        <div>
+                            <label>精力 PE</label>
+                            <input type="range" id="playerPE" min="0" max="100" value="100" oninput="App.calcPlayerState()">
+                            <div style="text-align:center;font-size:.9rem;color:var(--glow);margin-top:.3rem">PE: <span id="peDisplay">100</span></div>
+                            <div id="peStatus" style="font-size:.75rem;color:#888;text-align:center;margin-top:.2rem">充沛</div>
+                        </div>
+                        <div>
+                            <label>压力 PS</label>
+                            <input type="range" id="playerPS" min="0" max="100" value="0" oninput="App.calcPlayerState()">
+                            <div style="text-align:center;font-size:.9rem;color:var(--glow);margin-top:.3rem">PS: <span id="psDisplay">0</span></div>
+                            <div id="psStatus" style="font-size:.75rem;color:#888;text-align:center;margin-top:.2rem">正常</div>
+                        </div>
+                        <div>
+                            <label>声誉 PR</label>
+                            <input type="range" id="playerPR" min="0" max="100" value="50" oninput="App.calcPlayerState()">
+                            <div style="text-align:center;font-size:.9rem;color:var(--glow);margin-top:.3rem">PR: <span id="prDisplay">50</span></div>
+                            <div id="prStatus" style="font-size:.75rem;color:#888;text-align:center;margin-top:.2rem">普通</div>
+                        </div>
+                    </div>
+                    <div class="result" id="playerRes" style="margin-top:1rem;">
+                        <div class="val">状态: 正常</div>
+                        <div class="desc">双线操作消耗: 无 | 建议: 自由行动</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+</body>
+
+</html>
