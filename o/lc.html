@@ -49,17 +49,11 @@
       border-radius: 20px;
       font-size: 0.85rem;
       cursor: pointer;
-      opacity: 0.6;
+      opacity: 0.8;
       transition: all 0.3s;
       z-index: 100;
-      /* 毛玻璃效果 */
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-    }
-
-    .theme-toggle {
-      opacity: 0.8;
-      cursor: pointer;
     }
 
     .calculators {
@@ -184,31 +178,173 @@
       text-align: center;
     }
 
+    /* 最佳方案卡片 */
+    .best-solution-card {
+      background: rgba(0, 128, 0, 0.06);
+      border: 2px solid #4caf50;
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: center;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .best-solution-card .solution-counts {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .best-solution-card .solution-meta {
+      font-size: 0.85rem;
+      color: var(--label-color);
+    }
+
     @media (max-width: 600px) {
       body {
         padding: 20px 10px;
       }
-
       .calculator-module {
         padding: 20px;
       }
-
       .result-container {
         flex-direction: column;
         align-items: center;
       }
-
       .result-item {
         width: 100%;
         padding-bottom: 15px;
         border-bottom: 1px solid rgba(0, 0, 0, 0.03);
       }
-
       .result-item:last-child {
         border-bottom: none;
         padding-bottom: 0;
       }
+      .best-solution-card {
+        max-width: 100%;
+      }
     }
+
+    /* ====== 计算按钮 ====== */
+    .calc-btn {
+      padding: 10px 36px;
+      background: linear-gradient(135deg, #607d8b 0%, #546e7a 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 4px rgba(96, 125, 139, 0.2);
+      letter-spacing: 0.3px;
+    }
+
+    .calc-btn:hover {
+      background: linear-gradient(135deg, #6d8a97 0%, #607d8b 100%);
+      box-shadow: 0 3px 10px rgba(96, 125, 139, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .calc-btn:active {
+      background: linear-gradient(135deg, #546e7a 0%, #455a64 100%);
+      box-shadow: 0 1px 3px rgba(96, 125, 139, 0.15);
+      transform: translateY(0);
+    }
+
+    .calc-btn:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+
+    [data-theme="dark"] .calc-btn {
+      background: linear-gradient(135deg, #78909c 0%, #607d8b 100%);
+      box-shadow: 0 1px 4px rgba(120, 144, 156, 0.12);
+    }
+
+    [data-theme="dark"] .calc-btn:hover {
+      background: linear-gradient(135deg, #90a4ae 0%, #78909c 100%);
+      box-shadow: 0 3px 10px rgba(120, 144, 156, 0.18);
+    }
+
+    [data-theme="dark"] .calc-btn:active {
+      background: linear-gradient(135deg, #607d8b 0%, #546e7a 100%);
+    }
+
+    /* ====== 分条搭配辅助样式 ====== */
+    .strip-action-row {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .strip-empty {
+      border-bottom: none !important;
+    }
+
+    .strip-seg-card {
+      flex: 1;
+      min-width: 160px;
+      text-align: center;
+      padding: 8px 10px;
+      background: rgba(96, 125, 139, 0.06);
+      border-radius: 8px;
+      margin: 3px;
+    }
+
+    [data-theme="dark"] .strip-seg-card {
+      background: rgba(158, 158, 158, 0.08);
+    }
+
+    .strip-seg-title {
+      font-size: 0.72rem;
+      color: var(--label-color);
+      margin-bottom: 3px;
+    }
+
+    .strip-seg-detail {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .strip-summary {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .strip-summary-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .strip-summary-meta {
+      font-size: 0.8rem;
+      color: var(--label-color);
+    }
+
+    .strip-segment-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .strip-warning {
+      font-size: 0.75rem;
+      color: #e67e22;
+      margin-top: 6px;
+    }
+
+    .remainder-green {
+      color: #2e7d32;
+    }
+
+    .best-solution-card--dimmed {
+      opacity: 0.6;
+    }
+
   </style>
 </head>
 
@@ -288,6 +424,25 @@
       <div class="result-hint">计算公式与实际数据有偏差，仅供参考</div>
     </section>
 
+    <!-- 4. 分条搭配（只显示最佳方案） -->
+    <section class="calculator-module">
+      <h3 class="module-title">分条搭配</h3>
+      <div class="input-group">
+        <div class="input-field"><label>原材料总长</label><input type="number" id="stripTotal" placeholder="如 2300" step="0.01"></div>
+        <div class="input-field"><label>允许规格 (逗号分隔)</label><input type="text" id="stripSpecs" placeholder="如 69.5,70,70.5"></div>
+        <div class="input-field"><label>最大余料 (≤)</label><input type="number" id="stripMaxRemainder" placeholder="默认 60" step="0.01"></div>
+        <div class="input-field"><label>各规格条数限制 (可选，逗号分隔)</label><input type="text" id="stripLimits" placeholder="规格:最少-最多,"></div>
+        <div class="input-field"><label>分段最大宽度 (可选)</label><input type="number" id="stripSegmentMax" placeholder="不填则不拆分" step="0.01"></div>
+      </div>
+      <div class="strip-action-row">
+        <button id="stripCalcBtn" class="calc-btn">计算</button>
+      </div>
+      <div class="result-container" id="stripResultContainer" style="flex-direction: column; align-items: center;">
+        <div class="result-item strip-empty"><span class="result-label">请输入参数后点击计算</span></div>
+      </div>
+      <div class="result-hint">条数限制格式「规格:最少-最多」默认0-无限 </div>
+    </section>
+
   </main>
 
   <script>
@@ -312,22 +467,16 @@
       }
     };
 
-    // === 核心主题管理 (包含所有同步修复) ===
+    // 主题管理
     const ThemeManager = {
       btn: document.getElementById('theme-toggle-btn'),
-
-      // 执行应用主题
       apply() {
         const isDark = localStorage.getItem('theme') === 'dark';
         document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
         if (this.btn) this.btn.textContent = isDark ? '浅色模式' : '暗色模式';
       },
-
       init() {
-        // 1. 立即执行一次
         this.apply();
-
-        // 2. 点击切换
         if (this.btn) {
           this.btn.addEventListener('click', () => {
             const isCurrentDark = document.body.getAttribute('data-theme') === 'dark';
@@ -335,19 +484,224 @@
             this.apply();
           });
         }
-
-        // 3. 页面展示时 (解决后退缓存不刷新问题)
-        window.addEventListener('pageshow', (event) => {
-          // event.persisted 表示页面是从缓存中读取的
-          this.apply();
-        });
-
-        // 4. 跨标签页同步 (解决多开窗口问题)
+        window.addEventListener('pageshow', () => this.apply());
         window.addEventListener('storage', (event) => {
-          if (event.key === 'theme') {
-            this.apply();
+          if (event.key === 'theme') this.apply();
+        });
+      }
+    };
+
+    // 分条搭配辅助（性能优化版）
+    const StripHelper = {
+      parseLimits(str) {
+        const limits = {};
+        if (!str) return limits;
+        // 兼容中文冒号和中文逗号
+        str = str.replace(/：/g, ':').replace(/，/g, ',');
+        str.split(',').forEach(part => {
+          const [spec, range] = part.split(':');
+          if (!spec || !range) return;
+          const s = parseFloat(spec.trim());
+          const [min, max] = range.split('-').map(v => parseInt(v.trim()));
+          if (!isNaN(s)) {
+            limits[s] = { min: isNaN(min) ? 0 : min, max: isNaN(max) ? Infinity : max };
           }
         });
+        return limits;
+      },
+      // 解析规格字符串：支持逗号分隔和范围写法 69.5~70.5 或 69.5-70.5
+      parseSpecs(str) {
+        str = str.replace(/，/g, ',').replace(/—/g, '-');
+        const parts = str.split(',');
+        const result = [];
+        parts.forEach(part => {
+          part = part.trim();
+          const rangeMatch = part.match(/^([\d.]+)\s*[-~]\s*([\d.]+)$/);
+          if (rangeMatch) {
+            const start = parseFloat(rangeMatch[1]);
+            const end = parseFloat(rangeMatch[2]);
+            if (!isNaN(start) && !isNaN(end) && start < end) {
+              const decimals = Math.max(
+                (rangeMatch[1].split('.')[1] || '').length,
+                (rangeMatch[2].split('.')[1] || '').length
+              );
+              const step = Math.pow(10, -decimals);
+              for (let v = start; v <= end + 0.0000001; v += step) {
+                result.push(parseFloat(v.toFixed(decimals)));
+              }
+            }
+          } else {
+            const val = parseFloat(part);
+            if (!isNaN(val) && val > 0) result.push(val);
+          }
+        });
+        return result;
+      },
+      checkLimits(counts, limits) {
+        for (const [spec, cnt] of Object.entries(counts)) {
+          const lim = limits[parseFloat(spec)];
+          if (lim && (cnt < lim.min || cnt > lim.max)) return false;
+        }
+        return true;
+      },
+      makeKey(counts) {
+        return Object.entries(counts)
+          .sort(([a],[b]) => parseFloat(a) - parseFloat(b))
+          .map(([s,c]) => `${s}:${c}`)
+          .join('|');
+      },
+      findSolutions(total, specs, maxRem, limits) {
+        if (specs.length === 0) return [];
+        const sorted = [...specs].sort((a,b)=>a-b);
+        const solutionsMap = new Map();
+
+        if (sorted.length === 1) {
+          const s = sorted[0];
+          const nMin = Math.ceil((total - maxRem) / s);
+          const nMax = Math.floor(total / s);
+          for (let n = Math.max(1, nMin); n <= nMax; n++) {
+            const sum = s * n;
+            const rem = total - sum;
+            if (rem >= 0 && rem <= maxRem + 0.0001) {
+              const counts = { [s]: n };
+              if (this.checkLimits(counts, limits)) {
+                const key = this.makeKey(counts);
+                if (!solutionsMap.has(key)) {
+                  solutionsMap.set(key, { counts, remainder: parseFloat(rem.toFixed(4)), n });
+                }
+              }
+            }
+          }
+        } else if (sorted.length === 2) {
+          const [a, b] = sorted;
+          const nMin = Math.ceil((total - maxRem) / b);
+          const nMax = Math.floor(total / a);
+          for (let n = nMin; n <= nMax; n++) {
+            for (let x = 0; x <= n; x++) {
+              const y = n - x;
+              const sum = a * x + b * y;
+              const rem = total - sum;
+              if (rem >= 0 && rem <= maxRem + 0.0001) {
+                const counts = { [a]: x, [b]: y };
+                if (this.checkLimits(counts, limits)) {
+                  const key = this.makeKey(counts);
+                  if (!solutionsMap.has(key)) {
+                    solutionsMap.set(key, { counts, remainder: parseFloat(rem.toFixed(4)), n });
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          // 通用递归搜索，支持任意数量规格
+          const specsDesc = [...sorted].sort((a, b) => b - a);
+          let iterCount = 0;
+          const MAX_ITER = 5000000;
+
+          const dfs = (idx, sum, counts) => {
+            iterCount++;
+            if (iterCount > MAX_ITER) return;
+
+            if (idx >= specsDesc.length) {
+              const rem = total - sum;
+              if (rem >= 0 && rem <= maxRem + 0.0001) {
+                const n = Object.values(counts).reduce((a, b) => a + b, 0);
+                if (n > 0 && this.checkLimits(counts, limits)) {
+                  const key = this.makeKey(counts);
+                  if (!solutionsMap.has(key)) {
+                    solutionsMap.set(key, {
+                      counts: { ...counts },
+                      remainder: parseFloat(rem.toFixed(4)),
+                      n
+                    });
+                  }
+                }
+              }
+              return;
+            }
+
+            const spec = specsDesc[idx];
+            const maxCount = Math.floor((total - sum) / spec);
+            const lim = limits[spec];
+            const minCount = lim ? lim.min : 0;
+            const maxLimit = lim ? lim.max : Infinity;
+            const upper = Math.min(maxCount, maxLimit);
+
+            for (let c = minCount; c <= upper; c++) {
+              const newSum = sum + spec * c;
+              if (newSum > total + 0.0001) break;
+              counts[spec] = c;
+              dfs(idx + 1, newSum, counts);
+            }
+            delete counts[spec];
+          };
+
+          dfs(0, 0, {});
+        }
+        return Array.from(solutionsMap.values());
+      },
+
+      // 按最大分段宽度拆成多段，每种规格尽量均匀
+      splitMulti(best, segmentMax) {
+        const specs = Object.keys(best.counts).map(Number).sort((a,b) => b - a);
+        const totalWidth = specs.reduce((s, v) => s + v * best.counts[v], 0);
+        if (totalWidth <= segmentMax) return null;
+
+        const nSeg = Math.max(2, Math.ceil(totalWidth / segmentMax));
+        if (nSeg < 2) return null;
+
+        // 初始化各段
+        const segs = Array.from({ length: nSeg }, () => ({ counts: {}, sum: 0 }));
+
+        // 每种规格均匀分配到各段（floor + 余数优先给当前最轻的段）
+        specs.forEach(s => {
+          const cnt = best.counts[s];
+          const base = Math.floor(cnt / nSeg);
+          let rem = cnt % nSeg;
+
+          // 按当前总宽度排序，找出最轻的 rem 段，让它们多拿 1 根
+          const idxByWeight = segs.map((seg, i) => ({ i, sum: seg.sum })).sort((a,b) => a.sum - b.sum);
+
+          segs.forEach(seg => { seg.counts[s] = base; seg.sum += base * s; });
+
+          for (let r = 0; r < rem; r++) {
+            const idx = idxByWeight[r % nSeg].i;
+            segs[idx].counts[s]++;
+            segs[idx].sum += s;
+          }
+        });
+
+        // 调平：从最重段向最轻段搬运一根条子，直到各段差距最小
+        for (let iter = 0; iter < 100; iter++) {
+          let maxIdx = 0, minIdx = 0;
+          for (let j = 1; j < nSeg; j++) {
+            if (segs[j].sum > segs[maxIdx].sum) maxIdx = j;
+            if (segs[j].sum < segs[minIdx].sum) minIdx = j;
+          }
+          if (maxIdx === minIdx) break;
+
+          // 找到一根能从 max 搬到 min 且不超限的规格
+          const specList = Object.keys(segs[maxIdx].counts).map(Number).sort((a,b) => b - a);
+          let swapped = false;
+          for (const s of specList) {
+            if (segs[maxIdx].counts[s] > 0 && segs[minIdx].sum + s <= segmentMax + 0.0001) {
+              segs[maxIdx].counts[s]--;
+              segs[maxIdx].sum -= s;
+              segs[minIdx].counts[s] = (segs[minIdx].counts[s] || 0) + 1;
+              segs[minIdx].sum += s;
+              swapped = true;
+              break;
+            }
+          }
+          if (!swapped) break;
+        }
+
+        // 最终检查
+        for (const seg of segs) {
+          if (seg.sum - 0.0001 > segmentMax) return null;
+        }
+
+        return { segments: segs, n: nSeg, totalWidth };
       }
     };
 
@@ -397,17 +751,121 @@
         document.getElementById('mergedDiameterResult').textContent = D_final.toFixed(1);
         document.getElementById('paperRingWidthResult').textContent = D_final > 0 ? ((D_final - D_newCore) / 2).toFixed(1) : "0.0";
       },
-      runAll() { this.length(); this.split(); this.merge(); }
+
+      strip() {
+        const total = Utils.validate(document.getElementById('stripTotal').value, 0);
+        const specsStr = document.getElementById('stripSpecs').value.trim();
+        const remInput = document.getElementById('stripMaxRemainder').value.trim();
+        const maxRem = remInput === '' ? 60 : Utils.validate(remInput, 60);
+        const limitsStr = document.getElementById('stripLimits').value.trim();
+        const container = document.getElementById('stripResultContainer');
+
+        if (total <= 0 || !specsStr) {
+          container.innerHTML = '<div class="result-item strip-empty"><span class="result-label">请输入原材料总量和至少一个规格</span></div>';
+          return;
+        }
+
+        const specs = StripHelper.parseSpecs(specsStr);
+        if (specs.length === 0) {
+          container.innerHTML = '<div class="result-item strip-empty"><span class="result-label">至少需要一个有效规格</span></div>';
+          return;
+        }
+
+        const limits = StripHelper.parseLimits(limitsStr);
+        const solutions = StripHelper.findSolutions(total, specs, maxRem, limits);
+
+        if (solutions.length === 0) {
+          container.innerHTML = '<div class="result-item strip-empty"><span class="result-label">无满足条件的方案，请增大余料或调整限制</span></div>';
+          return;
+        }
+
+        solutions.sort((a, b) => a.remainder - b.remainder || b.n - a.n);
+        const best = solutions[0];
+
+        const segmentInput = document.getElementById('stripSegmentMax').value.trim();
+        const segmentMax = segmentInput === '' ? 0 : Utils.validate(segmentInput, 0);
+        const split = (segmentMax > 0) ? StripHelper.splitMulti(best, segmentMax) : null;
+
+        const fmtCounts = (counts) => Object.entries(counts)
+          .filter(([, c]) => c > 0)
+          .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
+          .map(([s, c]) => `${s}×${c}`)
+          .join(', ');
+
+        let html = '';
+        if (split) {
+          const segCards = split.segments.map((seg, i) => {
+            const n = Object.values(seg.counts).reduce((a, b) => a + b, 0);
+            const labelNum = i + 1;
+            return `<div class="strip-seg-card">
+              <div class="strip-seg-title">第${labelNum}段 ${n}条 <b>${seg.sum.toFixed(2)}</b></div>
+              <div class="strip-seg-detail">${fmtCounts(seg.counts)}</div>
+            </div>`;
+          }).join('');
+
+          html = `<div class="strip-summary">
+            <div class="strip-summary-title">最佳方案：${split.n}段拆分</div>
+            <div class="strip-summary-meta">总条数 ${best.n} | 余料 <b class="remainder-green">${best.remainder}</b></div>
+          </div>
+          <div class="strip-segment-row">${segCards}</div>`;
+        } else {
+          const countsStr = fmtCounts(best.counts);
+          const totalWidth = Object.entries(best.counts).reduce((s, [k, v]) => s + parseFloat(k) * v, 0);
+          const cannotSplit = segmentMax > 0 && segmentMax < totalWidth;
+
+          if (cannotSplit) {
+            html = `<div class="strip-summary">
+              <div class="best-solution-card best-solution-card--dimmed">
+                <div class="solution-counts">${countsStr}</div>
+                <div class="solution-meta">总条数: ${best.n} | 余料: <b class="remainder-green">${best.remainder}</b></div>
+              </div>
+              <div class="strip-warning">⚠ 无法在 ${segmentMax} 限制下拆分</div>
+            </div>`;
+          } else {
+            html = `<div class="best-solution-card">
+              <div class="solution-counts">${countsStr}</div>
+              <div class="solution-meta">总条数: ${best.n} | 余料: <b class="remainder-green">${best.remainder}</b></div>
+            </div>`;
+          }
+        }
+        container.innerHTML = html;
+      },
+
+      runAll() {
+        this.length();
+        this.split();
+        this.merge();
+        // strip 不自动计算,用户点按钮触发
+      },
+      stripNow() {
+        this.strip();
+      }
     };
 
     window.addEventListener('load', () => {
       ThemeManager.init();
       Utils.loadInputs();
+      const stripIds = ['stripTotal','stripSpecs','stripMaxRemainder','stripLimits','stripSegmentMax'];
       const allInputs = document.querySelectorAll('input');
       allInputs.forEach(input => {
-        input.addEventListener('input', () => { CalcEngine.runAll(); Utils.saveInputs(); });
+        if (stripIds.includes(input.id)) return;
+        input.addEventListener('input', () => {
+          CalcEngine.runAll();
+          Utils.saveInputs();
+        });
       });
-      setTimeout(() => { CalcEngine.runAll(); }, 100);
+      // 分条模块的输入只保存，不自动计算
+      stripIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => Utils.saveInputs());
+        }
+      });
+      document.getElementById('stripCalcBtn').addEventListener('click', () => {
+        CalcEngine.strip();
+        Utils.saveInputs();
+      });
+      setTimeout(() => CalcEngine.runAll(), 100);
     });
   </script>
 </body>
