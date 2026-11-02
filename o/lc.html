@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>卷纸计算工具</title>
+  <meta name="description" content="卷纸计算工具：长度计算、直径分切、直径合并、圆纸破损扣重（三档+层数法）。">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230d47a1'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) { /* 存储被禁用时忽略 */ }
+    })();
+  </script>
+  <style>
+    :root {
+      --primary-color: #0d47a1;
+      --bg-color: #f5f7fa;
+      --module-bg: #ffffff;
+      --result-bg: #f0f4f8;
+      --text-color: #2c3e50;
+      --label-color: #546e7a;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+
+    [data-theme="dark"] {
+      --primary-color: #64b5f6;
+      --bg-color: #0a0a0a;
+      --module-bg: #141414;
+      --result-bg: #1e1e1e;
+      --text-color: #e0e0e0;
+      --label-color: #9e9e9e;
+      --shadow: none;
+    }
+
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      padding: 40px 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      padding: 6px 14px;
+      background: transparent;
+      border: 1px solid var(--label-color);
+      color: var(--text-color);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: all 0.3s;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .calculators {
+      max-width: 720px;
+      margin: 40px auto;
+    }
+
+    .calculator-module {
+      background: var(--module-bg);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .module-title {
+      color: var(--text-color);
+      margin: 0 0 24px 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      opacity: 0.9;
+    }
+
+    .input-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .input-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-field label {
+      font-size: 0.75rem;
+      color: var(--label-color);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px 0;
+      border: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      background: transparent;
+      color: var(--text-color);
+      font-size: 1.05rem;
+      font-family: inherit;
+      border-radius: 0;
+      transition: border-color 0.3s;
+      box-sizing: border-box;
+    }
+
+    [data-theme="dark"] .input-group input {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-bottom-color: var(--primary-color);
+    }
+    .input-group input:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .demo-pulse, .demo-flow, .demo-dash, .demo-scene { animation: none !important; transition: none !important; }
+      * { scroll-behavior: auto !important; }
+    }
+
+    .input-group input::placeholder {
+      color: var(--label-color);
+      opacity: 0.3;
+    }
+
+    .result-container {
+      background: var(--result-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .result-item {
+      text-align: center;
+      flex: 1;
+      min-width: 120px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .result-label {
+      font-size: 0.8rem;
+      color: var(--label-color);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .result-value {
+      color: var(--text-color);
+      font-size: 1.8rem;
+      font-weight: 600;
+      line-height: 1.2;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .result-unit {
+      font-size: 0.9rem;
+      color: var(--label-color);
+      font-weight: 400;
+      margin-left: 4px;
+    }
+
+    .result-hint {
+      margin-top: 16px;
+      font-size: 0.75rem;
+      color: var(--label-color);
+      opacity: 0.5;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px 10px;
+      }
+      .calculator-module {
+        padding: 20px;
+      }
+      .result-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .result-item {
+        width: 100%;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+      }
+      .result-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+    }
+
+    /* ====== 计算按钮 ====== */
+    .calc-btn {
+      padding: 10px 36px;
+      background: linear-gradient(135deg, #607d8b 0%, #546e7a 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 4px rgba(96, 125, 139, 0.2);
+      letter-spacing: 0.3px;
+    }
+
+    .calc-btn:hover {
+      background: linear-gradient(135deg, #6d8a97 0%, #607d8b 100%);
+      box-shadow: 0 3px 10px rgba(96, 125, 139, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .calc-btn:active {
+      background: linear-gradient(135deg, #546e7a 0%, #455a64 100%);
+      box-shadow: 0 1px 3px rgba(96, 125, 139, 0.15);
+      transform: translateY(0);
+    }
+
+    .calc-btn:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+
+    [data-theme="dark"] .calc-btn {
+      background: linear-gradient(135deg, #78909c 0%, #607d8b 100%);
+      box-shadow: 0 1px 4px rgba(120, 144, 156, 0.12);
+    }
+
+    [data-theme="dark"] .calc-btn:hover {
+      background: linear-gradient(135deg, #90a4ae 0%, #78909c 100%);
+      box-shadow: 0 3px 10px rgba(120, 144, 156, 0.18);
+    }
+
+    [data-theme="dark"] .calc-btn:active {
+      background: linear-gradient(135deg, #607d8b 0%, #546e7a 100%);
+    }
+    /* ====== 草案新增样式（合并进 lc.html 时只需要这一段） ====== */
+    .module-title-tag {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 2px 10px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      color: var(--primary-color);
+      background: rgba(13, 71, 161, 0.08);
+      border: 1px solid rgba(13, 71, 161, 0.18);
+      border-radius: 999px;
+      vertical-align: middle;
+      opacity: 1;
+    }
+
+    [data-theme="dark"] .module-title-tag {
+      background: rgba(100, 181, 246, 0.12);
+      border-color: rgba(100, 181, 246, 0.3);
+    }
+
+    .module-desc {
+      margin: -12px 0 22px;
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: var(--label-color);
+      opacity: 0.85;
+    }
+
+    .module-meta {
+      margin: 0 0 14px;
+      font-size: 0.75rem;
+      color: var(--label-color);
+      letter-spacing: 0.2px;
+      line-height: 1.7;
+      min-height: 1.3em;
+    }
+
+    .module-meta b {
+      color: var(--text-color);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .validation-bar {
+      margin: 0 0 16px;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      line-height: 1.7;
+    }
+
+    .validation-bar ul {
+      margin: 4px 0 0;
+      padding-left: 18px;
+    }
+
+    .validation-bar.is-error {
+      background: rgba(239, 83, 80, 0.08);
+      border: 1px solid rgba(239, 83, 80, 0.35);
+      color: #c62828;
+    }
+
+    .validation-bar.is-warning {
+      background: rgba(255, 167, 38, 0.1);
+      border: 1px solid rgba(255, 167, 38, 0.4);
+      color: #b26a00;
+    }
+
+    [data-theme="dark"] .validation-bar.is-error {
+      color: #ef9a9a;
+    }
+
+    [data-theme="dark"] .validation-bar.is-warning {
+      color: #ffcc80;
+    }
+
+    .result-container.tier-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+      justify-content: initial;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .tier-card {
+      flex: initial;
+      min-width: 0;
+      box-sizing: border-box;
+      cursor: pointer;
+      text-align: center;
+      background: var(--module-bg);
+      border-radius: 10px;
+      padding: 18px 14px 16px;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+      border-top: 3px solid var(--label-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    [data-theme="dark"] .tier-card {
+      box-shadow: none;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-top: 3px solid var(--label-color);
+    }
+
+    .tier-card[data-tier="min"] { border-top-color: #43a047; }
+    .tier-card[data-tier="mid"] { border-top-color: #fb8c00; }
+    .tier-card[data-tier="max"] { border-top-color: #e53935; }
+    .tier-layer { border-top-color: #7b1fa2; cursor: default; }
+    .tier-layer .tier-dot { background: #7b1fa2; }
+    .tier-sub { color: var(--label-color); font-size: 0.72rem; opacity: 0.75; }
+
+    [data-theme="dark"] .tier-card[data-tier="min"] { border-top-color: #66bb6a; }
+    [data-theme="dark"] .tier-card[data-tier="mid"] { border-top-color: #ffa726; }
+    [data-theme="dark"] .tier-card[data-tier="max"] { border-top-color: #ef5350; }
+
+    .tier-head {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .tier-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--label-color);
+    }
+
+    .tier-card[data-tier="min"] .tier-dot { background: #43a047; }
+    .tier-card[data-tier="mid"] .tier-dot { background: #fb8c00; }
+    .tier-card[data-tier="max"] .tier-dot { background: #e53935; }
+
+    [data-theme="dark"] .tier-card[data-tier="min"] .tier-dot { background: #66bb6a; }
+    [data-theme="dark"] .tier-card[data-tier="mid"] .tier-dot { background: #ffa726; }
+    [data-theme="dark"] .tier-card[data-tier="max"] .tier-dot { background: #ef5350; }
+
+    .tier-card .result-label {
+      margin: 0;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-color);
+      opacity: 0.85;
+    }
+
+    .tier-card .tier-value {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 4px;
+      margin: 6px 0 2px;
+    }
+
+    .tier-card .tier-value .result-value {
+      font-size: 1.6rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tier-card .tier-value .result-unit {
+      font-size: 0.8rem;
+    }
+
+    .tier-line {
+      font-size: 0.75rem;
+      color: var(--label-color);
+      line-height: 1.6;
+    }
+
+    .tier-line b {
+      color: var(--text-color);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tier-formula {
+      margin-top: auto;
+      padding-top: 10px;
+      font-size: 0.66rem;
+      line-height: 1.55;
+      color: var(--label-color);
+      opacity: 0.65;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      word-break: break-all;
+    }
+
+    @media (max-width: 600px) {
+      .result-container.tier-grid {
+        grid-template-columns: 1fr;
+      }
+      .tier-card {
+        padding: 14px 12px;
+        border-bottom: none;
+      }
+    }
+
+    /* ====== 圆纸三档破损演示（SVG 动画） ====== */
+    .loss-demo {
+      margin-top: 14px;
+      background: var(--result-bg);
+      border-radius: var(--radius);
+      padding: 14px 16px 10px;
+    }
+
+    .loss-demo-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .loss-demo-title {
+      font-size: 0.78rem;
+      color: var(--label-color);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .loss-demo-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .loss-tab {
+      border: 1px solid var(--label-color);
+      white-space: nowrap;
+      background: transparent;
+      color: var(--label-color);
+      font-size: 0.72rem;
+      font-family: inherit;
+      padding: 3px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: all 0.25s;
+    }
+
+    .loss-tab.is-active {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #fff;
+      opacity: 1;
+    }
+
+    [data-theme="dark"] .loss-tab.is-active { color: #0a0a0a; }
+
+    .loss-demo-svg { display: block; width: 100%; height: auto; }
+    .demo-coreband { fill: var(--module-bg); }
+
+    .loss-demo-caption {
+      margin-top: 4px;
+      font-size: 0.74rem;
+      color: var(--label-color);
+      text-align: center;
+      line-height: 1.5;
+      min-height: 1.2em;
+    }
+
+    .demo-scene { opacity: 0; transition: opacity 0.35s; }
+    .demo-scene.is-on { opacity: 1; }
+
+    .demo-face { fill: var(--module-bg); stroke: var(--label-color); stroke-width: 1.3; }
+    .demo-body { fill: var(--result-bg); stroke: none; }
+    .demo-line { stroke: var(--label-color); stroke-width: 1.2; fill: none; }
+    .demo-back { stroke: var(--label-color); stroke-width: 1; fill: none; stroke-dasharray: 4 4; }
+    .demo-core { fill: var(--label-color); opacity: 0.5; }
+    .demo-label { font-size: 14px; fill: var(--label-color); }
+    .demo-label-red { font-size: 14px; fill: #e53935; }
+    .demo-pulse { animation: demoPulse 2.4s ease-in-out infinite; }
+    .demo-flow {
+      stroke: #e53935; stroke-width: 1.4; fill: none;
+      stroke-dasharray: 9 7; animation: demoFlow 1.4s linear infinite;
+    }
+    .demo-dash {
+      stroke: #e53935; stroke-width: 1.2; fill: none;
+      stroke-dasharray: 6 6; animation: demoFlow 1.8s linear infinite;
+    }
+    .demo-redfill { fill: #e53935; opacity: 0.3; }
+    .demo-redline { stroke: #e53935; stroke-width: 1.5; fill: none; }
+    .tier-card:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+    [data-theme="dark"] .tier-card:hover { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15); }
+    .tier-card:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+    .tier-card.is-active { box-shadow: 0 0 0 2px var(--primary-color); }
+
+    @keyframes demoPulse {
+      0%, 100% { opacity: 0.25; }
+      50% { opacity: 0.8; }
+    }
+    @keyframes demoFlow {
+      to { stroke-dashoffset: -64; }
+    }
+
+    /* ====== 移动端防横向溢出 / 居中加固 ====== */
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      overflow-x: hidden;
+    }
+    body { overflow-x: hidden; }
+    .calculators { width: 100%; }
+    .calculator-module, .result-container, .loss-demo, .input-group,
+    .module-meta, .validation-bar, .tier-grid { max-width: 100%; box-sizing: border-box; }
+    .tier-formula, .module-meta, .validation-bar, .loss-demo-caption { overflow-wrap: anywhere; word-break: break-word; }
+    .loss-demo-svg { max-width: 100%; }
+    .loss-reset {
+      margin-left: 6px;
+      border: 1px dashed var(--label-color);
+      background: transparent;
+      color: var(--label-color);
+      font-family: inherit;
+      font-size: 0.7rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.25s;
+    }
+    .loss-reset:hover { opacity: 1; }
+
+    @media (max-width: 720px) {
+      .result-container.tier-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .calculator-module { padding: 16px 14px; }
+      .module-title { padding-right: 74px; }
+      .result-container { padding: 16px 12px; }
+      .result-container.tier-grid { width: 100%; margin-left: auto; margin-right: auto; padding: 14px 10px; gap: 12px; }
+      .tier-card { width: 100%; min-width: 0; }
+      .result-value { font-size: 1.5rem; }
+      .theme-toggle {
+        top: 10px;
+        right: 10px;
+        padding: 5px 10px;
+        font-size: 0.75rem;
+        background: var(--module-bg);
+        opacity: 0.92;
+      }
+      .loss-demo { padding: 12px 12px 8px; }
+    }
+
+    /* ====== 圆纸模块：高级项与底部说明 ====== */
+    .damage-advanced, .damage-notes {
+      margin: 6px 0 10px;
+      border-radius: 10px;
+      background: var(--result-bg);
+      padding: 10px 14px;
+    }
+    .damage-advanced summary, .damage-notes summary {
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: var(--label-color);
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      list-style: none;
+    }
+    .damage-advanced summary::-webkit-details-marker, .damage-notes summary::-webkit-details-marker { display: none; }
+    .damage-advanced summary::before, .damage-notes summary::before {
+      content: '';
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-left: 5px solid var(--label-color);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      margin-right: 7px;
+      vertical-align: middle;
+      transition: transform 0.2s;
+    }
+    .damage-advanced[open] summary::before, .damage-notes[open] summary::before { transform: rotate(90deg); }
+    .damage-advanced .input-group { margin: 10px 0 2px; }
+    .damage-notes-body { margin-top: 8px; font-size: 0.76rem; color: var(--label-color); line-height: 1.7; }
+    .damage-notes-body p { margin: 4px 0; }
+    .damage-notes-body b { color: var(--text-color); }
+  </style>
+</head>
+
+<body>
+  <h1 class="sr-only">卷纸计算工具</h1>
+  <button class="theme-toggle" id="theme-toggle-btn">暗色模式</button>
+
+  <main class="calculators">
+
+    <!-- 1. 长度计算 -->
+    <section class="calculator-module">
+      <h3 class="module-title">长度计算</h3>
+      <div class="input-group">
+        <div class="input-field"><label for="paperNetWeight">净重 (kg)</label><input type="number" id="paperNetWeight" placeholder="输入重量"
+            step="0.01"></div>
+        <div class="input-field"><label for="paperGrammage">克重 (g/m²)</label><input type="number" id="paperGrammage" placeholder="输入克重"
+            step="0.01"></div>
+        <div class="input-field"><label for="paperWidth">宽度 (mm)</label><input type="number" id="paperWidth" placeholder="输入宽度"
+            step="0.01"></div>
+        <div class="input-field"><label for="splitCount">分切轴数</label><input type="number" id="splitCount" min="1" step="1"
+            placeholder="默认为 2"></div>
+      </div>
+      <div class="result-container">
+        <div class="result-item"><span class="result-label">总长度</span>
+          <div><span class="result-value" id="totalLengthResult">0</span><span class="result-unit">m</span></div>
+        </div>
+        <div class="result-item"><span class="result-label">单轴长度</span>
+          <div><span class="result-value" id="singleLengthResult">0</span><span class="result-unit">m</span></div>
+        </div>
+      </div>
+      <details class="damage-notes">
+        <summary>说明与公式</summary>
+        <div class="damage-notes-body">
+          <p><b>公式：</b>总长度 = 净重 G×1000 ÷（克重 g × 宽度 m）；单轴长度 = 总长度 ÷ 分切轴数。宽度 m = 宽度 mm ÷ 1000。</p>
+          <p>计算公式与实际数据有偏差，仅供参考。</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- 2. 直径分切 -->
+    <section class="calculator-module">
+      <h3 class="module-title">直径分切</h3>
+      <div class="input-group">
+        <div class="input-field"><label for="totalDiameter">原纸总直径 (mm)</label><input type="number" id="totalDiameter" placeholder="输入直径">
+        </div>
+        <div class="input-field"><label for="coreDiameter2">原纸纸芯外径 (mm)</label><input type="number" id="coreDiameter2" min="0" step="1" placeholder="默认为 100（3寸纸管外径）">
+        </div>
+        <div class="input-field"><label for="splitCount3">分切轴数</label><input type="number" id="splitCount3" min="1" step="1" placeholder="默认为 2"></div>
+        <div class="input-field"><label for="splitCountCore">成品纸芯外径 (mm)</label><input type="number" id="splitCountCore" min="0" step="1" placeholder="留空＝沿用原纸纸芯外径">
+        </div>
+      </div>
+      <div class="result-container">
+        <div class="result-item"><span class="result-label">分切后直径</span>
+          <div><span class="result-value" id="splitDiaVal">0.0</span><span class="result-unit">mm</span></div>
+        </div>
+        <div class="result-item"><span class="result-label">成品纸环宽度（径向纸厚）</span>
+          <div><span class="result-value" id="splitWidthVal">0.0</span><span class="result-unit">mm</span></div>
+        </div>
+      </div>
+      <details class="damage-notes">
+        <summary>说明与公式</summary>
+        <div class="damage-notes-body">
+          <p><b>公式：</b>纸环面积 A = π/4×(D²−d²)；单轴纸面积 = A ÷ 轴数；分切后直径 = √(d新² + 4×单轴纸面积 ÷ π)；成品纸环宽度 = (分切后直径 − 成品纸芯外径) ÷ 2。</p>
+          <p>芯径填纸管外径（3寸纸管外径约 100–106mm、4寸约 130mm，按实测填）。成品芯径留空＝沿用原纸纸芯外径。公式仅供参考。</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- 3. 直径合并 -->
+    <section class="calculator-module">
+      <h3 class="module-title">直径合并</h3>
+      <div class="input-group">
+        <div class="input-field"><label for="diameterFormula">合并算式 (mm)</label><input type="text" id="diameterFormula"
+            placeholder="例如: 824*2 或 500*2 + 400*1（*后为轴数）"></div>
+        <div class="input-field"><label for="originalCoreDiameter">原筒芯外径 (mm)</label><input type="number" id="originalCoreDiameter" min="0" step="1"
+            placeholder="默认为 100（3寸纸管外径）"></div>
+        <div class="input-field"><label for="newCoreDiameter">新筒芯外径 (mm)</label><input type="number" id="newCoreDiameter" min="0" step="1"
+            placeholder="留空＝沿用原筒芯"></div>
+      </div>
+      <div class="result-container">
+        <div class="result-item"><span class="result-label">合并后直径</span>
+          <div><span class="result-value" id="mergedDiameterResult">0.0</span><span class="result-unit">mm</span></div>
+        </div>
+        <div class="result-item"><span class="result-label">成品纸环宽度（径向纸厚）</span>
+          <div><span class="result-value" id="paperRingWidthResult">0.0</span><span class="result-unit">mm</span></div>
+        </div>
+      </div>
+      <details class="damage-notes">
+        <summary>说明与公式</summary>
+        <div class="damage-notes-body">
+          <p><b>公式：</b>合并纸面积 = Σ[π/4×(直径i² − 原筒芯外径²)]×轴数；合并后直径 = √(新筒芯外径² + 4×合并纸面积 ÷ π)；成品纸环宽度 = (合并后直径 − 新筒芯外径) ÷ 2。</p>
+          <p>芯径填纸管外径（3寸纸管外径约 100–106mm、4寸约 130mm，按实测填）。新筒芯留空＝沿用原筒芯外径。公式仅供参考。</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="calculator-module" id="round-damage-module">
+      <h3 class="module-title">圆纸破损扣重<span class="module-title-tag">三档损耗</span></h3>
+      <p class="module-desc">填原纸数据和破损深度，估算三档扣重（公式见底部说明）。</p>
+
+      <div class="input-group">
+        <div class="input-field"><label for="damageNetWeight">净重 G (kg)</label><input type="number" inputmode="decimal" id="damageNetWeight" value="619" step="0.1" placeholder="例如 619"></div>
+        <div class="input-field"><label for="damageOuterDiameter">外径 D (mm)</label><input type="number" inputmode="decimal" id="damageOuterDiameter" value="1163" step="0.1" placeholder="例如 1163"></div>
+        <div class="input-field"><label for="damageCoreDiameter">纸芯外径 d (mm)</label><input type="number" inputmode="decimal" id="damageCoreDiameter" value="100" step="0.1" placeholder="例如 100"></div>
+        <div class="input-field"><label for="damageRollWidth">卷宽 W (mm)</label><input type="number" inputmode="decimal" id="damageRollWidth" value="718" step="0.1" placeholder="例如 718"></div>
+        <div class="input-field"><label for="damageRadialDepth">径向深 h (mm)</label><input type="number" inputmode="decimal" id="damageRadialDepth" value="20" step="0.1" placeholder="例如 20"></div>
+        <div class="input-field"><label for="damageTrimDepth">端面深 f (mm)</label><input type="number" inputmode="decimal" id="damageTrimDepth" value="20" step="0.1" placeholder="例如 20"></div>
+      </div>
+
+      <details class="damage-advanced">
+        <summary>高级：可选项（不填也行）</summary>
+        <div class="input-group">
+          <div class="input-field"><label for="damageChordLength">沿圆周缺口长 L (mm)</label><input type="number" inputmode="decimal" id="damageChordLength" value="300" step="0.1" placeholder="默认 300"></div>
+          <div class="input-field"><label for="damageSlantLength">沿卷宽斜裂长 t (mm)</label><input type="number" inputmode="decimal" id="damageSlantLength" value="300" step="0.1" placeholder="默认 300"></div>
+          <div class="input-field"><label for="damageGrammage">克重 g (g/m²)</label><input type="number" inputmode="decimal" id="damageGrammage" step="0.1" placeholder="选填，如 68"></div>
+          <div class="input-field"><label for="damageLayerCount">破损层数 N (层)</label><input type="number" inputmode="decimal" id="damageLayerCount" step="1" placeholder="选填，最外面坏了几层"></div>
+        </div>
+      </details>
+
+      <div class="validation-bar" id="damageValidation" role="alert" hidden></div>
+
+      <div class="result-container tier-grid">
+        <div class="result-item tier-card" data-tier="min">
+          <div class="tier-head"><span class="tier-dot"></span><span class="result-label">最小 · 局部楔形</span></div>
+          <div class="tier-value"><span class="result-value" id="damageMinLoss">—</span><span class="result-unit" id="damageMinUnit">kg</span></div>
+          <div class="tier-line">占净重 <b id="damageMinPct">—</b>%</div>
+          <div class="tier-line">扣后净重 <b id="damageMinNet">—</b> kg</div>
+        </div>
+        <div class="result-item tier-card" data-tier="mid">
+          <div class="tier-head"><span class="tier-dot"></span><span class="result-label">中度 · 整圈 × 端面 f</span></div>
+          <div class="tier-value"><span class="result-value" id="damageMidLoss">—</span><span class="result-unit" id="damageMidUnit">kg</span></div>
+          <div class="tier-line">占净重 <b id="damageMidPct">—</b>%</div>
+          <div class="tier-line">扣后净重 <b id="damageMidNet">—</b> kg</div>
+        </div>
+        <div class="result-item tier-card" data-tier="max">
+          <div class="tier-head"><span class="tier-dot"></span><span class="result-label">最大 · 整圈剥层（GDV）</span></div>
+          <div class="tier-value"><span class="result-value" id="damageMaxLoss">—</span><span class="result-unit" id="damageMaxUnit">kg</span></div>
+          <div class="tier-line">占净重 <b id="damageMaxPct">—</b>%</div>
+          <div class="tier-line">扣后净重 <b id="damageMaxNet">—</b> kg</div>
+        </div>
+        <div class="result-item tier-card tier-layer">
+          <div class="tier-head"><span class="tier-dot"></span><span class="result-label">层数法（选填）</span></div>
+          <div class="tier-value"><span class="result-value" id="damageLayerLoss">—</span><span class="result-unit" id="damageLayerUnit">kg</span></div>
+          <div class="tier-line">占净重 <b id="damageLayerPct">—</b>%</div>
+          <div class="tier-line">扣后净重 <b id="damageLayerNet">—</b> kg</div>
+          <div class="tier-line tier-sub" id="damageLayerHint">填克重 + 破损层数</div>
+        </div>
+      </div>
+
+      <div class="loss-demo" id="damageDemo">
+        <div class="loss-demo-head">
+          <span class="loss-demo-title">三档破损演示</span>
+          <div class="loss-demo-tabs" role="group" aria-label="档位切换">
+            <button type="button" class="loss-tab is-active" aria-pressed="true" data-tier="min">最小</button>
+            <button type="button" class="loss-tab" aria-pressed="false" data-tier="mid">中度</button>
+            <button type="button" class="loss-tab" aria-pressed="false" data-tier="max">最大</button>
+          </div>
+          <button type="button" class="loss-reset" id="damageResetBtn">重置数据</button>
+        </div>
+        <svg class="loss-demo-svg" viewBox="0 0 560 215" role="img" aria-label="三档破损多视图动画">
+        <g class="demo-scene is-on" data-scene="min">
+<rect class="demo-body" x="75" y="45" width="80" height="100"/>
+<line class="demo-line" x1="75" y1="45" x2="155" y2="45"/>
+<line class="demo-line" x1="75" y1="145" x2="155" y2="145"/>
+<ellipse class="demo-back" cx="155" cy="95" rx="25" ry="50"/>
+<ellipse class="demo-face" cx="75" cy="95" rx="25" ry="50"/>
+<ellipse class="demo-core" cx="75" cy="95" rx="8" ry="18"/>
+<path d="M75,48 L116,45 L75,64 Z" fill="#e53935" opacity="0.35" class="demo-pulse"/>
+<path d="M60,30 L130,26" stroke="#e53935" stroke-width="1.3" fill="none" stroke-dasharray="6 6" class="demo-flow"/>
+<text class="demo-label-red" x="82" y="22">L</text>
+<circle class="demo-face" cx="275" cy="95" r="46"/>
+<circle class="demo-core" cx="275" cy="95" r="8"/>
+<path d="M298.0,55.2 A46,46 0 0 1 318.7,80.8" stroke="#e53935" stroke-width="10" fill="none" opacity="0.35" class="demo-pulse"/>
+<text class="demo-label-red" x="316" y="150">L</text>
+<rect x="380" y="40" width="160" height="110" fill="none" stroke="#607d8b" stroke-width="1.2"/>
+<rect class="demo-coreband" x="380" y="78" width="160" height="34" stroke="#607d8b" stroke-width="1"/>
+<path d="M380,40 L432,40 L380,62 Z" fill="#e53935" opacity="0.35" class="demo-pulse"/>
+<text class="demo-label-red" x="386" y="34">h</text>
+        </g>
+        <g class="demo-scene" data-scene="mid">
+<rect class="demo-body" x="75" y="45" width="80" height="100"/>
+<line class="demo-line" x1="75" y1="45" x2="155" y2="45"/>
+<line class="demo-line" x1="75" y1="145" x2="155" y2="145"/>
+<ellipse class="demo-back" cx="155" cy="95" rx="25" ry="50"/>
+<ellipse class="demo-face" cx="75" cy="95" rx="25" ry="50"/>
+<ellipse class="demo-core" cx="75" cy="95" rx="8" ry="18"/>
+<ellipse cx="75" cy="95" rx="25" ry="50" fill="none" stroke="#e53935" stroke-width="9" opacity="0.35" class="demo-pulse"/>
+<path d="M75,47 L106,44 L106,54 L75,57 Z" fill="#e53935" opacity="0.35" class="demo-pulse"/>
+<text class="demo-label-red" x="84" y="38">f</text>
+<circle class="demo-face" cx="275" cy="95" r="46"/>
+<circle class="demo-core" cx="275" cy="95" r="8"/>
+<circle cx="275" cy="95" r="46" fill="none" stroke="#e53935" stroke-width="10" opacity="0.35" class="demo-pulse"/>
+<text class="demo-label-red" x="275" y="168" text-anchor="middle">360°</text>
+<rect x="380" y="40" width="160" height="110" fill="none" stroke="#607d8b" stroke-width="1.2"/>
+<rect class="demo-coreband" x="380" y="78" width="160" height="34" stroke="#607d8b" stroke-width="1"/>
+<rect x="380" y="40" width="34" height="22" fill="#e53935" opacity="0.35" class="demo-pulse"/>
+<rect x="380" y="128" width="34" height="22" fill="#e53935" opacity="0.35" class="demo-pulse"/>
+<text class="demo-label-red" x="420" y="34">f</text>
+        </g>
+        <g class="demo-scene" data-scene="max">
+<rect class="demo-body" x="75" y="45" width="80" height="100"/>
+<line class="demo-line" x1="75" y1="45" x2="155" y2="45"/>
+<line class="demo-line" x1="75" y1="145" x2="155" y2="145"/>
+<ellipse class="demo-back" cx="155" cy="95" rx="25" ry="50"/>
+<ellipse class="demo-face" cx="75" cy="95" rx="25" ry="50"/>
+<ellipse class="demo-core" cx="75" cy="95" rx="8" ry="18"/>
+<ellipse cx="75" cy="95" rx="25" ry="50" fill="none" stroke="#e53935" stroke-width="9" opacity="0.35" class="demo-pulse"/>
+<path d="M75,47 L152,44 L152,54 L75,57 Z" fill="#e53935" opacity="0.35" class="demo-pulse"/>
+<text class="demo-label-red" x="118" y="38">W</text>
+<circle class="demo-face" cx="275" cy="95" r="46"/>
+<circle class="demo-core" cx="275" cy="95" r="8"/>
+<circle cx="275" cy="95" r="46" fill="none" stroke="#e53935" stroke-width="10" opacity="0.35" class="demo-pulse"/>
+<text class="demo-label-red" x="275" y="168" text-anchor="middle">360°</text>
+<rect x="380" y="40" width="160" height="110" fill="none" stroke="#607d8b" stroke-width="1.2"/>
+<rect class="demo-coreband" x="380" y="78" width="160" height="34" stroke="#607d8b" stroke-width="1"/>
+<rect x="380" y="40" width="160" height="22" fill="#e53935" opacity="0.35" class="demo-pulse"/>
+<rect x="380" y="128" width="160" height="22" fill="#e53935" opacity="0.35" class="demo-pulse"/>
+<text class="demo-label-red" x="470" y="34">W</text>
+        </g>
+        <text class="demo-label" x="75" y="208" text-anchor="middle">立体</text>
+        <text class="demo-label" x="275" y="208" text-anchor="middle">端面</text>
+        <text class="demo-label" x="460" y="208" text-anchor="middle">剖面</text>
+      </svg>
+        <div class="loss-demo-caption" id="damageDemoCaption" aria-live="polite">—</div>
+      </div>
+
+      <details class="damage-notes">
+        <summary>说明与公式</summary>
+        <div class="damage-notes-body">
+          <p>扣重 = 净重 G × 破损体积 ÷ 整卷纸环体积 π/4·(D²−d²)·W。</p>
+          <p>最小（局部楔形）：V = ½·h·t·L。L、t 不填时默认 L=300、t=300。</p>
+          <p>中度（整圈 360° × 端面深 f）：V = π·h·(D−h)·f（= 最大档 × f/W）。</p>
+          <p>最大（整圈剥层，GDV/TIS 运输保险口径）：扣重 = G × 4h(D−h) ÷ [(D+d)(D−d)]。</p>
+          <p>最小档只算缺口那一小块（虚拟三角）：2mm 深、2mm 长、2mm 宽只有 4 mm³（约 3–4 毫克），所以显示 <b>mg 或 0.00</b> 是正常的；破损的实际重量要看整圈/层数法。</p>
+          <p><b>层数法（选填）</b>：最外面坏了 N 层时，扣重 ≈ π·(D−h)·W·克重·N ÷ 10⁹（单位 mm、g/m²）。例：D=985、W=765、h=2、克重 68、N=22 → 约 3.5kg。注意 h 应≈N×单层厚度（58g 纸约 0.08–0.09mm/层，2mm≈22–25层），两者差太多请核对。</p>
+          <p>芯径填纸管外径（3 寸纸管外径约 100–106mm、4 寸约 130mm，按实测填）。</p>
+          <p>端面破损 &gt;2cm 时中国纸贸多按退货处理；最准是切下称重。三档均为估算，实际以过磅为准。</p>
+        </div>
+      </details>
+    </section>
+
+  </main>
+
+  <script>
+  (() => {
+
+    'use strict';
+
+    /* ============================================================
+     * 圆纸破损扣重 —— 计算核心
+     * 三档公式（草案）：
+     *  最小（局部楔形） 扣重 = G × ½·h·t·L ÷ (π/4·(D²−d²)·W)
+     *  中度（端面缺口面积 A 沿整卷宽 W 拉通） 扣重 = G × A ÷ (π/4·(D²−d²))，A ≈ ⅔·L·h
+     *  最大（整个端面环沿卷宽切掉 f 深） 扣重 = G × f ÷ W
+     * 说明：三档都等价于“缺损体积 ÷ 整卷纸环体积 × 净重”。
+     * ============================================================ */
+
+    const LOSS_DEFAULTS = Object.freeze({
+      outerDiameter: 1163,
+      coreDiameter: 100,
+      rollWidth: 718,
+      netWeight: 619,
+      chordLength: 300,
+      radialDepth: 20,
+      slantLength: 300,
+      trimDepth: 20,
+      grammage: null,
+      layerCount: null,
+    });
+
+    const LOSS_FIELDS = [
+      { key: 'outerDiameter', id: 'damageOuterDiameter', label: '外径 D', minPositive: true, main: true },
+      { key: 'coreDiameter', id: 'damageCoreDiameter', label: '纸芯外径 d', minZero: true, main: true },
+      { key: 'rollWidth', id: 'damageRollWidth', label: '卷宽 W', minPositive: true, main: true },
+      { key: 'netWeight', id: 'damageNetWeight', label: '净重 G', minPositive: true, main: true },
+      { key: 'chordLength', id: 'damageChordLength', label: '沿圆周缺口长 L', minZero: true },
+      { key: 'radialDepth', id: 'damageRadialDepth', label: '径向深 h', minZero: true, main: true },
+      { key: 'slantLength', id: 'damageSlantLength', label: '沿卷宽斜裂长 t', minZero: true },
+      { key: 'trimDepth', id: 'damageTrimDepth', label: '端面深 f', minZero: true, main: true },
+      { key: 'grammage', id: 'damageGrammage', label: '克重 g', minZero: true },
+      { key: 'layerCount', id: 'damageLayerCount', label: '破损层数 N', minZero: true },
+    ];
+
+    const LOSS_TIERS = [
+      { key: 'min', name: '最小（局部楔形）', formula: 'G × ½·h·t·L ÷ [π/4·(D²−d²)·W]' },
+      { key: 'mid', name: '中度（整圈 × 端面 f）', formula: 'G × π·h·(D−h)·f ÷ [π/4·(D²−d²)·W]' },
+      { key: 'max', name: '最大（整圈剥层 GDV）', formula: 'G × 4h(D−h) ÷ [(D+d)(D−d)]' },
+    ];
+
+    const LOSS_OUTPUT_IDS = {
+      min: { loss: 'damageMinLoss', pct: 'damageMinPct', net: 'damageMinNet', unit: 'damageMinUnit' },
+      mid: { loss: 'damageMidLoss', pct: 'damageMidPct', net: 'damageMidNet', unit: 'damageMidUnit' },
+      max: { loss: 'damageMaxLoss', pct: 'damageMaxPct', net: 'damageMaxNet', unit: 'damageMaxUnit' },
+    };
+
+    const Utils = {
+      /** 与正式页 Utils.validate 语义一致：空值回退默认值 */
+      validate(value, def = 0) {
+        if (value === '' || value === null || value === undefined) return def;
+        const num = typeof value === 'number' ? value : parseFloat(value);
+        return Number.isFinite(num) ? num : def;
+      },
+      isBlank(value) {
+        return value === '' || value === null || value === undefined;
+      },
+      toNumber(value) {
+        if (typeof value === 'number') return value;
+        const s = String(value).trim();
+        return s === '' ? NaN : Number(s);
+      },
+      /** 固定小数位、去掉 -0，千分位格式化 */
+      fixed(value, digits) {
+        if (!Number.isFinite(value)) return '—';
+        const rounded = Number(value.toFixed(digits));
+        return rounded === 0 ? (0).toFixed(digits) : rounded.toFixed(digits);
+      },
+      thousands(value, digits = 0) {
+        if (!Number.isFinite(value)) return '—';
+        return value.toLocaleString('zh-CN', {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits,
+        });
+      },
+    };
+
+    // 小数值自适应显示：kg → g → mg；百分比按大小保留位数
+    function formatLossKg(v) {
+      if (!Number.isFinite(v) || v < 0) return { text: '—', unit: 'kg' };
+      if (v === 0) return { text: '0.00', unit: 'kg' };
+      if (v >= 1) return { text: v.toFixed(2), unit: 'kg' };
+      if (v >= 0.01) return { text: v.toFixed(3), unit: 'kg' };
+      if (v >= 0.0001) return { text: (v * 1000).toFixed(2), unit: 'g' };
+      return { text: (v * 1e6).toFixed(1), unit: 'mg' };
+    }
+
+    function formatPct(p) {
+      if (!Number.isFinite(p) || p < 0) return '—';
+      if (p === 0) return '0.00';
+      if (p >= 1) return p.toFixed(2);
+      if (p >= 0.01) return p.toFixed(3);
+      if (p >= 0.0001) return p.toFixed(5);
+      return p.toFixed(8);
+    }
+
+    const RoundLossEngine = {
+      defaults: LOSS_DEFAULTS,
+      fields: LOSS_FIELDS,
+      tiers: LOSS_TIERS,
+
+      /** 从页面读取 8 个输入（原始字符串） */
+      readRaw() {
+        const raw = {};
+        LOSS_FIELDS.forEach((f) => {
+          const el = document.getElementById(f.id);
+          raw[f.key] = el ? el.value : undefined;
+        });
+        return raw;
+      },
+
+      /**
+       * 纯计算函数（无 DOM 依赖，便于 Node 测试/后续复用）。
+       * @param {Object} raw 原始值（字符串/数字，空值回退默认值）
+       * @returns {{ok:boolean, errors:string[], warnings:string[], values:Object,
+       *            ringArea:number|null, ringVolume:number|null, tiers:Array}}
+       */
+      computeRaw(raw = {}) {
+        const errors = [];
+        const warnings = [];
+        const values = {};
+
+        // 1) 逐项解析 + 缺省值 + 正负校验
+        const fallbackLabels = [];
+        LOSS_FIELDS.forEach((f) => {
+          const rawValue = raw[f.key];
+          if (Utils.isBlank(rawValue)) {
+            if (f.main) fallbackLabels.push(f.label);
+            values[f.key] = LOSS_DEFAULTS[f.key];
+            return;
+          }
+          const num = Utils.toNumber(rawValue);
+          if (!Number.isFinite(num)) {
+            errors.push(f.label + ' 不是有效数字');
+            return;
+          }
+          values[f.key] = num;
+          if (f.minPositive && num <= 0) errors.push(f.label + ' 必须大于 0');
+          if (f.minZero && num < 0) errors.push(f.label + ' 不能为负');
+        });
+
+        // 出错字段可能没有 values，填充默认值避免后续 NaN 干扰（此时不会进入计算）
+        LOSS_FIELDS.forEach((f) => {
+          if (values[f.key] === undefined) values[f.key] = LOSS_DEFAULTS[f.key];
+        });
+
+        if (fallbackLabels.length > 0) {
+          warnings.push('以下字段为空，按示例默认值计算：' + fallbackLabels.join('、'));
+        }
+
+        const D = values.outerDiameter;
+        const d = values.coreDiameter;
+        const W = values.rollWidth;
+        const G = values.netWeight;
+        const L = values.chordLength;
+        const h = values.radialDepth;
+        const t = values.slantLength;
+        const f = values.trimDepth;
+
+        // 2) 尺寸关系校验（D>d 是除零保护前提；W>0 已在字段校验中拦截）
+        if (D <= d) errors.push('外径 D（' + D + '）必须大于芯径 d（' + d + '）');
+
+        if (errors.length > 0) {
+          return { ok: false, errors, warnings, values, ringArea: null, ringVolume: null, tiers: [] };
+        }
+
+        // 3) 软校验（不影响公式，只提示）
+        const radialThickness = (D - d) / 2;
+        let hEff = h;
+        if (h <= 0) {
+          warnings.push('径向深 h 为 0：三档均为 0，请核对');
+        }
+        if (L <= 0) {
+          warnings.push('缺口长 L 为 0：最小档为 0');
+        }
+        if (t <= 0) {
+          warnings.push('斜裂长 t 为 0：最小档为 0');
+        }
+        if (radialThickness > 0 && h > radialThickness) {
+          hEff = radialThickness;
+          warnings.push('径向深 h 超过纸环径向厚度 (D−d)/2 = ' + Utils.fixed(radialThickness, 1) + ' mm，已按最大值封顶计算');
+        }
+        if (L > Math.PI * D) {
+          warnings.push('沿圆周缺口长 L 已超过外周长 πD = ' + Utils.fixed(Math.PI * D, 1) + ' mm，已按外周长封顶');
+        }
+        if (t > W) {
+          warnings.push('沿卷宽斜裂长 t 已超过卷宽 W，已按卷宽封顶');
+        }
+        if (f > W) {
+          warnings.push('端面深 f 已超过卷宽 W，已按卷宽封顶');
+        } else if (f > 20) {
+          warnings.push('端面深 f 超过 20mm：行业惯例端面破损 >2cm 多数按退货处理');
+        }
+        if (f <= 0) {
+          warnings.push('端面深 f 为 0：中度档按 0 计（若端面确有破损请填写 f）');
+        }
+
+        // 4) 三档比例（缺损体积 / 整卷纸环体积）
+        const ringArea = (Math.PI / 4) * (D * D - d * d);
+        const ringVolume = ringArea * W;
+        const Lc = Math.min(L, Math.PI * D);
+        const tc = Math.min(t, W);
+        const fc = Math.min(f, W);
+        const rawRatios = {
+          min: (0.5 * hEff * tc * Lc) / ringVolume,
+          mid: (Math.PI * hEff * (D - hEff) * fc) / ringVolume,
+          max: (4 * hEff * (D - hEff)) / ((D + d) * (D - d)), // GDV/TIS 整圈剥层（T=h）
+        };
+        if (rawRatios.mid > rawRatios.max) warnings.push('中度 > 最大：端面深 f 相对卷宽偏大，请核对 f 与 W');
+        if (rawRatios.min > rawRatios.mid) warnings.push('最小 > 中度：缺口长 L / 斜裂长 t 相对 f 偏大，请核对尺寸');
+
+        // 5) 层数法（选填）：最外面坏 N 层，按 每层周长 × 卷宽 × 克重 估算
+        const gram = Number(values.grammage) > 0 ? Number(values.grammage) : 0;
+        const layers = Number(values.layerCount) > 0 ? Math.round(Number(values.layerCount)) : 0;
+        let layerLoss = null;
+        if (layers > 0) {
+          if (gram > 0) {
+            const rawLayers = Number(values.layerCount);
+            if (rawLayers !== Math.round(rawLayers)) {
+              warnings.push('破损层数 N 已按整数取整（' + layers + ' 层）');
+            }
+            const Dm = Math.max(D - hEff, 0);
+            let loss = (Math.PI * Dm * W * gram * layers) / 1e9;
+            if (loss > G) {
+              loss = G;
+              warnings.push('层数法扣重超过净重，已按净重 100% 封顶');
+            }
+            layerLoss = {
+              loss,
+              pct: G > 0 ? Math.min((loss / G) * 100, 100) : 0,
+              netAfter: Math.max(G - loss, 0),
+              layers,
+              gram,
+            };
+          } else {
+            warnings.push('填了破损层数 N，但没填克重 g，层数法算不了（克重是必需的）');
+          }
+        }
+
+        const tiers = LOSS_TIERS.map((meta) => {
+          let ratio = rawRatios[meta.key];
+          if (!Number.isFinite(ratio) || ratio < 0) {
+            ratio = 0;
+            warnings.push(meta.name + '：比例计算异常，已按 0 处理');
+          } else if (ratio > 1) {
+            ratio = 1;
+            warnings.push(meta.name + '：缺损体积超过整卷，扣重按净重 100% 封顶');
+          }
+          const deduction = G * ratio;
+          const netAfter = Math.max(G - deduction, 0);
+          return {
+            key: meta.key,
+            name: meta.name,
+            formula: meta.formula,
+            ratio,
+            rawRatio: rawRatios[meta.key],
+            deduction,
+            percent: ratio * 100,
+            netAfter,
+          };
+        });
+
+        return { ok: true, errors, warnings, values, ringArea, ringVolume, tiers, layerLoss };
+      },
+
+      /** 把计算结果写入结果区（含校验提示） */
+      render(result) {
+        const bar = document.getElementById('damageValidation');
+
+        const showBar = (type, messages) => {
+          if (!bar) return;
+          if (!messages || messages.length === 0) {
+            bar.hidden = true;
+            bar.className = 'validation-bar';
+            bar.innerHTML = '';
+            return;
+          }
+          bar.hidden = false;
+          bar.className = 'validation-bar ' + (type === 'error' ? 'is-error' : 'is-warning');
+          bar.innerHTML = '<strong>' + (type === 'error' ? '无法计算：' : '提示：') + '</strong><ul>' +
+            messages.map((m) => '<li>' + String(m).replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])) + '</li>').join('') +
+            '</ul>';
+        };
+
+        const clearOutputs = () => {
+          Object.keys(LOSS_OUTPUT_IDS).forEach((tierKey) => {
+            const ids = LOSS_OUTPUT_IDS[tierKey];
+            [ids.loss, ids.pct, ids.net].forEach((id) => {
+              const el = document.getElementById(id);
+              if (el) el.textContent = '—';
+            });
+            if (ids.unit) {
+              const unitEl = document.getElementById(ids.unit);
+              if (unitEl) unitEl.textContent = 'kg';
+            }
+          });
+        };
+
+        if (!result.ok) {
+          showBar('error', result.errors.concat(result.warnings));
+          clearOutputs();
+          const capErr = document.getElementById('damageDemoCaption');
+          if (capErr) capErr.textContent = '—';
+          ['damageLayerLoss', 'damageLayerPct', 'damageLayerNet'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '—';
+          });
+          const layerUnitErr = document.getElementById('damageLayerUnit');
+          if (layerUnitErr) layerUnitErr.textContent = 'kg';
+          const layerHintErr = document.getElementById('damageLayerHint');
+          if (layerHintErr) layerHintErr.textContent = '填克重 + 破损层数';
+          return;
+        }
+
+        if (result.warnings.length > 0) {
+          showBar('warning', result.warnings);
+        } else {
+          showBar('none', []);
+        }
+
+        const layerLossEl = document.getElementById('damageLayerLoss');
+        const layerUnitEl = document.getElementById('damageLayerUnit');
+        const layerPctEl = document.getElementById('damageLayerPct');
+        const layerNetEl = document.getElementById('damageLayerNet');
+        const layerHintEl = document.getElementById('damageLayerHint');
+        if (layerLossEl && layerPctEl && layerNetEl) {
+          if (result.layerLoss) {
+            const lf = formatLossKg(result.layerLoss.loss);
+            if (layerLossEl) layerLossEl.textContent = lf.text;
+            if (layerUnitEl) layerUnitEl.textContent = lf.unit;
+            layerPctEl.textContent = formatPct(result.layerLoss.pct);
+            layerNetEl.textContent = Utils.fixed(result.layerLoss.netAfter, 2);
+            if (layerHintEl) layerHintEl.textContent = '最外 ' + result.layerLoss.layers + ' 层 × ' + Utils.fixed(result.layerLoss.gram, 1) + ' g/m²';
+          } else {
+            if (layerLossEl) layerLossEl.textContent = '—';
+            if (layerUnitEl) layerUnitEl.textContent = 'kg';
+            layerPctEl.textContent = '—';
+            layerNetEl.textContent = '—';
+            if (layerHintEl) layerHintEl.textContent = '填克重 + 破损层数';
+          }
+        }
+
+        result.tiers.forEach((tier) => {
+          const ids = LOSS_OUTPUT_IDS[tier.key];
+          const lossEl = document.getElementById(ids.loss);
+          const pctEl = document.getElementById(ids.pct);
+          const netEl = document.getElementById(ids.net);
+          const unitEl = document.getElementById(ids.unit);
+          const fmt = formatLossKg(tier.deduction);
+          if (lossEl) lossEl.textContent = fmt.text;
+          if (unitEl) unitEl.textContent = fmt.unit;
+          if (pctEl) pctEl.textContent = formatPct(tier.percent);
+          if (netEl) netEl.textContent = Utils.fixed(tier.netAfter, 2);
+        });
+
+        if (typeof updateDemoCaption === 'function') updateDemoCaption();
+      },
+
+      /** 读取页面输入 → 计算 → 渲染，返回计算结果（便于测试） */
+      calc() {
+        const result = this.computeRaw(this.readRaw());
+        this.render(result);
+        return result;
+      },
+    };
+
+
+
+    // ---------- 三档破损演示（SVG 动画 + 自动轮播） ----------
+    const DEMO_TIERS = ['min', 'mid', 'max'];
+    let demoTierIndex = 0;
+    let demoTimer = null;
+
+    function updateDemoCaption() {
+      const activeTab = document.querySelector('#damageDemo .loss-tab.is-active');
+      const tier = activeTab ? activeTab.dataset.tier : 'min';
+      const metaMap = {
+        min: { loss: 'damageMinLoss', pct: 'damageMinPct', unit: 'damageMinUnit', name: '最小' },
+        mid: { loss: 'damageMidLoss', pct: 'damageMidPct', unit: 'damageMidUnit', name: '中度' },
+        max: { loss: 'damageMaxLoss', pct: 'damageMaxPct', unit: 'damageMaxUnit', name: '最大' },
+      };
+      const meta = metaMap[tier];
+      const captionEl = document.getElementById('damageDemoCaption');
+      const lossEl = document.getElementById(meta.loss);
+      const pctEl = document.getElementById(meta.pct);
+      const unitEl = document.getElementById(meta.unit);
+      if (!captionEl || !lossEl || !pctEl) return;
+      captionEl.textContent = meta.name + ' · ' + lossEl.textContent + ' ' + (unitEl ? unitEl.textContent : 'kg') + '（占净重 ' + pctEl.textContent + '%）';
+    }
+
+    function setDemoTier(tier, resetTimer) {
+      if (DEMO_TIERS.indexOf(tier) < 0) tier = 'min';
+      document.querySelectorAll('#damageDemo .demo-scene').forEach((g) => {
+        g.classList.toggle('is-on', g.dataset.scene === tier);
+      });
+      document.querySelectorAll('#damageDemo .loss-tab').forEach((b) => {
+        const on = b.dataset.tier === tier;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      document.querySelectorAll('#round-damage-module .tier-card').forEach((c) => {
+        const on = c.dataset.tier === tier;
+        c.classList.toggle('is-active', on);
+        c.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      updateDemoCaption();
+      if (resetTimer) startDemoTimer();
+    }
+
+    function startDemoTimer() {
+      if (demoTimer) clearInterval(demoTimer);
+      demoTimer = null;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      demoTimer = setInterval(() => {
+        demoTierIndex = (demoTierIndex + 1) % DEMO_TIERS.length;
+        setDemoTier(DEMO_TIERS[demoTierIndex], false);
+      }, 5200);
+    }
+
+    function resetDamageInputs() {
+      LOSS_FIELDS.forEach((f) => {
+        const el = document.getElementById(f.id);
+        if (el) el.value = (LOSS_DEFAULTS[f.key] === null || LOSS_DEFAULTS[f.key] === undefined) ? '' : LOSS_DEFAULTS[f.key];
+      });
+      RoundLossEngine.calc();
+      updateDemoCaption();
+      // 触发一次 input 事件，让正式页的监听把重置后的值存进 localStorage
+      const firstEl = document.getElementById(LOSS_FIELDS[0].id);
+      if (firstEl && typeof firstEl.dispatchEvent === 'function') {
+        firstEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+
+    function bindDamageDemo() {
+      const demo = document.getElementById('damageDemo');
+      if (!demo || typeof demo.querySelectorAll !== 'function') return;
+      demo.querySelectorAll('.loss-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          demoTierIndex = DEMO_TIERS.indexOf(btn.dataset.tier);
+          setDemoTier(btn.dataset.tier, true);
+        });
+      });
+      const resetBtn = document.getElementById('damageResetBtn');
+      if (resetBtn && resetBtn.addEventListener) resetBtn.addEventListener('click', resetDamageInputs);
+      // 上面的三档结果卡也可以点：切换对应动画
+      const mod = document.getElementById('round-damage-module');
+      if (mod && typeof mod.querySelectorAll === 'function') {
+        mod.querySelectorAll('.tier-card').forEach((card) => {
+          if (!card.dataset.tier) return;
+          card.setAttribute('title', '点击查看该档动画');
+          card.setAttribute('role', 'button');
+          card.setAttribute('tabindex', '0');
+          const activate = () => {
+            const tier = card.dataset.tier;
+            demoTierIndex = DEMO_TIERS.indexOf(tier);
+            setDemoTier(tier, true);
+          };
+          card.addEventListener('click', activate);
+          card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+              e.preventDefault();
+              activate();
+            }
+          });
+        });
+      }
+      setDemoTier('min', false);
+      startDemoTimer();
+      // 鼠标悬停/键盘聚焦时暂停自动轮播
+      const pause = () => { if (demoTimer) { clearInterval(demoTimer); demoTimer = null; } };
+      demo.addEventListener('mouseenter', pause);
+      demo.addEventListener('focusin', pause);
+      demo.addEventListener('mouseleave', startDemoTimer);
+      demo.addEventListener('focusout', startDemoTimer);
+    }
+
+    // ---------- 初始化（主题由正式页 ThemeManager 负责，这里不重复绑定） ----------
+    function initRoundDamageModule() {
+      LOSS_FIELDS.forEach((f) => {
+        const el = document.getElementById(f.id);
+        if (el && el.addEventListener) {
+          el.addEventListener('input', () => RoundLossEngine.calc());
+        }
+      });
+      RoundLossEngine.calc();
+      bindDamageDemo();
+      // 正式页 loadInputs 在 window load 时才恢复本地保存值，恢复后再算一次
+      window.addEventListener('load', () => setTimeout(() => RoundLossEngine.calc(), 0));
+    }
+
+    if (typeof window !== 'undefined') {
+      window.RoundLossEngine = RoundLossEngine; // 便于自动化测试
+    }
+    if (typeof document !== 'undefined') {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRoundDamageModule);
+      } else {
+        initRoundDamageModule();
+      }
+    }
+  })();
+  </script>
+
+
+  <script>
+    const Utils = {
+      validate: (val, def = 0) => {
+        if (val === '' || val === null || val === undefined) return def;
+        const num = parseFloat(val);
+        return !isNaN(num) ? num : def;
+      },
+      saveInputs: () => {
+        try {
+          const inputs = document.querySelectorAll('input');
+          const data = {};
+          inputs.forEach(input => { data[input.id] = input.value; });
+          localStorage.setItem('roll_calc_data_v2', JSON.stringify(data));
+        } catch (e) { /* 存储被禁用时忽略 */ }
+      },
+      loadInputs: () => {
+        try {
+          const data = JSON.parse(localStorage.getItem('roll_calc_data_v2') || '{}');
+          for (const id in data) {
+            const el = document.getElementById(id);
+            if (el) el.value = data[id];
+          }
+        } catch (e) {
+          try { localStorage.removeItem('roll_calc_data_v2'); } catch (err) { /* 忽略 */ }
+        }
+      }
+    };
+
+    // 主题管理
+    const ThemeManager = {
+      btn: document.getElementById('theme-toggle-btn'),
+      read() {
+        try { return localStorage.getItem('theme') === 'dark'; } catch (e) { return false; }
+      },
+      apply() {
+        const isDark = this.read();
+        const root = document.documentElement;
+        if (isDark) {
+          root.setAttribute('data-theme', 'dark');
+        } else {
+          root.removeAttribute('data-theme');
+        }
+        document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        if (this.btn) this.btn.textContent = isDark ? '浅色模式' : '暗色模式';
+      },
+      init() {
+        try {
+          this.apply();
+          if (this.btn) {
+            this.btn.addEventListener('click', () => {
+              const isCurrentDark = document.body.getAttribute('data-theme') === 'dark';
+              try { localStorage.setItem('theme', !isCurrentDark ? 'dark' : 'light'); } catch (e) { /* 忽略 */ }
+              this.apply();
+            });
+          }
+          window.addEventListener('pageshow', () => this.apply());
+          window.addEventListener('storage', (event) => {
+            if (event.key === 'theme') this.apply();
+          });
+        } catch (e) { /* 存储被禁用：主题降级，不影响其他模块 */ }
+      }
+    };
+
+    const CalcEngine = {
+      length() {
+        const net = Utils.validate(document.getElementById('paperNetWeight').value, 0);
+        const gram = Utils.validate(document.getElementById('paperGrammage').value, 0);
+        const width = Utils.validate(document.getElementById('paperWidth').value, 0) / 1000;
+        const splitRaw = Utils.validate(document.getElementById('splitCount').value, 2);
+        const setOut = (total, single) => {
+          document.getElementById('totalLengthResult').textContent = total;
+          document.getElementById('singleLengthResult').textContent = single;
+        };
+        const splitValid = splitRaw >= 1 && splitRaw === Math.floor(splitRaw);
+        if (!(net > 0 && gram > 0 && width > 0) || !splitValid) { setOut('—', '—'); return; }
+        // 净重全部按纸计：总长 = 净重×1000 ÷ (克重×宽度)
+        const totalLen = (net * 1000) / (gram * width);
+        const fmtLen = (v) => v >= 1e6
+          ? v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : v.toFixed(2);
+        setOut(fmtLen(totalLen), fmtLen(totalLen / splitRaw));
+      },
+      split() {
+        const D_total = Utils.validate(document.getElementById('totalDiameter').value, 0);
+        const D_core = Utils.validate(document.getElementById('coreDiameter2').value, 100);
+        const NRaw = Utils.validate(document.getElementById('splitCount3').value, 2);
+        const D_newCore = Utils.validate(document.getElementById('splitCountCore').value, D_core); // 留空＝沿用原纸芯径
+        const setOut = (dia, width) => {
+          document.getElementById('splitDiaVal').textContent = dia;
+          document.getElementById('splitWidthVal').textContent = width;
+        };
+        const nValid = NRaw >= 1 && NRaw === Math.floor(NRaw);
+        if (!(D_total > D_core && D_core > 0 && nValid && D_newCore >= 0)) { setOut('—', '—'); return; }
+        const areaEffective = (Math.PI * Math.pow(D_total / 2, 2)) - (Math.PI * Math.pow(D_core / 2, 2));
+        const areaNewTotal = (areaEffective / NRaw) + (Math.PI * Math.pow(D_newCore / 2, 2));
+        const D_final = 2 * Math.sqrt(areaNewTotal / Math.PI);
+        setOut(D_final.toFixed(1), ((D_final - D_newCore) / 2).toFixed(1));
+      },
+      merge() {
+        const formula = document.getElementById('diameterFormula').value
+          .replace(/\s/g, '')
+          .replace(/[×xX✕✖]/g, '*')
+          .replace(/[＊✱]/g, '*')
+          .replace(/[＋]/g, '+');
+        const D_oldCore = Utils.validate(document.getElementById('originalCoreDiameter').value, 100);
+        const D_newCore = Utils.validate(document.getElementById('newCoreDiameter').value, D_oldCore); // 留空＝沿用原筒芯
+        const setOut = (dia, width) => {
+          document.getElementById('mergedDiameterResult').textContent = dia;
+          document.getElementById('paperRingWidthResult').textContent = width;
+        };
+        if (!(D_oldCore > 0 && D_newCore >= 0 && formula)) { setOut('—', '—'); return; }
+        // 算式白名单：数字[*数字][+数字[*数字]]…（只允许半角、整数轴数）
+        if (!/^\d+(?:\.\d+)?(?:\*\d+)?(?:\+\d+(?:\.\d+)?(?:\*\d+)?)*$/.test(formula)) {
+          setOut('—', '—');
+          return;
+        }
+        let totalArea = 0;
+        let valid = true;
+        formula.split('+').forEach(seg => {
+          if (!seg) return;
+          const [diaRaw, countRaw] = seg.split('*');
+          const dia = Utils.validate(diaRaw, NaN);
+          const count = Utils.validate(countRaw, 1);
+          if (!Number.isFinite(dia) || !Number.isFinite(count) || dia <= 0 || count <= 0 || count !== Math.floor(count)) {
+            valid = false;
+            return;
+          }
+          if (dia > D_oldCore) {
+            totalArea += ((Math.PI * Math.pow(dia / 2, 2)) - (Math.PI * Math.pow(D_oldCore / 2, 2))) * count;
+          }
+        });
+        if (!valid || !Number.isFinite(totalArea) || totalArea <= 0) { setOut('—', '—'); return; }
+        const areaFinal = totalArea + (Math.PI * Math.pow(D_newCore / 2, 2));
+        const D_final = 2 * Math.sqrt(areaFinal / Math.PI);
+        if (!Number.isFinite(D_final)) { setOut('—', '—'); return; }
+        setOut(D_final.toFixed(1), ((D_final - D_newCore) / 2).toFixed(1));
+      },
+
+      runAll() {
+        this.length();
+        this.split();
+        this.merge();
+      },
+    };
+
+    window.addEventListener('load', () => {
+      const allInputs = document.querySelectorAll('input');
+      allInputs.forEach(input => {
+        input.addEventListener('input', () => {
+          try { CalcEngine.runAll(); } catch (e) { console.warn('计算异常', e); }
+          Utils.saveInputs();
+        });
+      });
+      try { ThemeManager.init(); } catch (e) { /* 忽略 */ }
+      try { Utils.loadInputs(); } catch (e) { /* 恢复失败不影响使用 */ }
+      setTimeout(() => { try { CalcEngine.runAll(); } catch (e) { console.warn('计算异常', e); } }, 100);
+    });
+  </script>
+</body>
+
+</html>
