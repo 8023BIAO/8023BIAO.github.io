@@ -4970,15 +4970,73 @@
           // 克重相关输入/多克重分批已按需求移除（核心只有规格宽 + 重量 + 母卷宽/重）
           let res = this.planSingleBatch(inp, baseCfg);
           if (res.error) return res;
+          const fullRes = res;
+          let retPlanned = false;
           if (baseCfg.returnOn) {
-            const retRes = this.applyReturnChoice(res, baseCfg, inp);
-            if (retRes && retRes.error) return retRes;
-            if (retRes) res = retRes;
+            // 只有“严重多给(>1000kg)”或“某规格完全切不出(0)”才走缺口回仓版；
+            // 普通少交（如半轴方案已贴近订单）仍按上一轮三选一/半轴逻辑
+            const hasSevereOver = baseCfg.specs.some((sp, ii) => (((res.out && res.out[sp]) || 0) - (baseCfg.orders[ii] || 0)) > 1000);
+            const hasZeroShort = baseCfg.specs.some((sp, ii) => ((baseCfg.orders[ii] || 0) > 0.5) && (((res.out && res.out[sp]) || 0) < 0.5));
+            const hasShortage = hasSevereOver || hasZeroShort;
+            if (hasShortage) {
+              const sr = this.planShortageReturn(baseCfg, res);
+              if (sr) { res = sr; retPlanned = true; }
+            }
+            if (!retPlanned) {
+              const retRes = this.applyReturnChoice(res, baseCfg, inp);
+              if (retRes && retRes.error) return retRes;
+              if (retRes) res = retRes;
+            }
           }
           this.markTrimFlags(res, baseCfg);
           this.decorateReturn(res, baseCfg);
           res = this.finalize(res, baseCfg);
           res.inputWarnings = trimWarnings.concat(res.planWarnings || []);
+          // 缺口/多给诊断 + 方案建议（六轮后新增：不允许静默）
+          let diag = null;
+          try { diag = this.buildSpecDiagnostics(res, baseCfg, inp, fullRes, retPlanned); } catch (e) { diag = null; }
+          if (diag) {
+            res.specShortage = diag.shortSpecs;
+            res.specOver = diag.overSpecs;
+            res.advices = diag.advices;
+            if (diag.warnings.length) {
+              res.checks = diag.warnings.map((w) => ({ ok: true, warn: true, text: w })).concat(res.checks || []);
+              res.inputWarnings = res.inputWarnings.concat(diag.warnings);
+            }
+          }
+          if (retPlanned) {
+            const fmt2 = (v, d) => this.fmtNum(v, d === undefined ? 1 : d);
+            const specDetail = (outMap) => baseCfg.specs.map((sp, ii) => {
+              const v = outMap[sp] || 0;
+              const d = v - (baseCfg.orders[ii] || 0);
+              return fmt2(sp, 1) + ' ' + fmt2(v, 1) + 'kg（' + (d >= 0 ? '+' : '') + fmt2(d, 1) + '）';
+            }).join(' · ');
+            let fullOut = 0;
+            let fullSumDev = 0;
+            const fullOutMap = {};
+            for (let ii = 0; ii < baseCfg.specs.length; ii++) {
+              const sp = baseCfg.specs[ii];
+              fullOutMap[sp] = (fullRes.out && fullRes.out[sp]) || 0;
+              fullOut += fullOutMap[sp];
+              fullSumDev += Math.abs(fullOutMap[sp] - (baseCfg.orders[ii] || 0));
+            }
+            let retSumDev = 0;
+            for (let ii = 0; ii < baseCfg.specs.length; ii++) {
+              retSumDev += Math.abs((res.out[baseCfg.specs[ii]] || 0) - (baseCfg.orders[ii] || 0));
+            }
+            res.returnOn = true;
+            res.returnMode = 'width';
+            res.returnCompare = [
+              {
+                label: '全批版（不勾回仓）', out: fullOut, dev: fullSumDev, sumDev: fullSumDev,
+                detail: specDetail(fullOutMap), returnW: 0, returnKg: 0,
+              },
+              {
+                label: '回仓版（先保缺口规格，再余宽回仓）', out: res.totalOut, dev: retSumDev, sumDev: retSumDev,
+                detail: specDetail(res.out || {}), returnW: res.returnW || 0, returnKg: res.returnKg || 0,
+              },
+            ];
+          }
           // 回仓版 vs 全批版 对照两行：用最终 totalOut 补全
           if (res.returnCompare && res.returnCompare.length === 2) {
             const chosenRow = res.returnCompare[1];
@@ -5433,6 +5491,413 @@
         return outRes;
       },
 
+      /** 把 enumSeqs 的 key（'c0|c1|...'）转成可读刀序 */
+      _countsText(key, specs) {
+        if (!key) return '—';
+        const arr = key.split('|').map(Number);
+        const parts = [];
+        for (let i = 0; i < specs.length; i++) if (arr[i] > 0) parts.push(this.fmtNum(specs[i], 1) + '×' + arr[i]);
+        return parts.join(' + ') || '空刀';
+      },
+
+      /** 某规格在现有母卷组合下的“可产上限”（按卷宽/段数/刀数上限枚举合法规格组合，取最多 kg） */
+      specCapacity(cfg, spec) {
+        const Ws = cfg.WsOrig || cfg.Ws;
+        const Ms = cfg.Ms || [];
+        const specs = cfg.specs;
+        const idx = specs.indexOf(spec);
+        const cap = cfg.maxCuts || 23;
+        const segMax = cfg.maxStripW || 1600;
+        const maxSplit = cfg.maxSplit || 5;
+        const hardMax = (Number.isFinite(cfg.allowedTrimMax) && cfg.allowedTrimMax > 11) ? cfg.allowedTrimMax : 11;
+        const trimZero = !!cfg.trimZero;
+        // 性能护栏：规格多/条数上限大时组合枚举会爆炸，退回简单上限估算（仍按段宽/刀数算）
+        const simpleMode = (specs.length > 3 || cap > 23);
+        const byW = {};
+        let totalKg = 0;
+        for (let ri = 0; ri < Ws.length; ri++) {
+          const W = Ws[ri];
+          const M = Ms[ri] || 0;
+          const MWp = M / W;
+          const kMin = Math.max(1, Math.ceil(W / segMax - 1e-9));
+          let best = null;
+          for (let k = kMin; k <= Math.max(maxSplit, kMin); k++) {
+            const ws = W / k;
+            if (ws < spec + 2 - 1e-9) continue;
+            if (ws > segMax + 1e-6) continue;
+            if (simpleMode) {
+              let maxCuts = Math.floor((ws - 2 + 1e-9) / spec);
+              if (maxCuts > cap) maxCuts = cap;
+              const kg = k * maxCuts * spec * MWp;
+              if (!best || kg > best.kg) {
+                best = {
+                  kg: kg, k: k, ws: ws, cutsPerSeg: maxCuts,
+                  seqText: this.fmtNum(spec, 1) + '×' + maxCuts + '（估算）',
+                  trim: ws - maxCuts * spec, mixed: maxCuts > 0, estimate: true,
+                };
+              }
+              continue;
+            }
+            let set = null;
+            try {
+              set = this.enumSeqs(ws, specs, cap, [], false, trimZero ? 0.001 : hardMax);
+            } catch (e) { set = null; }
+            if (!set || !set.size) continue;
+            let bestCuts = 0;
+            let bestKey = null;
+            let bestTrim = 0;
+            let bestArr = null;
+            let altKey = null;
+            let altTrim = 0;
+            let altCuts = -1;
+            let altArr = null;
+            for (const entry of set.entries()) {
+              const arr = entry[0].split('|').map(Number);
+              const tr = entry[1];
+              const cs = arr[idx] || 0;
+              let tc = 0;
+              for (const v of arr) tc += v;
+              if (cs > bestCuts) { bestCuts = cs; bestKey = entry[0]; bestTrim = tr; bestArr = arr.slice(); }
+              if (tc > altCuts) { altCuts = tc; altKey = entry[0]; altTrim = tr; altArr = arr.slice(); }
+            }
+            const useCuts = bestCuts;
+            const useKey = bestCuts > 0 ? bestKey : altKey;
+            const useTrim = bestCuts > 0 ? bestTrim : altTrim;
+            const kg = k * useCuts * spec * MWp;
+            if (!best || kg > best.kg) {
+              best = {
+                kg: kg, k: k, ws: ws, cutsPerSeg: useCuts,
+                seqText: useKey ? this._countsText(useKey, specs) : '—',
+                trim: useTrim, mixed: useCuts > 0,
+                seqArr: useCuts > 0 ? (bestArr || altArr) : altArr,
+              };
+            }
+          }
+          if (!best) {
+            best = { kg: 0, k: kMin, ws: W / kMin, cutsPerSeg: 0, seqText: '无可切刀序', trim: 0, mixed: false };
+          }
+          totalKg += best.kg;
+          const key = String(Math.round(W * 100) / 100);
+          if (!byW[key]) byW[key] = {
+            W: W, rolls: 0, k: best.k, ws: best.ws, cutsPerSeg: best.cutsPerSeg,
+            seqText: best.seqText, trim: best.trim, mixed: best.mixed,
+            seqArr: best.seqArr || null, kgPerRoll: best.kg, estimate: !!best.estimate,
+          };
+          byW[key].rolls += 1;
+          byW[key].kgTotal = byW[key].kgPerRoll * byW[key].rolls;
+        }
+        const parts = Object.keys(byW).map((k2) => byW[k2]);
+        const desc = parts.map((p) => {
+          let t = this.fmtNum(p.W, 0) + ' 卷' + (p.rolls > 1 ? '×' + p.rolls : '');
+          if (!p.mixed) {
+            t += ' 只能切 ' + p.seqText + '（' + this.fmtNum(spec, 1) + ' 无法混入）';
+          } else {
+            t += ' 可切 ' + p.seqText + '（' + p.k + ' 段，每段 ' + this.fmtNum(p.ws, 1) + 'mm、飞边 ' +
+              this.fmtNum(p.trim, 1) + 'mm）';
+          }
+          return t;
+        }).join('；');
+        return { kg: totalKg, parts: parts, desc: desc };
+      },
+
+      /** 回仓版（少切多给规格、余宽≥300 回仓）：多卷/混规格时贴近订单 */
+      planShortageReturn(cfg, baseRes) {
+        const specs = cfg.specs;
+        const orders = cfg.orders;
+        const Ws = cfg.WsOrig || cfg.Ws;
+        const Ms = cfg.Ms || [];
+        const cap = cfg.maxCuts || 23;
+        const fmt = (v, d) => this.fmtNum(v, d === undefined ? 1 : d);
+        // ① 找缺口规格（全批版下产出 < 订单）
+        const shorts = [];
+        for (let i = 0; i < specs.length; i++) {
+          const got = (baseRes.out && baseRes.out[specs[i]]) || 0;
+          if (got < orders[i] - 0.5) shorts.push({ s: specs[i], idx: i, order: orders[i], got: got, gap: orders[i] - got });
+        }
+        if (!shorts.length) return null;
+        const usedRolls = {};
+        const gapOut = {};
+        for (const sp of specs) gapOut[sp] = 0;
+        const rolls = [];
+        const tot = {};
+        const out = {};
+        const pies = {};
+        for (const sp of specs) { tot[sp] = 0; out[sp] = 0; pies[sp] = 0; }
+        const addOut = (sp, cuts, MWp) => {
+          tot[sp] = (tot[sp] || 0) + cuts;
+          out[sp] = (out[sp] || 0) + cuts * sp * MWp;
+          pies[sp] = (pies[sp] || 0) + cuts * 2;
+          gapOut[sp] = (gapOut[sp] || 0) + cuts * sp * MWp;
+        };
+        // ② 优先用“能切缺口规格”的卷，把该规格切到物理上限（不整卷回仓）
+        for (const sh of shorts) {
+          let capInfo = null;
+          try { capInfo = this.specCapacity(cfg, sh.s); } catch (e) { capInfo = null; }
+          if (!capInfo) continue;
+          for (const part of capInfo.parts || []) {
+            if (!part.mixed || !part.k || !part.seqArr) continue;
+            const avail = [];
+            for (let ri = 0; ri < Ws.length; ri++) {
+              if (usedRolls[ri]) continue;
+              if (Math.abs(Ws[ri] - part.W) < 1e-6) avail.push(ri);
+            }
+            if (!avail.length) continue;
+            const perRollKg = part.cutsPerSeg * sh.s * ((Ms[avail[0]] || 0) / Ws[avail[0]]) * part.k;
+            const needRolls = Math.max(1, Math.ceil(Math.max(0, sh.order - gapOut[sh.s]) / Math.max(perRollKg, 1e-9)));
+            const useN = Math.min(avail.length, needRolls);
+            for (let j = 0; j < useN; j++) {
+              const ri = avail[j];
+              const W = Ws[ri];
+              const M = Ms[ri] || 0;
+              const MWp = M / W;
+              const segCounts = part.seqArr.slice();
+              const strips = [];
+              let cutsTotalSeg = 0;
+              const cobj = {};
+              for (let si = 0; si < part.k; si++) {
+                const c = {};
+                let cuts = 0;
+                let specW = 0;
+                for (let q = 0; q < specs.length; q++) {
+                  const cnt = segCounts[q] || 0;
+                  if (cnt > 0) { c[specs[q]] = cnt; cuts += cnt; specW += cnt * specs[q]; }
+                }
+                cutsTotalSeg += cuts;
+                strips.push({
+                  width: part.ws, trim: part.trim, specW: specW, cuts: cuts, c: c,
+                  seq: this._countsText(segCounts.join('|'), specs),
+                });
+                for (const k2 of Object.keys(c)) cobj[k2] = (cobj[k2] || 0) + c[k2];
+              }
+              const rollCuts = strips.reduce((x, st) => x + st.cuts, 0);
+              const roll = {
+                W: W, M: M, piece: rolls.length + 1, type: 'split-k', ownSpecs: specs,
+                machine: this.machineOf(W), cap: cap, k: part.k, strips: strips,
+                leftover: 0, trim: part.trim * part.k, c: cobj, addonCounts: {},
+                taddUsed: 0, e: 0, common: {}, bestEffort: false, splitAuto: true, unequal: false,
+                stripA: strips[0], stripB: strips[1] || strips[0],
+                seqA: strips[0].seq, seqB: (strips[1] || strips[0]).seq,
+                Worig: W, returnW: 0, returnKg: 0,
+              };
+              rolls.push(roll);
+              usedRolls[ri] = true;
+              for (const k2 of Object.keys(cobj)) addOut(Number(k2), cobj[k2], MWp);
+            }
+          }
+        }
+        // ③ 其余卷：选一个“还差订单”的规格，按 k 刀 + 余宽≥300 回仓，枚举 k 取 Σ|差| 最小
+        const remaining = [];
+        for (let ri = 0; ri < Ws.length; ri++) if (!usedRolls[ri]) remaining.push(ri);
+        let overSpec = null;
+        for (let i = 0; i < specs.length; i++) {
+          const sp = specs[i];
+          const fullOver = ((baseRes.out && baseRes.out[sp]) || 0) - orders[i];
+          if (!overSpec || fullOver > overSpec.fullOver) overSpec = { s: sp, idx: i, order: orders[i], fullOver: fullOver };
+        }
+        let bestK = 0;
+        let bestDev = Infinity;
+        let bestOuts = null;
+        if (remaining.length && overSpec) {
+          let maxK = cap;
+          for (const ri of remaining) {
+            const k2 = Math.floor((Ws[ri] - 300) / overSpec.s + 1e-9);
+            if (k2 < maxK) maxK = k2;
+          }
+          for (let k = 0; k <= Math.max(0, maxK); k++) {
+            const trialOut = {};
+            for (const sp of specs) trialOut[sp] = out[sp] || 0;
+            for (const ri of remaining) {
+              const W = Ws[ri];
+              const M = Ms[ri] || 0;
+              const ki = Math.min(k, Math.floor((W - 300) / overSpec.s + 1e-9));
+              if (ki <= 0) continue;
+              trialOut[overSpec.s] = (trialOut[overSpec.s] || 0) + ki * overSpec.s * (M / W);
+            }
+            let dev = 0;
+            for (let i = 0; i < specs.length; i++) dev += Math.abs((trialOut[specs[i]] || 0) - orders[i]);
+            if (dev < bestDev - 1e-9) { bestDev = dev; bestK = k; bestOuts = trialOut; }
+          }
+        }
+        let retW = 0;
+        let retKg = 0;
+        if (bestK > 0 && overSpec) {
+          for (const ri of remaining) {
+            const W = Ws[ri];
+            const M = Ms[ri] || 0;
+            const MWp = M / W;
+            const k2 = Math.min(bestK, Math.floor((W - 300) / overSpec.s + 1e-9));
+            if (k2 <= 0) continue;
+            const cutW = k2 * overSpec.s;
+            const returnW = W - cutW;
+            if (returnW < 300 - 1e-9) continue;
+            const counts = {};
+            counts[overSpec.s] = k2;
+            const roll = {
+              W: W, M: M, piece: rolls.length + 1, type: 'whole-seq', ownSpecs: specs,
+              machine: this.machineOf(W), cap: cap, counts: counts, addonCounts: {},
+              trim: 0, widthSum: cutW, bestEffort: false, leftover: 0,
+              autoReturn: true, autoReturnKind: 'width', widthReturn: true,
+              returnW: returnW, returnKg: returnW * MWp, Worig: W,
+              seqText: this._countsText(specs.map((sp) => (sp === overSpec.s ? k2 : 0)).join('|'), specs),
+            };
+            rolls.push(roll);
+            tot[overSpec.s] = (tot[overSpec.s] || 0) + k2;
+            out[overSpec.s] = (out[overSpec.s] || 0) + k2 * overSpec.s * MWp;
+            pies[overSpec.s] = (pies[overSpec.s] || 0) + k2 * 2;
+            retW += returnW;
+            retKg += returnW * MWp;
+          }
+        }
+        if (!rolls.length) return null;
+        // ④ 组装回仓版结果
+        const detailParts = [];
+        for (const roll of rolls) {
+          if (roll.type === 'split-k') {
+            const cText = [];
+            for (const k2 of Object.keys(roll.c)) cText.push(fmt(Number(k2), 1) + '×' + roll.c[k2]);
+            detailParts.push('卷' + roll.W + ' 两段 ' + (roll.strips[0] ? roll.strips[0].seq : '') +
+              '（' + cText.join(' + ') + '）');
+          } else {
+            detailParts.push('卷' + roll.W + ' 切 ' + overSpec.s + '×' + roll.counts[overSpec.s] +
+              '（' + fmt(roll.widthSum, 1) + 'mm）+回仓 ' + fmt(roll.returnW, 1) + 'mm≈' +
+              fmt(roll.returnKg, 1) + 'kg');
+          }
+        }
+        const detailOut = specs.map((sp, i) => fmt(sp, 1) + ' ' + fmt(out[sp] || 0, 1) + 'kg（' +
+          ((out[sp] || 0) - orders[i] >= 0 ? '+' : '') + fmt((out[sp] || 0) - orders[i], 1) + '）').join(' · ');
+        return {
+          modeLabel: '回仓版（先保缺口规格，再余宽回仓）·宽度回仓',
+          targets: {}, manual: cfg.corrections, perPieMW: (Ms[0] || 0) / Ws[0],
+          whole: null, tot: tot, out: out, pies: pies, extra: {},
+          rolls: rolls, autoSplit: false, addonUsed: false, addonText: '',
+          trimCompares: [], returnMode: 'width', returnOn: true,
+          returnW: retW, returnKg: retKg, shortageReturn: true, _overSpec: overSpec ? overSpec.s : null,
+          _returnDetail: detailParts.join('；'),
+          _returnOutDetail: detailOut,
+        };
+      },
+
+      /** 若把规格宽度微调 0.1~0.5mm 就能混切，给出建议 */
+      widthSuggestion(cfg, capParts, spec) {
+        const specs = cfg.specs;
+        const cap = cfg.maxCuts || 23;
+        const hardMax = (Number.isFinite(cfg.allowedTrimMax) && cfg.allowedTrimMax > 11) ? cfg.allowedTrimMax : 11;
+        for (const p of capParts || []) {
+          if (p.mixed || !p.W) continue;
+          const ws = p.ws || (p.W / (p.k || 1));
+          for (let d = 1; d <= 5; d++) {
+            const cand = Math.round((spec - d * 0.1) * 10) / 10;
+            if (cand <= 0) continue;
+            const specs2 = specs.map((x) => (x === spec ? cand : x));
+            let set = null;
+            try { set = this.enumSeqs(ws, specs2, cap, [], false, hardMax); } catch (e) { set = null; }
+            if (!set || !set.size) continue;
+            let bestKey = null;
+            let bestTrim = 0;
+            let bestCuts = 0;
+            for (const entry2 of set.entries()) {
+              const arr = entry2[0].split('|').map(Number);
+              const ci = specs2.indexOf(cand);
+              if ((arr[ci] || 0) > bestCuts) { bestCuts = arr[ci]; bestKey = entry2[0]; bestTrim = entry2[1]; }
+            }
+            if (bestCuts > 0) {
+              return { width: cand, ws: ws, seqText: this._countsText(bestKey, specs2), trim: bestTrim };
+            }
+          }
+        }
+        return null;
+      },
+
+      /** 可产上限/多给诊断：生成 ⚠ 说明与 2~3 条方案建议 */
+      buildSpecDiagnostics(res, cfg, inp, fullRes, retPlanned) {
+        const specs = cfg.specs;
+        const orders = cfg.orders;
+        const warnings = [];
+        const advices = [];
+        const shortSpecs = [];
+        const overSpecs = [];
+        for (let i = 0; i < specs.length; i++) {
+          const sp = specs[i];
+          const got = (res.out && res.out[sp]) || 0;
+          const o = orders[i] || 0;
+          if (got < o - 0.5) shortSpecs.push({ s: sp, order: o, got: got, gap: o - got });
+          if (got - o > 1000) overSpecs.push({ s: sp, order: o, got: got, over: got - o });
+        }
+        for (const sh of shortSpecs) {
+          let capInfo = null;
+          try { capInfo = this.specCapacity(cfg, sh.s); } catch (e) { capInfo = null; }
+          sh.cap = capInfo;
+          if (capInfo && capInfo.kg < sh.order - 0.5) {
+            warnings.push('⚠ 规格 ' + this.fmtNum(sh.s, 1) + ' 最多只能出 ' + this.fmtNum(capInfo.kg, 1) +
+              'kg（' + capInfo.desc + '），缺口 ' + this.fmtNum(sh.order - capInfo.kg, 1) +
+              'kg，订单无法满足——请追加该规格母卷，或改用能与其混切的母卷宽');
+          } else {
+            warnings.push('⚠ 规格 ' + this.fmtNum(sh.s, 1) + ' 只出 ' + this.fmtNum(sh.got, 1) + 'kg，比订单少 ' +
+              this.fmtNum(sh.gap, 1) + 'kg，请检查母卷/条数上限');
+          }
+        }
+        for (const ov of overSpecs) {
+          warnings.push('⚠ 规格 ' + this.fmtNum(ov.s, 1) + ' 多给 ' + this.fmtNum(ov.over, 1) + 'kg（订单 ' +
+            this.fmtNum(ov.order, 1) + 'kg、实际排 ' + this.fmtNum(ov.got, 1) + 'kg）' +
+            (shortSpecs.length
+              ? '；因 ' + shortSpecs.map((x) => this.fmtNum(x.s, 1)).join('、') +
+                ' 受卷宽组合限制切不出，现有卷宽只能这样组合'
+              : '') +
+            '——如不能多给，勾选「回仓」可少切该规格、把余宽回仓');
+        }
+        if (!shortSpecs.length) return { warnings: warnings, advices: advices, shortSpecs: shortSpecs, overSpecs: overSpecs };
+        const sh0 = shortSpecs[0];
+        const cap0 = sh0.cap;
+        // a) 回仓版（勾选回仓即为该方案）
+        let demo = null;
+        try { demo = this.planShortageReturn(cfg, fullRes); } catch (e) { demo = null; }
+        if (retPlanned && res.shortageReturn) {
+          let retOut = 0;
+          for (const k2 of Object.keys(res.out || {})) retOut += res.out[k2];
+          advices.push('a) 回仓版（已出表）：' + (res._returnDetail || '') +
+            ' → 产出合计 ≈ ' + this.fmtNum(retOut, 1) + 'kg、回仓合计 ≈ ' +
+            this.fmtNum(res.returnKg || 0, 1) + 'kg（贴近订单，明细已标「宽度回仓」）');
+        } else if (demo) {
+          let demoOut = 0;
+          for (const k2 of Object.keys(demo.out || {})) demoOut += demo.out[k2];
+          advices.push('a) 勾选「回仓」可少切多给规格：' + (demo._returnDetail || '') +
+            ' → 多给规格产出 ≈ ' + this.fmtNum(demoOut, 1) + 'kg、回仓合计 ≈ ' +
+            this.fmtNum(demo.returnKg || 0, 1) + 'kg（贴近订单，明细会标「宽度回仓」）');
+        }
+        // b) 追加母卷
+        if (cap0) {
+          advices.push('b) 追加 ' + this.fmtNum(sh0.s, 1) + ' 母卷（或换成能与其混切的母卷宽/卷）：按现有卷宽组合，' +
+            this.fmtNum(sh0.s, 1) + ' 最多只能出 ' + this.fmtNum(cap0.kg, 1) + 'kg，缺口 ' +
+            this.fmtNum(sh0.order - cap0.kg, 1) + 'kg 物理无法满足（现有卷宽无合法混切），建议追加该规格母卷/换卷宽');
+        } else {
+          advices.push('b) 追加 ' + this.fmtNum(sh0.s, 1) + ' 母卷（或换能混切的母卷宽）');
+        }
+        // c) 微调规格宽
+        let sugg = null;
+        try { sugg = cap0 ? this.widthSuggestion(cfg, cap0.parts, sh0.s) : null; } catch (e) { sugg = null; }
+        if (sugg) {
+          // 试算：用建议宽度重排，给出 129/新规格 的产出
+          let trialText = '';
+          try {
+            const specs2 = specs.map((x) => (x === sh0.s ? sugg.width : x));
+            const cfg2 = Object.assign({}, cfg, { specs: specs2, WsOrig: cfg.WsOrig || cfg.Ws });
+            const inp2 = Object.assign({}, inp, { specs: specs2 });
+            const r2 = this.planSingleBatch(inp2, cfg2);
+            if (r2 && !r2.error && r2.out) {
+              const parts2 = specs2.map((sp2, ii2) => this.fmtNum(sp2, 1) + '≈' +
+                this.fmtNum(r2.out[sp2] || 0, 1) + 'kg');
+              let tot2 = 0;
+              for (const k2 of Object.keys(r2.out)) tot2 += r2.out[k2];
+              trialText = '，重算约 ' + parts2.join(' / ') + ' / 总 ' + this.fmtNum(tot2, 1) + 'kg';
+            }
+          } catch (e) { trialText = ''; }
+          advices.push('c) 若实际规格是 ' + this.fmtNum(sugg.width, 1) + '：请用 ' + this.fmtNum(sugg.width, 1) +
+            ' 重新算——该宽度在 ' + this.fmtNum(sugg.ws, 0) + 'mm 段可切 ' + sugg.seqText +
+            '（飞边 ' + this.fmtNum(sugg.trim, 1) + 'mm 合法）' + trialText);
+        }
+        return { warnings: warnings, advices: advices, shortSpecs: shortSpecs, overSpecs: overSpecs };
+      },
+
       planSingleBatch(inp, cfg) {
         const WsIn = cfg.Ws;
         // 回仓改为自动判断（不再由用户填写回仓宽度）
@@ -5712,7 +6177,8 @@
         if (!block || !el) return;
         const list = res.trimCompares || [];
         const retList = res.returnCompare || [];
-        if (!list.length && !retList.length) {
+        const advList = res.advices || [];
+        if (!list.length && !retList.length && !advList.length) {
           block.hidden = true;
           el.innerHTML = '';
           return;
@@ -5777,16 +6243,21 @@
           h += '<div class="strip-compare-note">默认按<b>吨数优先</b>：先枚举塞满母卷宽的组合（允许多切 1~2 刀、多给客户），再按 Σ|产出−订单| 选最优。飞边超硬上限 11mm 的方案整单标 ⚠ 请确认；严格口径方案的吨数偏差更大，仅作对比备选。</div>';
         }
         if (retList.length) {
-          h += '<table class="strip-table" style="margin-top:10px"><thead><tr><th>回仓方案</th><th>产出kg</th><th>差kg</th><th>回仓mm</th><th>回仓kg</th></tr></thead><tbody>';
+          h += '<table class="strip-table" style="margin-top:10px"><thead><tr><th>回仓方案</th><th>各规格产出(差)</th><th>总产出kg</th><th>Σ|差|kg</th><th>回仓mm</th><th>回仓kg</th></tr></thead><tbody>';
           retList.forEach((r2, ri2) => {
             h += '<tr><td>' + (ri2 === 1 ? '<span class="strip-compare-badge">所选出表</span>' : '') +
-              this.esc(r2.label) + '</td><td class="num">' + this.fmtNum(r2.out || 0, 1) +
-              '</td><td class="num">' + this.fmtNum(r2.dev || 0, 1) +
+              this.esc(r2.label) + '</td><td class="strip-mono">' + this.esc(r2.detail || '—') +
+              '</td><td class="num">' + this.fmtNum(r2.out || 0, 1) +
+              '</td><td class="num">' + this.fmtNum(Number.isFinite(r2.sumDev) ? r2.sumDev : (r2.dev || 0), 1) +
               '</td><td class="num">' + (r2.returnW > 0 ? this.fmtNum(r2.returnW, 1) : '—') +
               '</td><td class="num">' + (r2.returnKg > 0 ? this.fmtNum(r2.returnKg, 1) : '—') + '</td></tr>';
           });
           h += '</tbody></table>';
           h += '<div class="strip-compare-note">勾选「回仓」后：半轴回仓 / 宽度回仓 / 整件 三选一，取与订单总偏差最小者（并列优先 半轴 → 宽度 → 整件）；不勾则按全批，可能多给。</div>';
+        }
+        if (advList.length) {
+          h += '<div class="strip-compare-note" style="margin-top:10px"><b>方案建议：</b></div>' +
+            '<div class="strip-compare-note">' + advList.map((a) => this.esc(a)).join('<br>') + '</div>';
         }
         el.innerHTML = h;
       },
@@ -5975,12 +6446,18 @@
         if (res.totalOrder - res.totalOut > 0.5) {
           lines.push(q('少交 ' + this.fmtNum(res.totalOrder - res.totalOut, 1) + ' kg（母卷吨位/宽度不够，已尽量出）'));
         }
+        if (res.advices && res.advices.length) {
+          lines.push('');
+          lines.push('【方案建议】');
+          for (const a of res.advices) lines.push(q(a));
+        }
         if (res.returnCompare && res.returnCompare.length) {
           lines.push('');
           lines.push('【回仓方案对比（勾选「回仓」：全批版 vs 回仓版）】');
-          lines.push([q('方案'), q('产出kg'), q('差kg'), q('回仓mm'), q('回仓kg')].join(','));
+          lines.push([q('方案'), q('各规格产出(差)'), q('总产出kg'), q('Σ|差|kg'), q('回仓mm'), q('回仓kg')].join(','));
           for (const r2 of res.returnCompare) {
-            lines.push([q(r2.label), q(this.fmtNum(r2.out || 0, 1)), q(this.fmtNum(r2.dev || 0, 1)),
+            lines.push([q(r2.label), q(r2.detail || ''), q(this.fmtNum(r2.out || 0, 1)),
+              q(this.fmtNum(Number.isFinite(r2.sumDev) ? r2.sumDev : (r2.dev || 0), 1)),
               q(r2.returnW > 0 ? this.fmtNum(r2.returnW, 1) : ''), q(r2.returnKg > 0 ? this.fmtNum(r2.returnKg, 1) : '')].join(','));
           }
         }
@@ -6274,11 +6751,18 @@
               num(w.trimB), num(halfCuts), num(halfCuts), num(w.cap)]);
           }
         }
+        if (res.advices && res.advices.length) {
+          r1.push([txt('方案建议'), txt(''), txt(''), txt(''), txt(''), txt(''), txt(''), txt(''), txt(''), txt('')]);
+          for (const a of res.advices) {
+            r1.push([txt(a), txt(''), txt(''), txt(''), txt(''), txt(''), txt(''), txt(''), txt(''), txt('')]);
+          }
+        }
         if (res.returnCompare && res.returnCompare.length) {
-          r1.push([txt('回仓方案对比'), txt('产出kg'), txt('差kg'), txt('回仓mm'), txt('回仓kg'), txt(''), txt(''), txt(''), txt(''), txt('')]);
+          r1.push([txt('回仓方案对比'), txt('各规格产出(差)'), txt('总产出kg'), txt('Σ|差|kg'), txt('回仓mm'), txt('回仓kg'), txt(''), txt(''), txt(''), txt('')]);
           for (const r2 of res.returnCompare) {
-            r1.push([txt(r2.label), num(r2.out || 0), num(r2.dev || 0),
-              num(r2.returnW || 0), num(r2.returnKg || 0), txt(''), txt(''), txt(''), txt(''), txt('')]);
+            r1.push([txt(r2.label), txt(r2.detail || ''), num(r2.out || 0),
+              num(Number.isFinite(r2.sumDev) ? r2.sumDev : (r2.dev || 0)),
+              num(r2.returnW || 0), num(r2.returnKg || 0), txt(''), txt(''), txt(''), txt('')]);
           }
         }
         sheets.push({ name: '排刀明细', cols: [16, 10, 10, 10, 42, 10, 9, 8, 8, 10], rows: r1 });
