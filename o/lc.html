@@ -1188,9 +1188,9 @@
           <label class="sp-check-line"><input type="checkbox" id="spReturnOn"><span>不勾＝全批完（可能多给）；勾选＝自动在「半轴回仓 / 宽度回仓」中择优贴近订单</span></label>
         </div>
         <div class="input-field">
-          <label for="spTrimVal">飞边 (mm，两边合计)</label>
-          <input type="number" id="spTrimVal" step="0.5" placeholder="留空＝10；填 0＝不留边">
-          <span class="sp-trim-hint">留空＝10（常规两边合计 2~10mm，最宽 11mm，目标 8~10.5）；填 <b>0</b>＝不留边（各段按规格宽和精确占满母卷宽）；填 <b>&gt;10</b> 照算，但整单标 ⚠「超出常规飞边，请确认」。</span>
+          <label for="spTrimVal">飞边 (mm，可填 2~10 / 0~4 / 0-10)</label>
+          <input type="text" id="spTrimVal" placeholder="留空=2~10；填 0=不留边">
+          <span class="sp-trim-hint">最小~最大一个框：空格、逗号、~、～、-、—、－ 都行（如 2~10、2-10、2 10、2,10）；单个数字按老口径（10=目标 8~10.5、最低 2）；填 <b>0</b>＝不留边（精确占满）。</span>
         </div>
       </div>
       <div class="input-group sp-group">
@@ -1205,7 +1205,7 @@
           <div class="strip-body" id="spTargets"></div>
         </div>
         <div class="strip-block">
-          <div class="strip-head">② 排刀明细（自动分段 / 整卷单序）</div>
+          <div class="strip-head">② 排刀明细</div>
           <div class="strip-body" id="spLayout"></div>
         </div>
         <div class="strip-block">
@@ -1219,6 +1219,10 @@
         <div class="strip-block">
           <div class="strip-head">⑤ 自检</div>
           <div class="strip-body" id="spCheck"></div>
+        </div>
+        <div class="strip-block" id="spSmartBlock" hidden>
+          <div class="strip-head" id="spSmartHead" style="cursor:pointer">⑦ 智能搭配（可选，点开看）</div>
+          <div class="strip-body" id="spSmartBody" style="display:none"></div>
         </div>
         <div class="strip-block" id="spCompareBlock" hidden>
           <div class="strip-head">⑥ 方案对比（A 严格飞边 / B 少段省时间）</div>
@@ -1955,12 +1959,20 @@
       },
 
       /** 飞边带（每卷两条合计）：目标带 [2T−4, 2T+1] 封顶在硬范围 [4,22] 内；飞边超常规时硬上限放宽到 2×hardMax */
-      bandsFor(T, hardMax) {
+      bandsFor(T, hardMax, minTrim) {
         const h = (Number.isFinite(hardMax) && hardMax > 11) ? hardMax : 11;
         const cap = 2 * h;
-        const lo = Math.max(4, Math.min(cap, 2 * T - 4));
+        const mn = (Number.isFinite(minTrim) && minTrim >= 0) ? minTrim : 2;
+        const lo = Math.max(2 * mn, Math.min(cap, 2 * T - 4));
         const hi = Math.max(lo, Math.min(cap, 2 * T + 1));
-        return [[lo, hi], [4, cap]];
+        return [[lo, hi], [2 * mn, cap]];
+      },
+
+      /** 飞边区间的带：最小~最大（每卷两条合计） */
+      bandsForRange(lo, hi) {
+        const a = Math.max(0, Math.min(lo, hi));
+        const b = Math.max(a, hi);
+        return [[2 * a, 2 * b], [2 * a, 2 * b]];
       },
 
       esc(s) {
@@ -2365,7 +2377,9 @@
         const m = Math.ceil(specs.length / 2);
         const p1 = priority.slice(0, m);
         const p2 = priority.slice(m).concat(priority.slice(0, m).slice().reverse());
-        const bands = this.bandsFor(T, cfg.allowedTrimMax);
+        const bands = cfg.trimRange
+          ? this.bandsForRange(cfg.trimRange[0], cfg.trimRange[1])
+          : this.bandsFor(T, cfg.allowedTrimMax, cfg.minTrim);
         const fit1 = this.fitRoll(Ws[0], p1, targets, maxCuts, bands, 2 * T, addons);
         if (!fit1) return { error: '卷1 放不下：目标刀数太大或飞边口径太紧' };
         const c1 = {};
@@ -2425,8 +2439,11 @@
         for (const k in corrections) targets[k] = corrections[k];
         if (specs.length > 7) return { error: '规格数暂支持 ≤7 个' };
         const hMax = (Number.isFinite(cfg.allowedTrimMax) && cfg.allowedTrimMax > 11) ? cfg.allowedTrimMax : 11;
-        const band1 = this.bandsFor(T, cfg.allowedTrimMax)[0];
-        const band2 = [4, 2 * hMax];
+        const band1 = cfg.trimRange
+          ? this.bandsForRange(cfg.trimRange[0], cfg.trimRange[1])[0]
+          : this.bandsFor(T, cfg.allowedTrimMax, cfg.minTrim)[0];
+        const mn2 = (Number.isFinite(cfg.minTrim) && cfg.minTrim >= 0) ? cfg.minTrim : 2;
+        const band2 = cfg.trimRange ? band1 : [2 * mn2, 2 * hMax];
         const attempts = [
           [band1, []],
           [band1, addons],
@@ -2958,7 +2975,7 @@
               anyHalf = true;
               roll.autoReturn = false; // 半轴回仓是“半个重量的整卷”，不是余宽回仓
 
-              planWarnings.push('第' + (i + 1) + '件自动半轴：只开 1 轴、饼数减半；回仓 ≈ ' +
+              planWarnings.push('第' + (i + 1) + '件半轴回仓：只开 1 轴（一轴过），另一轴整轴回仓；回仓 ≈ ' +
                 this.fmtNum(Ms[i] / 2, 1) + 'kg（回仓宽度 ' + this.fmtNum(W / 2, 1) + 'mm）' +
                 (halfTie ? '；整件开与半轴开偏差接近，取半轴（少给客户、另一半回仓）'
                          : '；半轴比整件开更贴近订单'));
@@ -4702,12 +4719,12 @@
               const inHard = roll.trim >= 2 - 1e-9 && roll.trim <= hardMax + 1e-9;
               const bigTrim = roll.trim > 11 + 1e-9;
               checks.push({
-                ok: inHard && inTarget && !bigTrim,
-                warn: bigTrim || (inHard && !inTarget),
+                ok: inHard && !bigTrim,
+                warn: bigTrim,
                 text: label + '（' + this.fmtNum(roll.W, 1) + 'mm）：整卷单序 刀数 ' + cuts +
                   ' / 上限 ' + roll.cap + '，飞边 ' +
                   this.fmtNum(roll.trim, 1) + 'mm（目标 ' + this.fmtNum(T, 1) + '，硬范围 2~' + hardText + '）' +
-                  (bigTrim ? '——超硬上限 11，需老板确认（吨数优先）' : (inTarget ? '' : (roll.trim < lo ? '——低于目标飞边，需确认' : '——高于目标飞边，需老板确认'))),
+                  (bigTrim ? '——超硬上限 11，需老板确认（吨数优先）' : ''),
               });
               return;
             }
@@ -4751,13 +4768,13 @@
                    ' + 飞边 ' + this.fmtNum(st.trim, 1) + '）')
                 : ('段宽 ' + this.fmtNum(st.width, 1) + ' 飞边 ' + this.fmtNum(st.trim, 1) + 'mm');
               checks.push({
-                ok: inHard && inTarget && !bigTrim,
-                warn: bigTrim || (inHard && !inTarget),
+                ok: inHard && !bigTrim,
+                warn: bigTrim || !!roll.minKBig,
                 text: label + ' ' + segName + '：' + segWidthText + (st.specW !== undefined ? 'mm' : '') +
                   (trimZero ? '（不留边）' : '（目标 ' + this.fmtNum(T, 1) + '，硬范围 2~' + hardText + '）') +
                   (roll.minKBig
                     ? '——少段优先方案飞边超目标（省调刀时间、材料多耗），如需飞边达标见 ⑥ 多段备选'
-                    : (bigTrim ? '——超硬上限 11，需老板确认（超常规飞边）' : (inTarget ? '' : (st.trim < lo ? '——低于目标飞边，需确认' : '——高于目标飞边，需老板确认')))),
+                    : (bigTrim ? '——超硬上限 11，需老板确认（超常规飞边）' : '')),
               });
               checks.push({
                 ok: st.cuts <= capRef,
@@ -4822,10 +4839,10 @@
             const inHardT = t >= 2 - 1e-9 && t <= hardMax + 1e-9;
             const inTargetT = t >= lo - 1e-9 && t <= hi + 1e-9;
             checks.push({
-              ok: inHardT && inTargetT && !bigT,
-              warn: bigT || (inHardT && !inTargetT),
+              ok: inHardT && !bigT,
+              warn: bigT,
               text: '刀序' + tg[0] + ' 飞边 ' + this.fmtNum(t, 1) + 'mm（目标 ' + this.fmtNum(T, 1) + '，硬范围 2~' + hardText + '）' +
-                (bigT ? '——超硬上限 11，需老板确认（吨数优先）' : (inTargetT ? '' : (t < lo - 1e-9 ? '——低于目标飞边，需确认' : '——规格填不满卷宽，已尽量出'))),
+                (bigT ? '——超硬上限 11，需老板确认（吨数优先）' : ''),
             });
           }
           if (w.halfIdx >= 0) {
@@ -4966,6 +4983,8 @@
             maxSplit: (Number.isFinite(inp.maxSplit) && inp.maxSplit >= 1) ? Math.min(5, Math.floor(inp.maxSplit)) : 5,
             stackH: Math.min(2000, Math.max(1200, (Number.isFinite(inp.stackH) && inp.stackH > 0) ? inp.stackH : 1600)),
             returnOn: !!inp.returnOn,
+            minTrim: (Number.isFinite(inp.minTrim) && inp.minTrim >= 0) ? inp.minTrim : 2,
+            trimRange: (inp.trimRange && inp.trimRange.length === 2) ? inp.trimRange : null,
           };
           // 克重相关输入/多克重分批已按需求移除（核心只有规格宽 + 重量 + 母卷宽/重）
           let res = this.planSingleBatch(inp, baseCfg);
@@ -6038,13 +6057,16 @@
           return x;
         };
         const capOf = (m) => (m ? m.cap : 28);
-        let h = '';
+        let h = '<div style="height:10px"></div>';
+        let firstPiece = true;
         if (res.rolls) {
           res.rolls.forEach((roll, ri) => {
             const label = '第' + ((roll.piece || (ri + 1))) + '件';
+            if (!firstPiece) h += '<div style="border-top:1px dashed #c8c8c8;margin:14px 0 10px"></div>';
+            firstPiece = false;
             if (roll.type === 'whole-seq') {
               const cuts = cutsOf(roll.counts) + cutsOf(roll.addonCounts);
-              h += '<div style="margin:6px 0"><b>' + label + '</b>（宽 ' + this.fmtNum(roll.W, 1) +
+              h += '<div style="margin:6px 0;padding:2px 0 2px 8px;border-left:3px solid var(--accent-color,#4a90d9)"><b>' + label + '</b>（宽 ' + this.fmtNum(roll.W, 1) +
                 ' / 重 ' + this.fmtNum(roll.M, 1) + 'kg）→ 整卷单序 · 刀数 ' + cuts + ' / 上限 ' + roll.cap + '</div>';
               if (roll.autoReturn) {
                 h += '<div class="strip-mono">刀序（刀序宽和 ' + this.fmtNum(roll.widthSum, 1) +
@@ -6074,7 +6096,20 @@
               : [roll.stripA].concat(roll.stripB ? [roll.stripB] : []);
             const isSplit = roll.type === 'split-k';
             const capRefR = roll.cap || res.capUsed || 23;
-            h += '<div style="margin:6px 0"><b>' + label + '</b>（宽 ' + this.fmtNum(roll.W, 1) +
+            if (roll.halfAxis) {
+              const st0 = strips[0] || {};
+              const openedW = st0.width || (roll.W / 2);
+              const specW0 = st0.specW !== undefined ? st0.specW : (openedW - (st0.trim || 0));
+              h += '<div style="margin:10px 0 6px;padding:2px 0 2px 8px;border-left:3px solid var(--accent-color,#4a90d9)"><b>' + label + '</b>（宽 ' + this.fmtNum(roll.W, 1) +
+                ' / 重 ' + this.fmtNum(roll.M, 1) + 'kg）→ <b>半轴回仓：只开 1 轴（一轴过），另一轴整轴回仓</b></div>';
+              h += '<div class="strip-mono" style="margin-left:12px">开 1 轴：段宽 ' + this.fmtNum(openedW, 1) +
+                'mm = 规格和 ' + this.fmtNum(specW0, 1) + ' + 飞边 ' + this.fmtNum(st0.trim || 0, 1) +
+                '，刀数 ' + (st0.cuts || 0) + ' / 上限 ' + capRefR + '：' + this.esc(st0.seq || '') + '</div>';
+              h += '<div class="strip-warn">另一轴 ' + this.fmtNum(roll.returnW || (roll.W / 2), 1) + 'mm ≈ ' +
+                this.fmtNum(roll.returnKg || 0, 1) + 'kg 整轴回仓；只开这一轴，不再分段（避免再开成 1/4 轴）。</div>';
+              return;
+            }
+            h += '<div style="margin:6px 0;padding:2px 0 2px 8px;border-left:3px solid var(--accent-color,#4a90d9)"><b>' + label + '</b>（宽 ' + this.fmtNum(roll.W, 1) +
               ' / 重 ' + this.fmtNum(roll.M, 1) + 'kg）' +
               (strips.length > 1
                 ? ' → <b>' + (roll.minKBig ? '少段优先' : (res.autoSplit || roll.W > 1800 ? '自动分段' : '分')) +
@@ -6084,7 +6119,7 @@
               const st = strips[si];
               const segName = strips.length > 1 ? ('第' + (si + 1) + '段') : '段';
               const specW = st.specW !== undefined ? st.specW : (st.width - st.trim);
-              h += '<div class="strip-mono">' + segName + '（段宽 ' + this.fmtNum(st.width, 1) +
+              h += '<div class="strip-mono" style="margin-left:12px">' + segName + '（段宽 ' + this.fmtNum(st.width, 1) +
                 'mm = 规格和 ' + this.fmtNum(specW, 1) + ' + 飞边 ' + this.fmtNum(st.trim, 1) +
                 '，刀数 ' + st.cuts + ' / 上限 ' + capRefR + '）：' +
                 this.esc(st.seq || '') + '</div>';
@@ -6341,15 +6376,15 @@
           const mark = c.ok
             ? '<span class="strip-check-ok">✓</span>'
             : (c.warn ? '<span class="strip-warn">⚠</span>' : '<span class="strip-check-bad">✗</span>');
-          h += '<div>' + mark + ' ' + this.esc(c.text) + '</div>';
+          h += '<div style="margin-bottom:6px">' + mark + ' ' + this.esc(c.text) + '</div>';
         }
-        h = '<div style="margin-bottom:6px"><b>' +
+        h = '<div style="margin-bottom:10px"><b>' +
           (allOk
             ? '<span class="strip-check-ok">自检通过</span>'
             : (hardFail
               ? '<span class="strip-check-bad">自检不通过，见红字</span>'
               : '<span class="strip-warn">自检通过（有 ⚠ 提示项，需确认）</span>')) +
-          '</b></div>' + h;
+          '</b></div><div style="height:10px"></div>' + h;
         el.innerHTML = h;
       },
 
@@ -7008,9 +7043,34 @@
           }
         }
         const trimRaw = document.getElementById('spTrimVal').value;
-        const T = (trimRaw === '' || trimRaw === null || trimRaw === undefined) ? 10 : parseFloat(trimRaw);
-        if (!Number.isFinite(T) || T < 0) throw new Error('飞边要填 0 或正数（留空＝10；填 0＝不留边）');
-        if (T > 0 && T < 2) throw new Error('飞边要填 0（不留边）或 ≥2（两边合计 2~11mm，默认 10）');
+        const trimStr = String(trimRaw === null || trimRaw === undefined ? '' : trimRaw).trim();
+        let T = 10;
+        let minTrim = 2;
+        let trimRange = null;
+        if (/^[-−]/.test(trimStr)) {
+          throw new Error('飞边不能是负数（要区间请写 2~10、0-10，不要以负号开头）');
+        }
+        if (trimStr !== '') {
+          const parts = trimStr.split(/[\s~～\-—－,，、]+/).filter(Boolean);
+          if (parts.length === 2) {
+            const a = parseFloat(parts[0]);
+            const b = parseFloat(parts[1]);
+            if (!Number.isFinite(a) || !Number.isFinite(b) || a < 0 || b < 0) {
+              throw new Error('飞边区间要填两个正数，如 2~10、0~4、0-10');
+            }
+            if (a > b + 1e-9) throw new Error('飞边区间最小不能大于最大（你填的是 ' + parts[0] + ' ~ ' + parts[1] + '）');
+            if (b > 24) throw new Error('飞边区间最大不要超过 24mm');
+            minTrim = a;
+            T = b;
+            trimRange = [a, b];
+          } else if (parts.length === 1) {
+            T = parseFloat(parts[0]);
+            if (!Number.isFinite(T) || T < 0) throw new Error('飞边要填 0 或正数（留空＝2~10；填 0＝不留边）');
+            if (T > 0 && T < 2) throw new Error('单个飞边数要填 0（不留边）或 ≥2；要小飞边请用区间，如 0~4');
+          } else {
+            throw new Error('飞边区间只能写两个数，如 2~10、0~4、0-10');
+          }
+        }
         const orderNo = document.getElementById('spOrderNo').value.trim();
         const returnEl = document.getElementById('spReturnOn');
         const returnOn = !!(returnEl && returnEl.checked);
@@ -7031,15 +7091,16 @@
         }
         return {
           specs, orders, Ws, Ms, addons, corrections, correctionsOrder,
-          mode, capOverride, T, orderNo, returnOn,
+          mode, capOverride, T, orderNo, returnOn, minTrim, trimRange,
           maxStripW: segMaxW, stackH,
         };
       },
 
       calc() {
         let res;
+        let inp = null;
         try {
-          const inp = this.readInputs();
+          inp = this.readInputs();
           res = this.plan(inp);
         } catch (e) {
           res = { error: String(e && e.message ? e.message : e) };
@@ -7047,7 +7108,25 @@
         this._lastRes = res;
         this._lastOrderNo = this.getOrderNo();
         this.render(res);
+        this.autoSmart(inp, res);
         return res;
+      },
+
+      /** 正式算法偏差大时自动跑智能搭配；只有试算更贴单才显示 ⑦ */
+      autoSmart(inp, res) {
+        const block = document.getElementById('spSmartBlock');
+        if (!inp || !res || res.error) { if (block) block.hidden = true; return; }
+        let dev = 0;
+        for (let i = 0; i < res.specs.length; i++) dev += Math.abs((res.out[res.specs[i]] || 0) - res.orders[i]);
+        if (dev <= 200) { if (block) block.hidden = true; return; }
+        let sm = null;
+        try { sm = this.smartMix(inp); } catch (e) { sm = null; }
+        if (sm && !sm.error && Number.isFinite(sm.dev) && sm.dev + 1 < dev) {
+          sm.normalDev = dev;
+          this.smartRender(sm);
+        } else if (block) {
+          block.hidden = true;
+        }
       },
 
       /** 长文本 textarea 自动增高（最多 150px，超出内部滚动；手机上也能看全） */
@@ -7071,6 +7150,201 @@
         return el ? el.value.trim() : '';
       },
 
+      /** 智能搭配试算：标准方案排不下/多给太多时，自动试搭规格，重排小卷 */
+      smartMix(inp) {
+        const base = this.plan(inp);
+        if (!base || base.error) return base;
+        const maxStripW = base.maxStripW || 1600;
+        const specs = base.specs.slice();
+        const orders = base.orders.slice();
+        let addons = (inp.addons && inp.addons.length ? inp.addons : [77, 93])
+          .filter((a) => a > 0 && specs.indexOf(a) < 0);
+        addons = addons.filter((a, i, arr) => arr.indexOf(a) === i).slice(0, 4);
+        const minTrim = (inp.trimRange && inp.trimRange.length === 2)
+          ? inp.trimRange[0]
+          : ((Number.isFinite(inp.minTrim) && inp.minTrim >= 0) ? inp.minTrim : 2);
+        const maxTrim = (inp.trimRange && inp.trimRange.length === 2)
+          ? inp.trimRange[1]
+          : 11;
+        const allW = specs.concat(addons);
+        const fixedKg = {};
+        for (const s of allW) fixedKg[s] = 0;
+        const rows = [];
+        const flex = [];
+        for (let i = 0; i < base.rolls.length; i++) {
+          const r = base.rolls[i];
+          if (r.type === 'whole-seq' && r.W <= maxStripW + 1e-9 && !r.returnW) {
+            flex.push({ idx: i, W: r.W, M: r.M, cap: r.cap || 23, piece: r.piece || (i + 1) });
+            continue;
+          }
+          const segs = [];
+          if (r.strips) {
+            for (const st of r.strips) segs.push({ seq: st.seq || '', width: st.width, trim: st.trim, c: st.c || {}, cuts: st.cuts || 0 });
+          } else {
+            segs.push({ seq: r.seqText || '', width: r.W, trim: r.trim, c: r.counts || {}, cuts: r.cuts || 0 });
+          }
+          const rr = { piece: r.piece || (i + 1), W: r.W, M: r.M, segs, returnW: r.returnW || 0, returnKg: r.returnKg || 0, fixed: true };
+          for (const st of segs) {
+            st.kg = {};
+            for (const k in st.c) {
+              const g = r.M * Number(k) * st.c[k] / r.W;
+              st.kg[k] = g;
+              fixedKg[k] = (fixedKg[k] || 0) + g;
+            }
+          }
+          rows.push(rr);
+        }
+        const fixedDev = () => { let d = 0; for (let j = 0; j < specs.length; j++) d += Math.abs((fixedKg[specs[j]] || 0) - orders[j]); return d; };
+        const fail = (note) => ({ base, error: '', note, addons, rows, totals: fixedKg, specs, orders, dev: fixedDev(), addonKg: 0, minTrim, maxTrim: (inp.trimRange && inp.trimRange.length === 2) ? inp.trimRange[1] : 11 });
+        if (!flex.length) return fail('没有可重排的小卷（都走了宽卷分段/回仓）');
+        if (flex.length > 4) return fail('可重排小卷超过 4 件，试算暂只支持 ≤4 件');
+        const maxCuts = base.capUsed || 23;
+        const patCap = flex.length >= 4 ? 40 : 100;
+        const self = this;
+        const gen = (W, M, cap) => {
+          const pats = [];
+          const counts = new Array(allW.length).fill(0);
+          const trimScore = (p) => (p.trim < 6 ? (6 - p.trim) * 2 : 0) + (p.trim > 10 ? (p.trim - 10) * 2 : 0) + p.addonKg * 0.001;
+          const rec = (i, width, cuts) => {
+            if (width > W + 1e-9) return;
+            if (i === allW.length) {
+              const trim = W - width;
+              if (trim < minTrim - 1e-9 || trim > maxTrim + 1e-9) return;
+              let hasOrder = false;
+              for (let j = 0; j < specs.length; j++) if (counts[j] > 0) hasOrder = true;
+              if (!hasOrder) return;
+              const kg = {};
+              let addonKg = 0;
+              for (let j = 0; j < allW.length; j++) {
+                if (!counts[j]) continue;
+                const g = M * allW[j] * counts[j] / W;
+                kg[allW[j]] = g;
+                if (addons.indexOf(allW[j]) >= 0) addonKg += g;
+              }
+              pats.push({ counts: counts.slice(), trim, width, cuts, kg, addonKg,
+                seq: allW.map((w, j) => counts[j] ? (self.fmtNum(w, 1) + '×' + counts[j]) : '').filter(Boolean).join(' + ') });
+              return;
+            }
+            const w = allW[i];
+            const maxC = Math.min(Math.floor((W - width) / w), cap - cuts);
+            for (let c = 0; c <= maxC; c++) {
+              counts[i] = c;
+              rec(i + 1, width + c * w, cuts + c);
+            }
+            counts[i] = 0;
+          };
+          rec(0, 0, 0);
+          const seen = {};
+          const out = [];
+          for (const p of pats) {
+            const key = p.counts.join(',');
+            if (seen[key]) continue;
+            seen[key] = 1;
+            out.push(p);
+          }
+          out.sort((a, b) => trimScore(a) - trimScore(b));
+          return out.slice(0, patCap);
+        };
+        const flexPats = flex.map((f) => gen(f.W, f.M, Math.min(f.cap, maxCuts)));
+        let best = null;
+        const combo = new Array(flex.length).fill(0);
+        const evalCombo = () => {
+          const out = {};
+          for (const s of allW) out[s] = fixedKg[s] || 0;
+          let addonKg = 0, trimPen = 0;
+          const used = {};
+          for (let i = 0; i < flex.length; i++) {
+            const p = flexPats[i][combo[i]];
+            if (!p) return;
+            used[p.seq] = 1;
+            for (const k in p.kg) out[k] = (out[k] || 0) + p.kg[k];
+            addonKg += p.addonKg;
+            trimPen += Math.max(0, 6 - p.trim) * 4 + Math.max(0, p.trim - 10) * 2;
+          }
+          let dev = 0;
+          for (let j = 0; j < specs.length; j++) dev += Math.abs((out[specs[j]] || 0) - orders[j]);
+          const distinct = Object.keys(used).length;
+          const score = dev + addonKg * 0.02 + trimPen + (distinct - 1) * 0.5;
+          if (!best || score < best.score) best = { score, out, addonKg, trimPen, dev, distinct, pick: combo.slice() };
+        };
+        const recCombo = (i) => {
+          if (i === flex.length) { evalCombo(); return; }
+          const samePrev = i > 0 && flex[i].W === flex[i - 1].W && flex[i].M === flex[i - 1].M;
+          const start = samePrev ? combo[i - 1] : 0;
+          const list = flexPats[i];
+          for (let k = start; k < list.length; k++) { combo[i] = k; recCombo(i + 1); }
+        };
+        recCombo(0);
+        if (!best) return fail('没有可行刀序（飞边 ' + minTrim + '~' + maxTrim + 'mm 下排不出）');
+        const outRows = rows.slice();
+        for (let i = 0; i < flex.length; i++) {
+          const f = flex[i];
+          const p = flexPats[i][best.pick[i]];
+          outRows.push({ piece: f.piece, W: f.W, M: f.M, segs: [{ seq: p.seq, width: p.width, trim: p.trim, c: p.counts, cuts: p.cuts, kg: p.kg }], returnW: 0, returnKg: 0 });
+        }
+        outRows.sort((a, b) => (a.piece > b.piece ? 1 : -1));
+        const totals = {};
+        for (const s of allW) totals[s] = 0;
+        for (const r of outRows) for (const st of r.segs) for (const k in st.kg) totals[k] += st.kg[k];
+        return { base, error: '', note: '', addons, rows: outRows, totals, dev: best.dev, addonKg: best.addonKg, minTrim, maxTrim, specs, orders };
+      },
+
+      smartRender(sm) {
+        const host = document.getElementById('spSmartBody');
+        const block = document.getElementById('spSmartBlock');
+        if (!host || !block) return;
+        block.hidden = false;
+        if (!sm || sm.error) {
+          host.innerHTML = '<div class="strip-warn">' + this.esc(sm && sm.error ? sm.error : '试算失败') + '</div>';
+          return;
+        }
+        const cols = (sm.specs || []).concat(sm.addons || []);
+        let h = '<div style="margin-bottom:6px">飞边 ' +
+          this.fmtNum(sm.minTrim === undefined ? 2 : sm.minTrim, 1) + '~' +
+          this.fmtNum(sm.maxTrim === undefined ? 11 : sm.maxTrim, 1) + 'mm' +
+          (Number.isFinite(sm.dev) ? ' ｜ Σ|差| ' + this.fmtNum(sm.dev, 1) + 'kg' : '') + '</div>';
+        h += '<table class="strip-table"><thead><tr><th>卷</th><th>刀序</th><th>宽和(mm)</th><th>飞边(mm)</th>';
+        for (const c of cols) h += '<th>' + this.fmtNum(c, 1) + '(kg)</th>';
+        h += '<th>备注</th></tr></thead><tbody>';
+        let totalCuts = 0;
+        let totalTrimKg = 0;
+        for (const r of sm.rows) {
+          for (let si = 0; si < r.segs.length; si++) {
+            const st = r.segs[si];
+            h += '<tr><td>' + this.esc(String(r.piece !== undefined ? r.piece : '')) + (r.segs.length > 1 ? '-第' + (si + 1) + '段' : '') + '</td>';
+            h += '<td>' + this.esc(st.seq || '—') + '</td><td class="num">' + this.fmtNum(st.width, 1) + '</td><td class="num">' + this.fmtNum(st.trim, 1) + '</td>';
+            for (const c of cols) h += '<td class="num">' + (st.kg && st.kg[c] ? this.fmtNum(st.kg[c], 1) : '—') + '</td>';
+            let note = '';
+            if (r.fixed) note += '宽卷沿用';
+            if (r.returnW) note += '回仓 ' + this.fmtNum(r.returnW, 0) + 'mm/' + this.fmtNum(r.returnKg || 0, 1) + 'kg';
+            h += '<td>' + note + '</td></tr>';
+            totalCuts += st.cuts || 0;
+            totalTrimKg += (r.M || 0) * (st.trim || 0) / (r.W || 1);
+          }
+        }
+        h += '<tr><td><b>合计</b></td><td>—</td><td>—</td><td>—</td>';
+        for (const c of cols) h += '<td class="num"><b>' + this.fmtNum((sm.totals && sm.totals[c]) || 0, 1) + '</b></td>';
+        h += '<td>刀数 ' + totalCuts + '；飞边约 ' + this.fmtNum(totalTrimKg, 1) + 'kg</td></tr></tbody></table>';
+        h += '<div style="margin-top:8px">';
+        for (let j = 0; j < sm.specs.length; j++) {
+          const o = sm.orders[j], v = (sm.totals && sm.totals[sm.specs[j]]) || 0, d = v - o;
+          h += '订单 ' + this.fmtNum(sm.specs[j], 1) + '：' + this.fmtNum(v, 1) + 'kg（' + (d >= 0 ? '+' : '') + this.fmtNum(d, 1) + '）　';
+        }
+        h += '</div>';
+        const addTxt = (sm.addons || []).map((a) => this.fmtNum(a, 1) + ' ' + this.fmtNum((sm.totals && sm.totals[a]) || 0, 1) + 'kg').join('、');
+        h += '<div>搭货：' + (addTxt || '无') + '；Σ|差| ' + this.fmtNum(sm.dev || 0, 1) + 'kg</div>';
+        host.innerHTML = h;
+      },
+
+      smartCalc() {
+        let sm;
+        try { sm = this.smartMix(this.readInputs()); }
+        catch (e) { sm = { error: String(e && e.message ? e.message : e) }; }
+        this._smartRes = sm;
+        this.smartRender(sm);
+        return sm;
+      },
+
       init() {
         const btn = document.getElementById('spCalcBtn');
         if (btn && btn.addEventListener) btn.addEventListener('click', () => this.calc());
@@ -7086,6 +7360,12 @@
           if (e && e.addEventListener) e.addEventListener('input', () => this.autoGrowInputs());
         }
         this.autoGrowInputs();
+        const sh = document.getElementById('spSmartHead');
+        if (sh && sh.addEventListener) sh.addEventListener('click', () => {
+          const b = document.getElementById('spSmartBody');
+          if (!b) return;
+          b.style.display = (b.style.display === 'none') ? '' : 'none';
+        });
         const dl = document.getElementById('spDownloadXlsx');
         if (dl && dl.addEventListener) dl.addEventListener('click', () => this.downloadXlsx());
         const cp = document.getElementById('spCopyAll');
