@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>卷纸计算工具</title>
-  <meta name="description" content="卷纸计算工具：长度计算、直径分切、直径合并、圆纸破损扣重（三档+层数法）、分条排刀、支撑力参考。">
+  <meta name="description" content="卷纸计算工具：长度计算、直径分切、直径合并、圆纸破损扣重（三档+层数法）。">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230d47a1'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
   <script>
@@ -736,24 +736,6 @@
       box-sizing: border-box;
     }
     [data-theme="dark"] .split-reverse input { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-    .split-reverse select {
-      width: 100%;
-      padding: 10px 0;
-      border: none;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      background: transparent;
-      color: var(--text-color);
-      font-size: 1.05rem;
-      font-family: inherit;
-      border-radius: 0;
-      cursor: pointer;
-      transition: border-color 0.3s;
-      box-sizing: border-box;
-    }
-    .split-reverse select:focus { outline: none; border-bottom-color: var(--primary-color); }
-    .split-reverse select:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 3px; }
-    [data-theme="dark"] .split-reverse select { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-    [data-theme="dark"] .split-reverse select option { background: #141414; color: #e0e0e0; }
     .split-reverse input:focus { outline: none; border-bottom-color: var(--primary-color); }
     .split-reverse input:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 3px; }
     .split-reverse input::placeholder { color: var(--label-color); opacity: 0.3; }
@@ -769,10 +751,6 @@
     .result-value.is-calib { color: #e53935; font-weight: 700; }
     .result-value.is-off { opacity: 0.35; font-weight: 400; }
     [data-theme="dark"] .result-value.is-calib { color: #ff8a80; }
-
-    /* ====== 支撑力参考（草案新增） ====== */
-    #support-force-module .split-reverse .input-field { flex: 1 1 118px; min-width: 0; }
-    #support-force-module .split-reverse .calc-btn { margin-bottom: 2px; }
 
     /* ====== 分条排刀（饼数法，草案新增） ====== */
     .strip-btn-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin: 8px 0 4px; }
@@ -1272,62 +1250,6 @@
           <p><b>搭规格：</b>先用客户自己的规格凑；凑不出时自动试加 1~2 刀可搭规格（可搭规格留空＝不搭，自己填才用；每规格最多 2 刀），搭进去的规格单独标注「搭规格」，规格汇总里提醒“这是搭出去的，要配单”。</p>
           <p><b>分段最大宽度 / 分栋叠高（排刀参数）：</b>「分段最大宽度」默认 1600mm（500~2590），每个分段段宽 ≤ 该值，段数从 ⌈母卷宽 ÷ 该值⌉ 起按需增加（内部最多 5 段，超了会提示）；固定整卷单序不受此限（按整卷宽排）。「分栋叠高」默认 1600mm（1200~2000）：每栋个数 = floor(叠高 ÷ 规格宽)（至少 1），余数均摊；叠高 = 个数 × 规格宽，混叠净高上限 1700mm（超了标 ⚠）。明细/XLSX 均标注“叠高参考 X mm”。结果只作初排，正式出表请再核对。</p>
           <p><b>下载：</b>「下载表格(XLSX)」为真 Excel 文件（纯前端生成，3 个工作表：排刀明细 / 规格汇总 / 分栋；表头加粗、列宽设置、自动换行、中文不乱码），文件名「订单号-分条排刀-日期.xlsx」；「复制文本(CSV)」留作聊天/记事本粘贴用。</p>
-        </div>
-      </details>
-    </section>
-
-    <!-- 6. 支撑力参考（收卷轴支撑力标定） -->
-    <section class="calculator-module" id="support-force-module">
-      <h3 class="module-title">支撑力参考<span class="module-title-tag">收卷轴</span></h3>
-      <p class="module-desc">填克重、单轴幅宽、满卷米数，按标定系数给收卷轴支撑力参考值（机台表读数，MPa）。A、B 轴分开标定、分开记忆。</p>
-      <div class="input-group">
-        <div class="input-field"><label for="supGrammage">克重 (g/m²)</label><input type="number" id="supGrammage" step="0.1" min="0"
-            placeholder="例如 125"></div>
-        <div class="input-field"><label for="supWidth">单轴幅宽 (mm)</label><input type="number" id="supWidth" step="1" min="0"
-            placeholder="同一根轴上条宽之和"></div>
-        <div class="input-field"><label for="supLength">满卷米数 (m)</label><input type="number" id="supLength" step="1" min="0"
-            placeholder="例如 6000"></div>
-        <div class="input-field"><label for="supWeight">单轴满卷重 (kg，选填)</label><input type="number" id="supWeight" step="0.1" min="0"
-            placeholder="填了直接用它"></div>
-      </div>
-      <div class="split-reverse">
-        <div class="input-field"><label for="supAxis">收卷轴</label>
-          <select id="supAxis">
-            <option value="A">A 轴</option>
-            <option value="B">B 轴</option>
-          </select>
-        </div>
-        <div class="input-field"><label for="supP0">空载基准 (MPa)</label><input type="number" id="supP0" step="0.001" min="0"
-            placeholder="留空＝0"></div>
-        <div class="input-field"><label for="supCalW">标定点：单轴满卷重 (kg)</label><input type="number" id="supCalW" step="0.1" min="0"
-            placeholder="例如 450"></div>
-        <div class="input-field"><label for="supCalP">标定点：支撑力 (MPa)</label><input type="number" id="supCalP" step="0.001" min="0"
-            placeholder="例如 1.050"></div>
-        <button type="button" class="calc-btn" id="supCalibBtn">算系数</button>
-        <span class="reverse-calib-hint" id="supCalibHint" aria-live="polite"></span>
-      </div>
-      <div class="result-container">
-        <div class="result-item"><span class="result-label">单轴满卷重</span>
-          <div><span class="result-value" id="supWeightVal">—</span><span class="result-unit">kg</span></div>
-        </div>
-        <div class="result-item"><span class="result-label" id="supPLabel">支撑力参考</span>
-          <div><span class="result-value" id="supPVal">—</span><span class="result-unit">MPa</span></div>
-        </div>
-        <div class="result-item"><span class="result-label">当前系数</span>
-          <div><span class="result-value" id="supCoeffVal">—</span><span class="result-unit">MPa/100kg</span></div>
-        </div>
-      </div>
-      <div class="strip-block">
-        <div class="strip-head">各单轴幅宽参考（按当前克重 / 满卷米数）</div>
-        <div class="strip-body" id="supTableWrap"></div>
-      </div>
-      <details class="damage-notes">
-        <summary>说明与公式</summary>
-        <div class="damage-notes-body">
-          <p><b>公式：</b>支撑力参考 = 空载基准 p0 + 系数 b × 单轴满卷重 W；W = 克重(g/m²) × 单轴幅宽(mm) × 满卷米数(m) ÷ 10⁶（kg）。单轴幅宽 = 同一根收卷轴上所有条宽之和；「单轴满卷重」填了就直接用它，不再按克重/幅宽/米数算。</p>
-          <p><b>标定：</b>系数 b =（实测支撑力 p1 − 空载基准 p0）÷ 标定点单轴满卷重 W1。① 空轴（不上纸）把支撑力加到臂刚好到位，记下 p0（没有就留空按 0）；② 一组已知规格跑到满卷、调到压得紧实不跳，记下当时的表值 p1 和该卷的单轴满卷重 W1；③ 把 p0 / W1 / p1 填进标定行点「算系数」，自动存到当前轴，以后换规格直接出参考值。</p>
-          <p><b>空载基准 p0：</b>空轴的轴长、臂重、气路差异都体现在 p0 上；填 0 表示按纯比例算。</p>
-          <p><b>单位：</b>支撑力按机台表读数（MPa）；卷重 kg；幅宽 mm；米数 m。A 轴、B 轴各自标定、各自记忆，切换「收卷轴」即读取该轴标定；表格里加粗的一行是当前输入的单轴幅宽。</p>
         </div>
       </details>
     </section>
@@ -2018,114 +1940,6 @@
       SplitCalib.rememberCurrent();
       kEl.dispatchEvent(new Event('input', { bubbles: true }));
       setHint('已写入 k = ' + k.toFixed(3) + '（实测 ' + actual.toFixed(1) + ' mm），并记到当前机器：' + SplitCalib.labelOf(SplitCalib.machineKey()) + '。');
-    }
-
-    // ---------- 支撑力参考：收卷轴支撑力标定（草案新增） ----------
-    const SupportCalib = {
-      STORAGE_PREFIX: 'biao-lc-support-',
-      AXIS_KEY: 'biao-lc-support-axis',
-      AXES: [
-        { key: 'A', label: 'A 轴' },
-        { key: 'B', label: 'B 轴' },
-      ],
-      /** 参考表的单轴幅宽档（mm） */
-      TABLE_WIDTHS: [150, 200, 300, 400, 600, 800, 1000, 1200],
-
-      axisKey() {
-        const sel = document.getElementById('supAxis');
-        const v = sel ? sel.value : 'A';
-        return this.AXES.some((a) => a.key === v) ? v : 'A';
-      },
-
-      labelOf(key) {
-        const a = this.AXES.find((x) => x.key === key);
-        return a ? a.label : 'A 轴';
-      },
-
-      /** 读取某根轴记住的标定：{ p0 空载基准 MPa, b 系数 MPa/kg } */
-      read(axis) {
-        try {
-          const raw = localStorage.getItem(this.STORAGE_PREFIX + axis);
-          if (raw === null || raw === '') return { p0: 0, b: 0 };
-          const obj = JSON.parse(raw);
-          const p0 = Number(obj && obj.p0);
-          const b = Number(obj && obj.b);
-          return {
-            p0: Number.isFinite(p0) && p0 >= 0 ? p0 : 0,
-            b: Number.isFinite(b) && b > 0 ? b : 0,
-          };
-        } catch (e) { return { p0: 0, b: 0 }; }
-      },
-
-      write(axis, cal) {
-        try {
-          localStorage.setItem(this.STORAGE_PREFIX + axis, JSON.stringify({ p0: cal.p0, b: cal.b }));
-          localStorage.setItem(this.AXIS_KEY, axis);
-        } catch (e) { /* 存储被禁用时忽略 */ }
-      },
-
-      isCalibrated(cal) { return !!(cal && cal.b > 0); },
-
-      fmtP(v) { return Number.isFinite(v) ? (Math.round(v * 1000) / 1000).toFixed(3) : '—'; },
-
-      /** 系数显示成 MPa/100kg（b 的 100 倍） */
-      fmtB(b) { return Number.isFinite(b) ? (Math.round(b * 1000) / 1000).toFixed(3) : '—'; },
-
-      /** 切换 / 恢复轴：把该轴记住的标定填进输入框并提示 */
-      applyAxis(clearWhenEmpty) {
-        const key = this.axisKey();
-        try { localStorage.setItem(this.AXIS_KEY, key); } catch (e) { /* 忽略 */ }
-        const cal = this.read(key);
-        const calibrated = this.isCalibrated(cal);
-        const p0El = document.getElementById('supP0');
-        if (p0El && (calibrated || clearWhenEmpty)) {
-          p0El.value = calibrated ? String(this.fmtP(cal.p0)) : '';
-          try { p0El.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) { /* 忽略 */ }
-        }
-        const hint = document.getElementById('supCalibHint');
-        if (hint) {
-          hint.textContent = calibrated
-            ? '当前 ' + this.labelOf(key) + '：空载基准 ' + this.fmtP(cal.p0) + ' MPa，系数 ' + this.fmtB(cal.b * 100) + ' MPa/100kg（本机已记）'
-            : '当前 ' + this.labelOf(key) + '：还没标定，填标定点后点「算系数」';
-        }
-      },
-
-      init() {
-        const sel = document.getElementById('supAxis');
-        if (sel) {
-          try {
-            const saved = localStorage.getItem(this.AXIS_KEY);
-            if (saved && this.AXES.some((a) => a.key === saved)) sel.value = saved;
-          } catch (e) { /* 忽略 */ }
-          sel.addEventListener('change', () => this.applyAxis(true));
-        }
-        this.applyAxis(false);
-        const btn = document.getElementById('supCalibBtn');
-        if (btn && btn.addEventListener) btn.addEventListener('click', calibrateSupport);
-      },
-    };
-
-    /** 标定：b =（实测支撑力 p1 − 空载基准 p0）÷ 标定点单轴满卷重 W1，存到当前轴 */
-    function calibrateSupport() {
-      const hint = document.getElementById('supCalibHint');
-      const setHint = (msg) => { if (hint) hint.textContent = msg; };
-      const axis = SupportCalib.axisKey();
-      const p0El = document.getElementById('supP0');
-      const p0Raw = p0El ? String(p0El.value).trim() : '';
-      const p0 = p0Raw === '' ? 0 : parseFloat(p0Raw);
-      const w1El = document.getElementById('supCalW');
-      const p1El = document.getElementById('supCalP');
-      const W1 = parseFloat(w1El ? w1El.value : '');
-      const p1 = parseFloat(p1El ? p1El.value : '');
-      if (!Number.isFinite(p0) || p0 < 0) { setHint('空载基准填 0 或正数（留空按 0）。'); return; }
-      if (!Number.isFinite(W1) || W1 <= 0) { setHint('请先填标定点的单轴满卷重（kg）。'); return; }
-      if (!Number.isFinite(p1) || p1 <= 0) { setHint('请先填标定点的支撑力表值（MPa）。'); return; }
-      if (p1 <= p0) { setHint('支撑力表值要大于空载基准（p1 > p0）。'); return; }
-      const b = (p1 - p0) / W1;
-      SupportCalib.write(axis, { p0, b });
-      setHint('已存到 ' + SupportCalib.labelOf(axis) + '：空载基准 ' + SupportCalib.fmtP(p0) + ' MPa，系数 '
-        + SupportCalib.fmtB(b * 100) + ' MPa/100kg（每 100kg 卷重加 ' + SupportCalib.fmtP(b * 100) + ' MPa）。');
-      try { CalcEngine.support(); } catch (e) { /* 忽略 */ }
     }
 
     // ---------- 分条排刀（饼数法，草案新增） ----------
@@ -7668,63 +7482,10 @@
         setOut(D_final.toFixed(1), ((D_final - D_newCore) / 2).toFixed(1));
       },
 
-      support() {
-        const get = (id) => document.getElementById(id);
-        const val = (id, def) => {
-          const el = get(id);
-          return el ? Utils.validate(el.value, def === undefined ? 0 : def) : (def === undefined ? 0 : def);
-        };
-        const gram = val('supGrammage');
-        const width = val('supWidth');
-        const length = val('supLength');
-        const manualWeight = val('supWeight');
-        const axis = SupportCalib.axisKey();
-        const cal = SupportCalib.read(axis);
-        const calibrated = SupportCalib.isCalibrated(cal);
-        let W = NaN;
-        if (manualWeight > 0) W = manualWeight;
-        else if (gram > 0 && width > 0 && length > 0) W = (gram * width * length) / 1e6;
-        const hasW = Number.isFinite(W) && W > 0;
-        const wOut = get('supWeightVal');
-        if (wOut) wOut.textContent = hasW ? W.toFixed(1) : '—';
-        const coeffOut = get('supCoeffVal');
-        if (coeffOut) coeffOut.textContent = calibrated ? SupportCalib.fmtB(cal.b * 100) : '—';
-        const pLabel = get('supPLabel');
-        if (pLabel) pLabel.textContent = calibrated ? '支撑力参考' : '支撑力参考（未标定）';
-        const pOut = get('supPVal');
-        if (pOut) pOut.textContent = (calibrated && hasW) ? SupportCalib.fmtP(cal.p0 + cal.b * W) : '—';
-        this.renderSupportTable({ gram, width, length, manualWeight, cal, calibrated });
-      },
-
-      renderSupportTable(ctx) {
-        const wrap = document.getElementById('supTableWrap');
-        if (!wrap) return;
-        const hasBase = ctx.manualWeight > 0 || (ctx.gram > 0 && ctx.length > 0);
-        if (!(ctx.width > 0) || !hasBase) {
-          wrap.innerHTML = '<div class="strip-mono">填「单轴幅宽」和「克重 + 满卷米数」（或直接填单轴满卷重）后出参考表。</div>';
-          return;
-        }
-        let h = '<table class="strip-table"><thead><tr><th>单轴幅宽 (mm)</th><th>单轴满卷重 (kg)</th><th>支撑力参考 (MPa)</th></tr></thead><tbody>';
-        SupportCalib.TABLE_WIDTHS.forEach((w) => {
-          const ww = ctx.manualWeight > 0
-            ? (ctx.manualWeight * w) / ctx.width
-            : (ctx.gram * w * ctx.length) / 1e6;
-          const p = ctx.calibrated ? ctx.cal.p0 + ctx.cal.b * ww : NaN;
-          const isCurrent = Math.abs(w - ctx.width) < 0.5;
-          h += '<tr' + (isCurrent ? ' style="font-weight:700"' : '') + '>'
-            + '<td class="num">' + w + (isCurrent ? '（当前）' : '') + '</td>'
-            + '<td class="num">' + (Number.isFinite(ww) && ww > 0 ? ww.toFixed(1) : '—') + '</td>'
-            + '<td class="num">' + (Number.isFinite(p) ? p.toFixed(3) : '—') + '</td></tr>';
-        });
-        h += '</tbody></table>';
-        wrap.innerHTML = h;
-      },
-
       runAll() {
         this.length();
         this.split();
         this.merge();
-        this.support();
       },
     };
 
@@ -7740,7 +7501,6 @@
       try { ThemeManager.init(); } catch (e) { /* 忽略 */ }
       try { Utils.loadInputs(); } catch (e) { /* 恢复失败不影响使用 */ }
       try { SplitCalib.init(); } catch (e) { console.warn('校准模块初始化异常', e); }
-      try { SupportCalib.init(); } catch (e) { console.warn('支撑力模块初始化异常', e); }
       try { StripPlan.init(); } catch (e) { console.warn('分条排刀模块初始化异常', e); }
       setTimeout(() => { try { CalcEngine.runAll(); } catch (e) { console.warn('计算异常', e); } }, 100);
       setTimeout(() => {
